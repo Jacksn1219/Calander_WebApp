@@ -1,3 +1,6 @@
+using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
@@ -20,7 +23,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     public async Task<List<EventParticipationModel>> GetParticipantsByEventIdAsync(int eventId)
     {
         return await _context.EventParticipations
-            .Where(ep => ep.EventId == eventId)
+            .Where(ep => ep.Id == eventId)
             .ToListAsync();
     }
 
@@ -33,7 +36,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     public async Task<bool> IsUserParticipatingAsync(int eventId, int userId)
     {
         return await _context.EventParticipations
-            .AnyAsync(ep => ep.EventId == eventId && ep.UserId == userId);
+            .AnyAsync(ep => ep.Id == eventId && ep.UserId == userId);
     }
 
     /// <summary>
@@ -41,32 +44,32 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// </summary>
     /// <param name="participation"></param>
     /// <returns></returns>
-    public async Task<bool> AddParticipantAsync(EventParticipationModel participation)
+    public override async Task<EventParticipationModel> Post(EventParticipationModel participation)
     {
-        if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
-            return false;
+        if (await IsUserParticipatingAsync(participation.Id!.Value, participation.UserId))
+            return null!;
 
         _context.EventParticipations.Add(participation);
         await _context.SaveChangesAsync();
-        return true;
+        return participation;
     }
 
     /// <summary>
     /// Remove a participant from an event
     /// </summary>
-    /// <param name="eventId"></param>
+    /// <param name="Id"></param>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<bool> RemoveParticipantAsync(int eventId, int userId)
+    public override async Task<EventParticipationModel?> Delete(int Id)
     {
         var participation = await _context.EventParticipations
-            .FirstOrDefaultAsync(ep => ep.EventId == eventId && ep.UserId == userId);
+            .FirstOrDefaultAsync(ep => ep.Id == Id);
 
         if (participation == null)
-            return false;
+            return null;
 
         _context.EventParticipations.Remove(participation);
         await _context.SaveChangesAsync();
-        return true;
+        return participation;
     }
 }

@@ -4,6 +4,9 @@ namespace Calender_WebApp.Services.Interfaces
 {
     public interface IRoomBookingsService : ICrudService<RoomBookingsModel>
     {
+        public Task<List<RoomBookingsModel>> GetBookingsForRoomAsync(int roomId);
+        public Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end);
+
         // Add any additional methods specific to RoomBookings here if needed
     }
 }

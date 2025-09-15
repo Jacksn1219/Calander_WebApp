@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
 {
@@ -21,16 +22,25 @@ namespace Calender_WebApp.Models
     public class OfficeAttendanceModel : IDbItem
     {
         /// <summary>
-        /// Unique identifier for the attendance record.
+        /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Column("attendance_id", Order = 0)]
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
+        /// Unique identifier for the attendance record.
+        /// </summary>
+        [Required]
+        [Column("attendance_id", Order = 1)]
         public int AttendanceId { get; set; }
 
         /// <summary>
         /// ID of the employee associated with this attendance record.
         /// </summary>
-        [Column("user_id", Order = 1)]
+        [Key]
+        [Column("user_id", Order = 2)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -42,14 +52,14 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Date of the attendance.
         /// </summary>
-        [Column("date", Order = 2)]
+        [Column("date", Order = 3)]
         [Required]
         public DateTime Date { get; set; }
 
         /// <summary>
         /// Attendance status (Present, Absent, Remote).
         /// </summary>
-        [Column("status", Order = 3)]
+        [Column("status", Order = 4)]
         [Required]
         public AttendanceStatus Status { get; set; }
     }

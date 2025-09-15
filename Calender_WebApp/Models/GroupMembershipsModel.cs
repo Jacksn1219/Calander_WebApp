@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
 {
@@ -10,10 +11,17 @@ namespace Calender_WebApp.Models
     public class GroupMembershipsModel : IDbItem
     {
         /// <summary>
-        /// ID of the employee in this membership.
+        /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Column("user_id", Order = 0)]
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
+        /// ID of the employee in this membership.
+        /// </summary>
+        [Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -26,7 +34,7 @@ namespace Calender_WebApp.Models
         /// ID of the group in this membership.
         /// </summary>
         [Key]
-        [Column("group_id", Order = 1)]
+        [Column("group_id", Order = 2)]
         [ForeignKey(nameof(Group))]
         public int GroupId { get; set; }
 

@@ -1,9 +1,12 @@
+using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
+
 namespace Calender_WebApp.Services
 {
     /// <summary>
     /// Service for managing Employee entities.
     /// </summary>
-    public class EmployeesService : CrudService<EmployeeModel>, IEmployeeService
+    public class EmployeesService : CrudService<EmployeesModel>, IEmployeesService
     {
         private readonly DatabaseContext _context;
 
@@ -17,7 +20,7 @@ namespace Calender_WebApp.Services
         /// </summary>
         /// <param name="email">The employee's email.</param>
         /// <returns>The employee if found; otherwise, null.</returns>
-        public async Task<EmployeeModel?> GetEmployeeByEmailAsync(string email)
+        public async Task<EmployeesModel?> GetEmployeeByEmailAsync(string email)
         {
             return await _context.Employees
                 .AsNoTracking()

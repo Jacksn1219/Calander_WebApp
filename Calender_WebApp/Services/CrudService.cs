@@ -1,3 +1,7 @@
+using Calender_WebApp.Models.Interfaces;
+using Calender_WebApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
@@ -9,79 +13,95 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// The DbContext used for database operations.
     /// </summary>
-    private readonly DbContext _context;
+    protected readonly DbContext _context;
 
     /// <summary>
     /// The DbSet representing the collection of TEntity in the database.
     /// </summary>
-    private readonly DbSet<TEntity> _dbSet;
+    protected readonly DbSet<TEntity> _dbSet;
 
     public CrudService(DbContext context)
     {
-        _context = context;
+        _context = context ?? throw new ArgumentNullException(nameof(context));
         _dbSet = _context.Set<TEntity>();
     }
 
     /// <summary>
     /// Deletes an entity by its ID after checking for existence.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     public virtual async Task<TEntity?> Delete(int id)
     {
-        var item = await GetById(id);
+        var item = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (item == null) return null;
+
         _dbSet.Remove(item);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync().ConfigureAwait(false);
         return item;
     }
 
     /// <summary>
     /// Gets all entities of type TEntity.
     /// </summary>
-    /// <returns></returns>
-    public virtual async Task<TEntity[]> Get()
+    public virtual async Task<TEntity[]?> Get()
     {
-        return await _dbSet.ToArrayAsync();
+        return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
     }
 
     /// <summary>
     /// Gets an entity by its ID.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns></returns>
     public virtual async Task<TEntity?> GetById(int id)
     {
-        return await _dbSet.SingleOrDefaultAsync(x => x.Id == id);
+        return await _dbSet.FindAsync(id).ConfigureAwait(false);
     }
 
     /// <summary>
     /// Creates a new entity in the database.
     /// </summary>
-    /// <param name="model"></param>
-    /// <returns></returns>
     public virtual async Task<TEntity> Post(TEntity model)
     {
+        if (model == null) throw new ArgumentNullException(nameof(model));
         model.Id = default; // Set to 0 for int, null for nullable types
-        var entry = await _dbSet.AddAsync(model);
-        await _context.SaveChangesAsync();
+        var entry = await _dbSet.AddAsync(model).ConfigureAwait(false);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
         return entry.Entity;
     }
 
     /// <summary>
     /// Updates an existing entity in the database.
     /// </summary>
-    /// <param name="id"></param>
-    /// <param name="newTEntity"></param>
-    /// <returns></returns>
     public virtual async Task<TEntity?> Put(int id, TEntity newTEntity)
     {
-        var dbTEntity = await GetById(id);
+        if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
+        var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbTEntity == null) return null;
 
         newTEntity.Id = dbTEntity.Id; // Ensure the ID is not changed
         _context.Entry(dbTEntity).CurrentValues.SetValues(newTEntity);
-        await _context.SaveChangesAsync();
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+        return dbTEntity;
+    }
+
+    /// <summary>
+    /// Partially updates an entity in the database.
+    /// </summary>
+    public virtual async Task<TEntity?> Patch(int id, TEntity newTEntity)
+    {
+        if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
+        var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
+        if (dbTEntity == null) return null;
+
+        foreach (var property in typeof(TEntity).GetProperties())
+        {
+            if (property.Name == nameof(IDbItem.Id)) continue; // Don't update Id
+            var newValue = property.GetValue(newTEntity);
+            if (newValue != null)
+            {
+                property.SetValue(dbTEntity, newValue);
+            }
+        }
+
+        await _context.SaveChangesAsync().ConfigureAwait(false);
         return dbTEntity;
     }
 }

@@ -1,3 +1,6 @@
+using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
@@ -17,7 +20,7 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<List<GroupMembershipdsModel>> GetMembershipsByUserIdAsync(int userId)
+    public async Task<List<GroupMembershipsModel>> GetMembershipsByUserIdAsync(int userId)
     {
         return await _context.GroupMembershipds
             .AsNoTracking()
@@ -31,42 +34,37 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// <param name="userId"></param>
     /// <param name="groupId"></param>
     /// <returns></returns>
-    public async Task<bool> AddUserToGroupAsync(int userId, int groupId)
+    public override async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
-        var exists = await _context.GroupMembershipds
-            .AnyAsync(gm => gm.UserId == userId && gm.GroupId == groupId);
+        var exists = await _context.GroupMemberships
+            .AnyAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
 
         if (exists)
-            return false;
+            return null!;
 
-        var membership = new GroupMembershipdsModel
-        {
-            UserId = userId,
-            GroupId = groupId
-        };
-
-        _context.GroupMembershipds.Add(membership);
+        _context.GroupMemberships.Add(entity);
         await _context.SaveChangesAsync();
-        return true;
+        return entity;
     }
 
     /// <summary>
     /// Removes a user from a group.
+    /// Use Delete(int id) to delete entire Group.
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="groupId"></param>
     /// <returns></returns>
-    public async Task<bool> RemoveUserFromGroupAsync(int userId, int groupId)
+    public async Task<GroupMembershipsModel?> Delete(GroupMembershipsModel entity)
     {
-        var membership = await _context.GroupMembershipds
-            .FirstOrDefaultAsync(gm => gm.UserId == userId && gm.GroupId == groupId);
+        var membership = await _context.GroupMemberships
+            .FirstOrDefaultAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
 
         if (membership == null)
-            return false;
+            return null;
 
-        _context.GroupMembershipds.Remove(membership);
+        _context.GroupMemberships.Remove(membership);
         await _context.SaveChangesAsync();
-        return true;
+        return membership;
     }
 
     // Add additional services that are not related to CRUD here

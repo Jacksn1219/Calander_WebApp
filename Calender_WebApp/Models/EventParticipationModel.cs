@@ -1,5 +1,6 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
 {
@@ -20,10 +21,18 @@ namespace Calender_WebApp.Models
     public class EventParticipationModel : IDbItem
     {
         /// <summary>
+        /// Primary key for the EventParticipation entity.
+        /// </summary>
+        [Key]
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
         /// ID of the related event.
         /// </summary>
         [Key]
-        [Column("event_id", Order = 0)]
+        [Column("event_id", Order = 1)]
         [ForeignKey(nameof(Event))]
         public int EventId { get; set; }
 
@@ -36,7 +45,7 @@ namespace Calender_WebApp.Models
         /// ID of the user participating in the event.
         /// </summary>
         [Key]
-        [Column("user_id", Order = 1)]
+        [Column("user_id", Order = 2)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -49,7 +58,7 @@ namespace Calender_WebApp.Models
         /// Status of the user's participation (Pending, Accepted, Declined).
         /// </summary>
         [Required]
-        [Column("status", Order = 2)]
+        [Column("status", Order = 3)]
         public ParticipationStatus Status { get; set; }
     }
 }

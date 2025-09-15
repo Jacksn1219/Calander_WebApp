@@ -1,3 +1,7 @@
+using System.ComponentModel.DataAnnotations;
+using System.ComponentModel.DataAnnotations.Schema;
+using Calender_WebApp.Models.Interfaces;
+
 namespace Calender_WebApp.Models
 {
     /// <summary>
@@ -16,17 +20,25 @@ namespace Calender_WebApp.Models
     public class EmployeesModel : IDbItem
     {
         /// <summary>
-        /// Unique identifier of the employee.
+        /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Column("user_id", Order = 0)]
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
+        /// Unique identifier of the employee.
+        /// </summary>
+        [Required]
+        [Column("user_id", Order = 1)]
         public int UserId { get; set; }
 
         /// <summary>
         /// Full name of the employee.
         /// </summary>
         [Required]
-        [Column("name", Order = 1)]
+        [Column("name", Order = 2)]
         public string Name { get; set; } = string.Empty;
 
         /// <summary>
@@ -34,21 +46,21 @@ namespace Calender_WebApp.Models
         /// </summary>
         [Required]
         [EmailAddress]
-        [Column("email", Order = 2)]
+        [Column("email", Order = 3)]
         public string Email { get; set; } = string.Empty;
 
         /// <summary>
         /// Role of the employee (Admin | User).
         /// </summary>
         [Required]
-        [Column("role", Order = 3)]
+        [Column("role", Order = 4)]
         public UserRole Role { get; set; }
 
         /// <summary>
         /// Password of the employee (hashed).
         /// </summary>
         [Required]
-        [Column("password", Order = 4)]
+        [Column("password", Order = 5)]
         public string Password { get; set; } = string.Empty;
 
         /// <summary>

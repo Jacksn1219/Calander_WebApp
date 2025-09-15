@@ -1,6 +1,8 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Calender_WebApp.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Models
 {
@@ -11,10 +13,19 @@ namespace Calender_WebApp.Models
     public class RoomBookingsModel : IDbItem
     {
         /// <summary>
+        /// Primary key for the GroupMembership entity.
+        /// </summary>
+        [Key]
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
         /// ID of the booked room.
         /// </summary>
         [Key]
-        [Column("room_id", Order = 0)]
+        [Column("room_id", Order = 1)]
+        [Required]
         [ForeignKey(nameof(Room))]
         public int RoomId { get; set; }
 
@@ -27,7 +38,8 @@ namespace Calender_WebApp.Models
         /// ID of the employee who booked the room.
         /// </summary>
         [Key]
-        [Column("user_id", Order = 1)]
+        [Column("user_id", Order = 2)]
+        [Required]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -39,28 +51,28 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Date of the booking.
         /// </summary>
-        [Column("booking_date", Order = 2)]
+        [Column("booking_date", Order = 3)]
         [Required]
         public DateTime BookingDate { get; set; }
 
         /// <summary>
         /// Start time of the booking.
         /// </summary>
-        [Column("start_time", Order = 3)]
+        [Column("start_time", Order = 4)]
         [Required]
         public TimeSpan StartTime { get; set; }
 
         /// <summary>
         /// End time of the booking.
         /// </summary>
-        [Column("end_time", Order = 4)]
+        [Column("end_time", Order = 5)]
         [Required]
         public TimeSpan EndTime { get; set; }
 
         /// <summary>
         /// Purpose of the booking.
         /// </summary>
-        [Column("purpose", Order = 5)]
+        [Column("purpose", Order = 6)]
         [Required]
         public string Purpose { get; set; } = string.Empty;
     }

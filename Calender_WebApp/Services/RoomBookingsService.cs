@@ -1,9 +1,12 @@
+using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
 /// Service for managing room bookings.
 /// </summary>
-public class RoomBookingsService : CrudService<RoomBookingModel>, IRoomBookingsService
+public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookingsService
 {
     private readonly DatabaseContext _context;
 
@@ -15,7 +18,7 @@ public class RoomBookingsService : CrudService<RoomBookingModel>, IRoomBookingsS
     /// <summary>
     /// Gets all bookings for a specific room.
     /// </summary>
-    public async Task<List<RoomBookingModel>> GetBookingsForRoomAsync(int roomId)
+    public async Task<List<RoomBookingsModel>> GetBookingsForRoomAsync(int roomId)
     {
         return await _context.RoomBookings
             .Where(rb => rb.RoomId == roomId)

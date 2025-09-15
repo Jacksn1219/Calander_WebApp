@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
 {
@@ -11,30 +12,38 @@ namespace Calender_WebApp.Models
     public class RoomsModel : IDbItem
     {
         /// <summary>
-        /// Unique identifier of the room.
+        /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Column("room_id", Order = 0)]
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
+        /// Unique identifier of the room.
+        /// </summary>
+        [Required]
+        [Column("room_id", Order = 1)]
         public int RoomId { get; set; }
 
         /// <summary>
         /// Name of the room.
         /// </summary>
         [Required]
-        [Column("room_name", Order = 1)]
+        [Column("room_name", Order = 2)]
         public string RoomName { get; set; } = string.Empty;
 
         /// <summary>
         /// Capacity of the room.
         /// </summary>
-        [Column("capacity", Order = 2)]
+        [Column("capacity", Order = 3)]
         public int Capacity { get; set; }
 
         /// <summary>
         /// Location of the room.
         /// </summary>
         [Required]
-        [Column("location", Order = 3)]
+        [Column("location", Order = 4)]
         public string Location { get; set; } = string.Empty;
 
         /// <summary>

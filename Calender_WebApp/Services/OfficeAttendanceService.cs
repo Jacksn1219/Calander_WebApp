@@ -1,3 +1,6 @@
+using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
@@ -36,27 +39,5 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Marks attendance for a user on a specific date
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="date"></param>
-    /// <returns></returns>
-    public async Task<bool> MarkAttendanceAsync(int userId, DateTime date)
-    {
-        var existing = await GetAttendanceByUserAndDateAsync(userId, date);
-        if (existing != null)
-            return false; // Already marked
-
-        var attendance = new OfficeAttendanceModel
-        {
-            UserId = userId,
-            Date = date,
-            // Set other properties as needed
-        };
-
-        _context.OfficeAttendances.Add(attendance);
-        await _context.SaveChangesAsync();
-        return true;
-    }
+    // Add any additional methods specific to OfficeAttendance here if needed
 }

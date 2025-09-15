@@ -1,9 +1,12 @@
+using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
 /// Service for managing Room entities.
 /// </summary>
-public class RoomsService : CrudService<RoomModel>, IRoomService
+public class RoomsService : CrudService<RoomsModel>, IRoomsService
 {
     private readonly DatabaseContext _context;
 
@@ -15,15 +18,15 @@ public class RoomsService : CrudService<RoomModel>, IRoomService
     /// <summary>
     /// Gets a room by its name.
     /// </summary>
-    public async Task<RoomModel?> GetRoomByNameAsync(string name)
+    public async Task<RoomsModel?> GetRoomByNameAsync(string name)
     {
-        return await _context.Rooms.FirstOrDefaultAsync(r => r.Name == name);
+        return await _context.Rooms.FirstOrDefaultAsync(r => r.RoomName == name);
     }
 
     /// <summary>
     /// Gets all available rooms.
     /// </summary>
-    public async Task<List<RoomModel>> GetAvailableRoomsAsync()
+    public async Task<List<RoomsModel>> GetAvailableRoomsAsync()
     {
         return await _context.Rooms.Where(r => r.IsAvailable).ToListAsync();
     }

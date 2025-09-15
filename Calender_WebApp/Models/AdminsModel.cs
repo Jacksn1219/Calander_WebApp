@@ -25,17 +25,25 @@ namespace Calender_WebApp.Models
     public class AdminsModel : IDbItem
     {
         /// <summary>
-        /// Unique identifier of the admin record.
+        /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Column("admin_id", Order = 0)]
-        public int AdminId { get; set; }
+        [Required]
+        [Column("id", Order = 0)]
+        public int? Id { get; set; }
+
+        /// <summary>
+        /// Unique identifier of the admin record.
+        /// </summary>
+        [Required]
+        [Column("admin_id", Order = 1)]
+        public int? AdminId { get; set; } = default!;
 
         /// <summary>
         /// ID of the employee associated with this admin record.
         /// </summary>
         [Required]
-        [Column("user_id", Order = 1)]
+        [Column("user_id", Order = 2)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -48,7 +56,7 @@ namespace Calender_WebApp.Models
         /// Permissions assigned to this admin.
         /// </summary>
         [Required]
-        [Column("permissions", Order = 2)]
+        [Column("permissions", Order = 3)]
         public AdminPermission Permissions { get; set; }
     }
 }
