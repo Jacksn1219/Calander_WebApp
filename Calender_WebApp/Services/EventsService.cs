@@ -20,7 +20,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns></returns>
-    public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(Guid userId)
+    public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
     {
         return await _context.Events
             .Where(e => e.UserId == userId)
