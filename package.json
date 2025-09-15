@@ -6,5 +6,8 @@
     "build": "tsc ",
     "watch": "tsc -w",
     "restart": "npx tsc"
+  },
+  "dependencies": {
+    "yarn": "^1.22.22"
   }
 }
