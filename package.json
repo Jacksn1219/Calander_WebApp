@@ -5,6 +5,7 @@
   "scripts": {
     "build": "tsc ",
     "watch": "tsc -w",
-    "restart": "npx tsc"
+    "restart": "npx tsc",
+    "start": "node index.js"
   }
 }
