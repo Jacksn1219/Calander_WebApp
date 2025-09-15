@@ -5,9 +5,7 @@
   "scripts": {
     "build": "tsc ",
     "watch": "tsc -w",
-    "restart": "npx tsc"
-  },
-  "dependencies": {
-    "yarn": "^1.22.22"
+    "restart": "npx tsc",
+    "start": "node index.js"
   }
 }
