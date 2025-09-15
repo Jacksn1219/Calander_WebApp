@@ -50,5 +50,12 @@ namespace Calender_WebApp.Models
         /// Collection of bookings associated with this room.
         /// </summary>
         public virtual ICollection<RoomBookingsModel> RoomBookings { get; set; } = new List<RoomBookingsModel>();
+
+        /// <summary>
+        /// Indicates whether the room is currently available.
+        /// Not mapped to the database.
+        /// </summary>
+        [NotMapped]
+        public bool IsAvailable { get; set; } = false;
     }
 }
