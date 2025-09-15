@@ -13,9 +13,9 @@ class Program
         builder.Services.AddControllersWithViews();
 
         // Register dependency injection for services
-        builder.Services.AddScoped<IAdminService, AdminService>();
-        builder.Services.AddScoped<IEmployeeService, EmployeesService>();
-        builder.Services.AddScoped<IEventParticipantsService, EventParticipantsService>();
+        builder.Services.AddScoped<IAdminsService, AdminsService>();
+        builder.Services.AddScoped<IEmployeesService, EmployeesService>();
+        builder.Services.AddScoped<IEventParticipationService, EventParticipationService>();
         builder.Services.AddScoped<IEventsService, EventsService>();
         builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
