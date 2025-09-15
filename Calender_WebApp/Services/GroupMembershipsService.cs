@@ -22,7 +22,7 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// <returns></returns>
     public async Task<List<GroupMembershipsModel>> GetMembershipsByUserIdAsync(int userId)
     {
-        return await _context.GroupMembershipds
+        return await _context.GroupMemberships
             .AsNoTracking()
             .Where(gm => gm.UserId == userId)
             .ToListAsync();
