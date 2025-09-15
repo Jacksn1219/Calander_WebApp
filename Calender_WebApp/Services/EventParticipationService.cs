@@ -46,7 +46,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// <returns></returns>
     public override async Task<EventParticipationModel> Post(EventParticipationModel participation)
     {
-        if (await IsUserParticipatingAsync(participation.Id!.Value, participation.UserId))
+        if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
             return null!;
 
         _context.EventParticipations.Add(participation);
