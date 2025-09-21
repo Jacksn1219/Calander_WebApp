@@ -6,9 +6,13 @@ namespace Calender_WebApp.Services;
 
 /// <summary>
 /// Generic CRUD service providing basic Create, Read, Update, Delete operations for entities.
+/// This service is intended for entities that implement both IDbItem and IDbItemJunction interfaces.
+/// IDbItem indicates compatibility with generic CRUD operations,
+/// while IDbItemJunction indicates the entity represents a junction table (many-to-many relationship).
+/// Note: Ensure that TEntity is suitable for CRUD operations as junction tables may have specific constraints
 /// </summary>
 /// <typeparam name="TEntity">The type of the Model entity.</typeparam>
-public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity : class, IDbItem
+public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity : class, IDbItem, IDbItemJunction
 {
     /// <summary>
     /// The DbContext used for database operations.

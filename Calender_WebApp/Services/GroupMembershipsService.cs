@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGroupMembershipsService
 {
-    private readonly DatabaseContext _context;
-
-    public GroupMembershipsService(DatabaseContext ctx) : base(ctx)
-    {
-        _context = ctx;
-    }
+    public GroupMembershipsService(DatabaseContext ctx) : base(ctx) { }
 
     /// <summary>
     /// Covers the Delete method from CrudService, but is not supported.

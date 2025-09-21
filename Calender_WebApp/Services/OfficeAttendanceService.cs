@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOfficeAttendanceService
 {
-    private readonly DatabaseContext _context;
-
-    public OfficeAttendanceService(DatabaseContext ctx) : base(ctx)
-    {
-        _context = ctx;
-    }
+    public OfficeAttendanceService(DatabaseContext ctx) : base(ctx) { }
 
     /// <summary>
     /// Get attendance for a specific user on a specific date

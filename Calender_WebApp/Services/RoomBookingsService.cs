@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookingsService
 {
-    private readonly DatabaseContext _context;
-
-    public RoomBookingsService(DatabaseContext ctx) : base(ctx)
-    {
-        _context = ctx;
-    }
+    public RoomBookingsService(DatabaseContext ctx) : base(ctx) { }
 
     /// <summary>
     /// Getting a room booking by its ID is not supported. Use GetBookingsForRoomAsync instead.

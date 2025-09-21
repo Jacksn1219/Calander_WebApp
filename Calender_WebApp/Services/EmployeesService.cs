@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services
     /// </summary>
     public class EmployeesService : CrudService<EmployeesModel>, IEmployeesService
     {
-        private readonly DatabaseContext _context;
-
-        public EmployeesService(DatabaseContext ctx) : base(ctx)
-        {
-            _context = ctx;
-        }
+        public EmployeesService(DatabaseContext ctx) : base(ctx) { }
 
         /// <summary>
         /// Gets an employee by their email address.

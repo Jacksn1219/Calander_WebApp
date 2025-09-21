@@ -8,12 +8,10 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class GroupsService : CrudService<GroupsModel>, IGroupsService
 {
-    private readonly DatabaseContext _context;
     private readonly IGroupMembershipsService _groupMembershipsService;
 
     public GroupsService(DatabaseContext ctx, IGroupMembershipsService groupMembershipsService) : base(ctx)
     {
-        _context = ctx;
         _groupMembershipsService = groupMembershipsService;
     }
 

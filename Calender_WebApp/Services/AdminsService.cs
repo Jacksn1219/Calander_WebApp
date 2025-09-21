@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class AdminsService : CrudService<AdminsModel>, IAdminsService
 {
-    private readonly DatabaseContext _context;
-
-    public AdminsService(DatabaseContext ctx) : base(ctx)
-    {
-        _context = ctx;
-    }
+    public AdminsService(DatabaseContext ctx) : base(ctx) { }
 
     /// <summary>
     /// Get an admin by their username
@@ -24,7 +19,7 @@ public class AdminsService : CrudService<AdminsModel>, IAdminsService
     /// <exception cref="InvalidOperationException">Thrown when the admin is not found.</exception>
     public async Task<AdminsModel> GetByUsername(string username)
     {
-        return await _context.Admins.FirstOrDefaultAsync(a => a.Username == username).ConfigureAwait(false)
+        return await _dbSet.FirstOrDefaultAsync(a => a.Username == username).ConfigureAwait(false)
                ?? throw new InvalidOperationException("Admin not found.");
     }
 

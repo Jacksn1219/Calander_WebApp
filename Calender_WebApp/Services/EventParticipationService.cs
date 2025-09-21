@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class EventParticipationService : CrudService<EventParticipationModel>, IEventParticipationService
 {
-    private readonly DatabaseContext _context;
-
-    public EventParticipationService(DatabaseContext ctx) : base(ctx)
-    {
-        _context = ctx;
-    }
+    public EventParticipationService(DatabaseContext ctx) : base(ctx) { }
 
     /// <summary>
     /// Covers the Delete method from CrudService, but is not supported.

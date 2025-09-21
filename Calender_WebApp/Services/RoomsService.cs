@@ -9,12 +9,10 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class RoomsService : CrudService<RoomsModel>, IRoomsService
 {
-    private readonly DatabaseContext _context;
     private readonly IRoomBookingsService _roomBookingsService;
 
     public RoomsService(DatabaseContext ctx, IRoomBookingsService rbs) : base(ctx)
     {
-        _context = ctx;
         _roomBookingsService = rbs;
     }
 

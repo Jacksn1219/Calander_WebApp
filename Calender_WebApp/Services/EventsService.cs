@@ -9,12 +9,7 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class EventsService : CrudService<EventsModel>, IEventsService
 {
-    private readonly DatabaseContext _context;
-
-    public EventsService(DatabaseContext ctx) : base(ctx)
-    {
-        _context = ctx;
-    }
+    public EventsService(DatabaseContext ctx) : base(ctx) { }
 
     /// <summary>
     /// Get all events created by a specific user
