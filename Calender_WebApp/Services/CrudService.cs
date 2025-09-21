@@ -5,14 +5,10 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Generic CRUD service providing basic Create, Read, Update, Delete operations for entities.
-/// This service is intended for entities that implement both IDbItem and IDbItemJunction interfaces.
-/// IDbItem indicates compatibility with generic CRUD operations,
-/// while IDbItemJunction indicates the entity represents a junction table (many-to-many relationship).
-/// Note: Ensure that TEntity is suitable for CRUD operations as junction tables may have specific constraints
+/// Generic CRUD service providing basic Create, Read, Update, Delete operations for IDbItem entities.
 /// </summary>
 /// <typeparam name="TEntity">The type of the Model entity.</typeparam>
-public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity : class, IDbItem, IDbItemJunction
+public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity : class, IDbItem
 {
     /// <summary>
     /// The DbContext used for database operations.
@@ -31,8 +27,11 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     }
 
     /// <summary>
-    /// Deletes an entity by its ID after checking for existence.
+    /// Deletes an entity by its ID.
     /// </summary>
+    /// <param name="id"></param>
+    /// <returns>The deleted entity.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entity is not found.</exception>
     public virtual async Task<TEntity> Delete(int id)
     {
         var item = await _dbSet.FindAsync(id).ConfigureAwait(false);
@@ -46,6 +45,7 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Gets all entities of type TEntity.
     /// </summary>
+    /// <returns>List of TEntity</returns>
     public virtual async Task<TEntity[]> Get()
     {
         return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
@@ -54,6 +54,9 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Gets an entity by its ID.
     /// </summary>
+    /// <param name="id"></param>
+    /// <returns>The entity with the specified ID.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the entity is not found.</exception
     public virtual async Task<TEntity> GetById(int id)
     {
         var entity = await _dbSet.FindAsync(id).ConfigureAwait(false);
@@ -63,6 +66,9 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Creates a new entity in the database.
     /// </summary>
+    /// <param name="model"></param>
+    /// <returns>The created entity.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the model is null.</exception>
     public virtual async Task<TEntity> Post(TEntity model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
@@ -78,6 +84,10 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Updates an existing entity in the database.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>The updated entity.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the new entity is null.</exception
     public virtual async Task<TEntity> Put(int id, TEntity newTEntity)
     {
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
@@ -93,6 +103,10 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Partially updates an entity in the database.
     /// </summary>
+    /// <param name="id"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>The updated entity.</returns>
+    /// <exception cref="ArgumentNullException">Thrown when the new entity is null.</exception
     public virtual async Task<TEntity> Patch(int id, TEntity newTEntity)
     {
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));

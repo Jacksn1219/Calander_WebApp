@@ -7,9 +7,16 @@ namespace Calender_WebApp.Services;
 /// <summary>
 /// Service for managing Group Membership entities.
 /// </summary>
-public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGroupMembershipsService
+public class GroupMembershipsService : IGroupMembershipsService
 {
-    public GroupMembershipsService(DatabaseContext ctx) : base(ctx) { }
+    private readonly DatabaseContext _context;
+    private readonly DbSet<GroupMembershipsModel> _dbSet;
+
+    public GroupMembershipsService(DatabaseContext ctx)
+    {
+        _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
+        _dbSet = _context.Set<GroupMembershipsModel>();
+    }
 
     /// <summary>
     /// Covers the Delete method from CrudService, but is not supported.
@@ -17,7 +24,7 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// <param name="id"></param>
     /// <returns>This method is not supported.</returns>
     /// <exception cref="NotSupportedException">Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.</exception>
-    public override Task<GroupMembershipsModel> Delete(int id)
+    public Task<GroupMembershipsModel> Delete(int id)
         => throw new NotSupportedException("Use Delete(GroupMembershipsModel entity) to remove a user from a group.");
 
     /// <summary>
@@ -40,12 +47,21 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     }
 
     /// <summary>
+    /// Gets all entities of type GroupMembershipsModel.
+    /// </summary>
+    /// <returns>List of GroupMembershipsModel</returns>
+    public virtual async Task<GroupMembershipsModel[]> Get()
+    {
+        return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Covers the GetById method from CrudService, but is not supported.
     /// </summary>
     /// <param name="id"></param>
     /// <returns>This method is not supported.</returns>
     /// <exception cref="NotSupportedException">Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.</exception>
-    public override Task<GroupMembershipsModel> GetById(int id)
+    public Task<GroupMembershipsModel> GetById(int id)
         => throw new NotSupportedException("Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.");
 
     /// <summary>
@@ -54,7 +70,7 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// <param name="entity">The group membership entity to add.</param>
     /// <returns>The added group membership entity, or null if the membership already exists.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the membership already exists.</exception>
-    public override async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
+    public async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
         var exists = await _dbSet
             .AnyAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
@@ -73,7 +89,7 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// <param name="entity"></param>
     /// <returns>This method is not supported.</returns>
     /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
-    public override Task<GroupMembershipsModel> Put(int id, GroupMembershipsModel entity)
+    public Task<GroupMembershipsModel> Put(int id, GroupMembershipsModel entity)
         => throw new NotSupportedException("Updating group memberships is not supported. Use Post/Delete to add/remove memberships.");
 
     /// <summary>

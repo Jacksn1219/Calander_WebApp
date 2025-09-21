@@ -7,19 +7,15 @@ namespace Calender_WebApp.Services;
 /// <summary>
 /// Service for managing room bookings.
 /// </summary>
-public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookingsService
+public class RoomBookingsService : IRoomBookingsService
 {
-    public RoomBookingsService(DatabaseContext ctx) : base(ctx) { }
+    private readonly DatabaseContext _context;
+    private readonly DbSet<RoomBookingsModel> _dbSet;
 
-    /// <summary>
-    /// Getting a room booking by its ID is not supported. Use GetBookingsForRoomAsync instead.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Thrown when attempting to get a room booking by ID.</exception>
-    public override Task<RoomBookingsModel> GetById(int id)
+    public RoomBookingsService(DatabaseContext ctx)
     {
-        throw new NotSupportedException("Direct access by ID is not supported for RoomBookings. Use GetBookingsForRoomAsync instead.");
+        _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
+        _dbSet = _context.Set<RoomBookingsModel>();
     }
 
     /// <summary>
@@ -28,10 +24,8 @@ public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookings
     /// <param name="id"></param>
     /// <returns>This method is not supported.</returns>
     /// <exception cref="NotSupportedException">Thrown when attempting to delete a room booking by ID.</exception>
-    public override Task<RoomBookingsModel> Delete(int id)
-    {
-        throw new NotSupportedException("Direct deletion by ID is not supported for RoomBookings. Implement custom deletion logic if needed.");
-    }
+    public Task<RoomBookingsModel> Delete(int id)
+        => throw new NotSupportedException("Direct deletion by ID is not supported for RoomBookings. Implement custom deletion logic if needed.");
 
     /// <summary>
     /// Deletes a room booking based on the provided model details.
@@ -56,6 +50,24 @@ public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookings
         await _context.SaveChangesAsync();
         return booking;
     }
+    
+    /// <summary>
+    /// Gets all entities of type RoomBookingsModel.
+    /// </summary>
+    /// <returns>List of RoomBookingsModel</returns>
+    public virtual async Task<RoomBookingsModel[]> Get()
+    {
+        return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
+    }
+    
+    /// <summary>
+    /// Getting a room booking by its ID is not supported. Use GetBookingsForRoomAsync instead.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Thrown when attempting to get a room booking by ID.</exception>
+    public Task<RoomBookingsModel> GetById(int id)
+        => throw new NotSupportedException("Direct access by ID is not supported for RoomBookings. Use GetBookingsForRoomAsync instead.");
 
     /// <summary>
     /// Updating room bookings is not supported. Use UpdateStartTime, UpdateEndTime or Post methods instead.
@@ -64,10 +76,8 @@ public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookings
     /// <param name="entity"></param>
     /// <returns>This method is not supported.</returns>
     /// <exception cref="NotSupportedException">Thrown when attempting to update a room booking.</exception>
-    public override Task<RoomBookingsModel> Put(int id, RoomBookingsModel entity)
-    {
-        throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
-    }
+    public Task<RoomBookingsModel> Put(int id, RoomBookingsModel entity)
+        => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
 
     /// <summary>
     /// Updates the start time of an existing room booking.
@@ -109,7 +119,7 @@ public class RoomBookingsService : CrudService<RoomBookingsModel>, IRoomBookings
     /// <param name="model"></param>
     /// <returns>The created room booking.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the model is null.</exception>
-    public override async Task<RoomBookingsModel> Post(RoomBookingsModel model)
+    public async Task<RoomBookingsModel> Post(RoomBookingsModel model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 

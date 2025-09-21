@@ -7,9 +7,16 @@ namespace Calender_WebApp.Services;
 /// <summary>
 /// Service for managing Event Participation entities.
 /// </summary>
-public class EventParticipationService : CrudService<EventParticipationModel>, IEventParticipationService
+public class EventParticipationService : IEventParticipationService
 {
-    public EventParticipationService(DatabaseContext ctx) : base(ctx) { }
+    private readonly DatabaseContext _context;
+    private readonly DbSet<EventParticipationModel> _dbSet;
+
+    public EventParticipationService(DatabaseContext ctx)
+    {
+        _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
+        _dbSet = _context.Set<EventParticipationModel>();
+    }
 
     /// <summary>
     /// Covers the Delete method from CrudService, but is not supported.
@@ -17,7 +24,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// <param name="id"></param>
     /// <returns>This function is not supported.</returns>
     /// <exception cref="NotSupportedException">Thrown when trying to delete by ID.</exception>
-    public override Task<EventParticipationModel> Delete(int id)
+    public Task<EventParticipationModel> Delete(int id)
         => throw new NotSupportedException("Use Delete(EventParticipationModel entity) to remove a user's participation from an event.");
 
     /// <summary>
@@ -40,12 +47,21 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     }
 
     /// <summary>
+    /// Gets all entities of type EventParticipationModel.
+    /// </summary>
+    /// <returns>List of EventParticipationModel</returns>
+    public virtual async Task<EventParticipationModel[]> Get()
+    {
+        return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
+    }
+
+    /// <summary>
     /// Covers the GetById method from CrudService, but is not supported.
     /// </summary>
     /// <param name="id"></param>
     /// <returns>This function is not supported.</returns>
     /// <exception cref="NotSupportedException">Thrown when trying to access by ID.</exception>
-    public override Task<EventParticipationModel> GetById(int id)
+    public Task<EventParticipationModel> GetById(int id)
         => throw new NotSupportedException("Direct access by ID is not supported for EventParticipation.Use IsUserParticipatingAsync instead.");
 
     /// <summary>
@@ -56,7 +72,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// <exception cref="ArgumentNullException">Thrown when the participation model is null.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the user is already participating in the event.</exception>
     /// <exception cref="ArgumentException">Thrown when the status is invalid.</exception>
-    public override async Task<EventParticipationModel> Post(EventParticipationModel participation)
+    public async Task<EventParticipationModel> Post(EventParticipationModel participation)
     {
         if (participation == null) throw new ArgumentNullException(nameof(participation));
         if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
@@ -78,7 +94,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// <param name="newTEntity"></param>
     /// <returns>The updated participation record.</returns>
     /// <exception cref="NotSupportedException">Thrown when trying to update an event participation record.</exception>
-    public override Task<EventParticipationModel> Put(int userId, EventParticipationModel newTEntity)
+    public Task<EventParticipationModel> Put(int userId, EventParticipationModel newTEntity)
         => throw new NotSupportedException("Use UpdateStatus(int userId, int eventId, string newStatus) to update the status of an event participation.");
 
     /// <summary>
