@@ -58,13 +58,14 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// </summary>
     /// <param name="entity">The group membership entity to add.</param>
     /// <returns>The added group membership entity, or null if the membership already exists.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the membership already exists.</exception>
     public override async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
         var exists = await _dbSet
             .AnyAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
 
         if (exists)
-            return null!;
+            throw new InvalidOperationException("Membership already exists.");
 
         var entry = await _dbSet.AddAsync(entity).ConfigureAwait(false);
         await _context.SaveChangesAsync();

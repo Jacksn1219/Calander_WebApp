@@ -1,5 +1,6 @@
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
 
@@ -22,7 +23,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     /// <returns>The list of events created by the user.</returns>
     public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
     {
-        return await _context.Events
+        return await _dbSet
             .Where(e => e.CreatedBy == userId)
             .ToListAsync();
     }
@@ -34,7 +35,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     /// <returns>The list of upcoming events.</returns>
     public async Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate)
     {
-        return await _context.Events
+        return await _dbSet
             .Where(e => e.EventDate >= fromDate)
             .OrderBy(e => e.EventDate)
             .ToListAsync();

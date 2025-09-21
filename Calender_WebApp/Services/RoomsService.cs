@@ -1,5 +1,6 @@
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
 
@@ -25,7 +26,7 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
     /// <exception cref="InvalidOperationException">Thrown when the room is not found.</exception>
     public async Task<RoomsModel> GetRoomByNameAsync(string name)
     {
-        return await _context.Rooms.FirstOrDefaultAsync(r => r.RoomName == name)
+        return await _dbSet.FirstOrDefaultAsync(r => r.RoomName == name)
             ?? throw new InvalidOperationException("Room not found.");
     }
 

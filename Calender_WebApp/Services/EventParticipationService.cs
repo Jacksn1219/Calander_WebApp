@@ -118,7 +118,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// <returns>The list of participants for the specified event.</returns>
     public async Task<List<EventParticipationModel>> GetParticipantsByEventIdAsync(int eventId)
     {
-        return await _context.EventParticipations
+        return await _dbSet
             .Where(ep => ep.EventId == eventId)
             .ToListAsync();
     }
@@ -131,8 +131,8 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     /// <returns>True if the user is participating, otherwise false.</returns>
     public async Task<bool> IsUserParticipatingAsync(int eventId, int userId)
     {
-        return await _context.EventParticipations
-            .AnyAsync(ep => ep.Id == eventId && ep.UserId == userId);
+        return await _dbSet
+            .AnyAsync(ep => ep.EventId == eventId && ep.UserId == userId);
     }
     
     // Add additional services that are not related to CRUD here

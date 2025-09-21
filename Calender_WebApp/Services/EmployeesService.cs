@@ -1,5 +1,6 @@
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services
 {
@@ -22,7 +23,7 @@ namespace Calender_WebApp.Services
         /// <returns>The employee if found; otherwise, null.</returns>
         public async Task<EmployeesModel> GetEmployeeByEmailAsync(string email)
         {
-            return await _context.Employees
+            return await _dbSet
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Email == email)
                 ?? throw new InvalidOperationException("Employee not found.");
