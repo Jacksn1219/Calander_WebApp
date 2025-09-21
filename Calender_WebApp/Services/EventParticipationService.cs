@@ -23,7 +23,7 @@ public class EventParticipationService : CrudService<EventParticipationModel>, I
     public async Task<List<EventParticipationModel>> GetParticipantsByEventIdAsync(int eventId)
     {
         return await _context.EventParticipations
-            .Where(ep => ep.Id == eventId)
+            .Where(ep => ep.EventId == eventId)
             .ToListAsync();
     }
 

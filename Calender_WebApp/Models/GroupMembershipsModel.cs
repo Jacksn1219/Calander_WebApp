@@ -8,20 +8,12 @@ namespace Calender_WebApp.Models
     /// Represents a membership relation between an employee and a group.
     /// </summary>
     [Table("groupmemberships")]
-    public class GroupMembershipsModel : IDbItem
+    public class GroupMembershipsModel : IDbItemJunction
     {
-        /// <summary>
-        /// Primary key for the GroupMembership entity.
-        /// </summary>
-        [Key]
-        [Required]
-        [Column("id", Order = 0)]
-        public int? Id { get; set; }
-
         /// <summary>
         /// ID of the employee in this membership.
         /// </summary>
-        [Column("user_id", Order = 1)]
+        [Key, Column("user_id", Order = 0)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -33,7 +25,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the group in this membership.
         /// </summary>
-        [Column("group_id", Order = 2)]
+        [Key, Column("group_id", Order = 1)]
         [ForeignKey(nameof(Group))]
         public int GroupId { get; set; }
 

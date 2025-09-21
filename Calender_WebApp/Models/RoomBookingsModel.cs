@@ -10,21 +10,12 @@ namespace Calender_WebApp.Models
     /// Represents a booking for a room.
     /// </summary>
     [Table("roombookings")]
-    public class RoomBookingsModel : IDbItem
+    public class RoomBookingsModel : IDbItemJunction
     {
-        /// <summary>
-        /// Primary key for the GroupMembership entity.
-        /// </summary>
-        [Key]
-        [Required]
-        [Column("id", Order = 0)]
-        public int? Id { get; set; }
-
         /// <summary>
         /// ID of the booked room.
         /// </summary>
-        [Column("room_id", Order = 1)]
-        [Required]
+        [Key, Column("room_id", Order = 0)]
         [ForeignKey(nameof(Room))]
         public int RoomId { get; set; }
 
@@ -36,8 +27,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the employee who booked the room.
         /// </summary>
-        [Column("user_id", Order = 2)]
-        [Required]
+        [Key, Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -49,28 +39,28 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Date of the booking.
         /// </summary>
-        [Column("booking_date", Order = 3)]
+        [Column("booking_date", Order = 2)]
         [Required]
         public DateTime BookingDate { get; set; }
 
         /// <summary>
         /// Start time of the booking.
         /// </summary>
-        [Column("start_time", Order = 4)]
+        [Column("start_time", Order = 3)]
         [Required]
         public TimeSpan StartTime { get; set; }
 
         /// <summary>
         /// End time of the booking.
         /// </summary>
-        [Column("end_time", Order = 5)]
+        [Column("end_time", Order = 4)]
         [Required]
         public TimeSpan EndTime { get; set; }
 
         /// <summary>
         /// Purpose of the booking.
         /// </summary>
-        [Column("purpose", Order = 6)]
+        [Column("purpose", Order = 5)]
         [Required]
         public string Purpose { get; set; } = string.Empty;
     }

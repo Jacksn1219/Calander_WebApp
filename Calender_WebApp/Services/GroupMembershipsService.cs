@@ -29,11 +29,10 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     }
 
     /// <summary>
-    /// Add a user to a group (if not already a member)
+    /// Adds a new group membership if the user is not already a member of the group.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="groupId"></param>
-    /// <returns></returns>
+    /// <param name="entity">The group membership entity to add.</param>
+    /// <returns>The added group membership entity, or null if the membership already exists.</returns>
     public override async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
         var exists = await _context.GroupMemberships

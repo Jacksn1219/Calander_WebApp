@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
@@ -25,21 +26,14 @@ namespace Calender_WebApp.Models
         /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Required]
-        [Column("id", Order = 0)]
+        [JsonPropertyName("attendance_id")]
+        [Column("attendance_id", Order = 0)]
         public int? Id { get; set; }
-
-        /// <summary>
-        /// Unique identifier for the attendance record.
-        /// </summary>
-        [Required]
-        [Column("attendance_id", Order = 1)]
-        public int AttendanceId { get; set; }
 
         /// <summary>
         /// ID of the employee associated with this attendance record.
         /// </summary>
-        [Column("user_id", Order = 2)]
+        [Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -51,14 +45,14 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Date of the attendance.
         /// </summary>
-        [Column("date", Order = 3)]
+        [Column("date", Order = 2)]
         [Required]
         public DateTime Date { get; set; }
 
         /// <summary>
         /// Attendance status (Present, Absent, Remote).
         /// </summary>
-        [Column("status", Order = 4)]
+        [Column("status", Order = 3)]
         [Required]
         public AttendanceStatus Status { get; set; }
     }

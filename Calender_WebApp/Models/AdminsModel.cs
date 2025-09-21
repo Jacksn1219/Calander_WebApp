@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
@@ -28,22 +29,15 @@ namespace Calender_WebApp.Models
         /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Required]
-        [Column("id", Order = 0)]
+        [JsonPropertyName("admin_id")]
+        [Column("admin_id", Order = 0)]
         public int? Id { get; set; }
-
-        /// <summary>
-        /// Unique identifier of the admin record.
-        /// </summary>
-        [Required]
-        [Column("admin_id", Order = 1)]
-        public int? AdminId { get; set; } = default!;
 
         /// <summary>
         /// ID of the employee associated with this admin record.
         /// </summary>
         [Required]
-        [Column("user_id", Order = 2)]
+        [Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
@@ -56,7 +50,7 @@ namespace Calender_WebApp.Models
         /// Permissions assigned to this admin.
         /// </summary>
         [Required]
-        [Column("permissions", Order = 3)]
+        [Column("permissions", Order = 2)]
         public AdminPermission Permissions { get; set; }
     }
 }

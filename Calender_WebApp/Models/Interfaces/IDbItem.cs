@@ -6,4 +6,9 @@ namespace Calender_WebApp.Models.Interfaces
     {
         int? Id { get; set; }
     }
+
+    public interface IDbItemJunction
+    {
+        // Marker interface for junction tables
+    }
 }

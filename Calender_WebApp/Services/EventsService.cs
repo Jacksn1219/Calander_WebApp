@@ -23,7 +23,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
     {
         return await _context.Events
-            .Where(e => e.UserId == userId)
+            .Where(e => e.CreatedBy == userId)
             .ToListAsync();
     }
 

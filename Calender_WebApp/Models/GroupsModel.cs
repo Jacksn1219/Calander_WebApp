@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
@@ -15,16 +16,9 @@ namespace Calender_WebApp.Models
         /// Primary key for the GroupMembership entity.
         /// </summary>
         [Key]
-        [Required]
-        [Column("id", Order = 0)]
+        [JsonPropertyName("group_id")]
+        [Column("group_id", Order = 0)]
         public int? Id { get; set; }
-
-        /// <summary>
-        /// Unique identifier of the group.
-        /// </summary>
-        [Required]
-        [Column("group_id", Order = 1)]
-        public int GroupId { get; set; }
 
         /// <summary>
         /// Name of the group.
