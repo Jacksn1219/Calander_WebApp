@@ -31,7 +31,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the related event.
         /// </summary>
-        [Key]
         [Column("event_id", Order = 1)]
         [ForeignKey(nameof(Event))]
         public int EventId { get; set; }
@@ -44,7 +43,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the user participating in the event.
         /// </summary>
-        [Key]
         [Column("user_id", Order = 2)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }

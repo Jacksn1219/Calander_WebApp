@@ -23,7 +23,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the booked room.
         /// </summary>
-        [Key]
         [Column("room_id", Order = 1)]
         [Required]
         [ForeignKey(nameof(Room))]
@@ -37,7 +36,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the employee who booked the room.
         /// </summary>
-        [Key]
         [Column("user_id", Order = 2)]
         [Required]
         [ForeignKey(nameof(Employee))]

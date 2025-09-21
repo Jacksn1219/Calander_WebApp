@@ -33,7 +33,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the group in this membership.
         /// </summary>
-        [Key]
         [Column("group_id", Order = 2)]
         [ForeignKey(nameof(Group))]
         public int GroupId { get; set; }

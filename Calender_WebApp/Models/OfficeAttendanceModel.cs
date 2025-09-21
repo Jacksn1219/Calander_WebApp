@@ -39,7 +39,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the employee associated with this attendance record.
         /// </summary>
-        [Key]
         [Column("user_id", Order = 2)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
