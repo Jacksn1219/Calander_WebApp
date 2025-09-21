@@ -29,10 +29,10 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Deletes an entity by its ID after checking for existence.
     /// </summary>
-    public virtual async Task<TEntity?> Delete(int id)
+    public virtual async Task<TEntity> Delete(int id)
     {
         var item = await _dbSet.FindAsync(id).ConfigureAwait(false);
-        if (item == null) return null;
+        if (item == null) throw new InvalidOperationException("Entity not found.");
 
         _dbSet.Remove(item);
         await _context.SaveChangesAsync().ConfigureAwait(false);
@@ -42,7 +42,7 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Gets all entities of type TEntity.
     /// </summary>
-    public virtual async Task<TEntity[]?> Get()
+    public virtual async Task<TEntity[]> Get()
     {
         return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
     }
@@ -50,9 +50,10 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Gets an entity by its ID.
     /// </summary>
-    public virtual async Task<TEntity?> GetById(int id)
+    public virtual async Task<TEntity> GetById(int id)
     {
-        return await _dbSet.FindAsync(id).ConfigureAwait(false);
+        var entity = await _dbSet.FindAsync(id).ConfigureAwait(false);
+        return entity ?? throw new InvalidOperationException("Entity not found.");
     }
 
     /// <summary>
@@ -61,7 +62,10 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     public virtual async Task<TEntity> Post(TEntity model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
-        model.Id = default; // Set to 0 for int, null for nullable types
+        
+        // Set to 0 for int, null for nullable types
+        model.Id = default;
+
         var entry = await _dbSet.AddAsync(model).ConfigureAwait(false);
         await _context.SaveChangesAsync().ConfigureAwait(false);
         return entry.Entity;
@@ -70,11 +74,11 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Updates an existing entity in the database.
     /// </summary>
-    public virtual async Task<TEntity?> Put(int id, TEntity newTEntity)
+    public virtual async Task<TEntity> Put(int id, TEntity newTEntity)
     {
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
-        if (dbTEntity == null) return null;
+        if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
 
         newTEntity.Id = dbTEntity.Id; // Ensure the ID is not changed
         _context.Entry(dbTEntity).CurrentValues.SetValues(newTEntity);
@@ -85,11 +89,11 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <summary>
     /// Partially updates an entity in the database.
     /// </summary>
-    public virtual async Task<TEntity?> Patch(int id, TEntity newTEntity)
+    public virtual async Task<TEntity> Patch(int id, TEntity newTEntity)
     {
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
-        if (dbTEntity == null) return null;
+        if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
 
         foreach (var property in typeof(TEntity).GetProperties())
         {

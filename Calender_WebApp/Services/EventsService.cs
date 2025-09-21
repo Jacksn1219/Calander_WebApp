@@ -16,10 +16,10 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     }
 
     /// <summary>
-    /// Get all events for a specific user
+    /// Get all events created by a specific user
     /// </summary>
     /// <param name="userId"></param>
-    /// <returns></returns>
+    /// <returns>The list of events created by the user.</returns>
     public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
     {
         return await _context.Events
@@ -31,7 +31,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     /// Get upcoming events from a specific date
     /// </summary>
     /// <param name="fromDate"></param>
-    /// <returns></returns>
+    /// <returns>The list of upcoming events.</returns>
     public async Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate)
     {
         return await _context.Events

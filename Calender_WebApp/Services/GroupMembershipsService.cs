@@ -1,5 +1,6 @@
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
 
@@ -16,17 +17,41 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     }
 
     /// <summary>
-    /// Get all group memberships for a specific user
+    /// Covers the Delete method from CrudService, but is not supported.
     /// </summary>
-    /// <param name="userId"></param>
-    /// <returns></returns>
-    public async Task<List<GroupMembershipsModel>> GetMembershipsByUserIdAsync(int userId)
+    /// <param name="id"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.</exception>
+    public override Task<GroupMembershipsModel> Delete(int id)
+        => throw new NotSupportedException("Use Delete(GroupMembershipsModel entity) to remove a user from a group.");
+
+    /// <summary>
+    /// Removes a user from a group based on the provided entity details.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns>The deleted group membership entity.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the membership is not found.</exception>
+    public async Task<GroupMembershipsModel> Delete(GroupMembershipsModel entity)
     {
-        return await _context.GroupMemberships
-            .AsNoTracking()
-            .Where(gm => gm.UserId == userId)
-            .ToListAsync();
+        var membership = await _dbSet
+            .FirstOrDefaultAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
+
+        if (membership == null)
+            throw new InvalidOperationException("Membership not found.");
+
+        _dbSet.Remove(membership);
+        await _context.SaveChangesAsync();
+        return membership;
     }
+
+    /// <summary>
+    /// Covers the GetById method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="id"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.</exception>
+    public override Task<GroupMembershipsModel> GetById(int id)
+        => throw new NotSupportedException("Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.");
 
     /// <summary>
     /// Adds a new group membership if the user is not already a member of the group.
@@ -35,35 +60,37 @@ public class GroupMembershipsService : CrudService<GroupMembershipsModel>, IGrou
     /// <returns>The added group membership entity, or null if the membership already exists.</returns>
     public override async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
-        var exists = await _context.GroupMemberships
+        var exists = await _dbSet
             .AnyAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
 
         if (exists)
             return null!;
 
-        _context.GroupMemberships.Add(entity);
+        var entry = await _dbSet.AddAsync(entity).ConfigureAwait(false);
         await _context.SaveChangesAsync();
-        return entity;
+        return entry.Entity;
     }
 
     /// <summary>
-    /// Removes a user from a group.
-    /// Use Delete(int id) to delete entire Group.
+    /// Covers the Put method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
+    public override Task<GroupMembershipsModel> Put(int id, GroupMembershipsModel entity)
+        => throw new NotSupportedException("Updating group memberships is not supported. Use Post/Delete to add/remove memberships.");
+
+    /// <summary>
+    /// Get all group memberships for a specific user.
     /// </summary>
     /// <param name="userId"></param>
-    /// <param name="groupId"></param>
-    /// <returns></returns>
-    public async Task<GroupMembershipsModel?> Delete(GroupMembershipsModel entity)
+    /// <returns>A list of group memberships for the specified user.</returns>
+    public async Task<List<GroupMembershipsModel>> GetMembershipsByUserIdAsync(int userId)
     {
-        var membership = await _context.GroupMemberships
-            .FirstOrDefaultAsync(gm => gm.UserId == entity.UserId && gm.GroupId == entity.GroupId);
-
-        if (membership == null)
-            return null;
-
-        _context.GroupMemberships.Remove(membership);
-        await _context.SaveChangesAsync();
-        return membership;
+        return await _dbSet
+            .AsNoTracking()
+            .Where(gm => gm.UserId == userId)
+            .ToListAsync();
     }
 
     // Add additional services that are not related to CRUD here

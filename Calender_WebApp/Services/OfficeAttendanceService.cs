@@ -1,5 +1,6 @@
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
 
@@ -20,21 +21,23 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
     /// </summary>
     /// <param name="userId"></param>
     /// <param name="date"></param>
-    /// <returns></returns>
-    public async Task<OfficeAttendanceModel?> GetAttendanceByUserAndDateAsync(int userId, DateTime date)
+    /// <returns>The attendance record for the specified user and date.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the attendance record is not found.</exception>
+    public async Task<OfficeAttendanceModel> GetAttendanceByUserAndDateAsync(int userId, DateTime date)
     {
-        return await _context.OfficeAttendances
-            .FirstOrDefaultAsync(a => a.UserId == userId && a.Date.Date == date.Date);
+        return await _dbSet
+            .FirstOrDefaultAsync(a => a.UserId == userId && a.Date.Date == date.Date)
+            ?? throw new InvalidOperationException("Attendance not found.");
     }
 
     /// <summary>
-    /// Get all attendances for a specific date
+    /// Get all attendance records for a specific date
     /// </summary>
     /// <param name="date"></param>
-    /// <returns></returns>
+    /// <returns>A list of attendance records for the specified date.</returns>
     public async Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date)
     {
-        return await _context.OfficeAttendances
+        return await _dbSet
             .Where(a => a.Date.Date == date.Date)
             .ToListAsync();
     }

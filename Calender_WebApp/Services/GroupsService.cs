@@ -13,15 +13,15 @@ public class GroupsService : CrudService<GroupsModel>, IGroupsService
 
     public GroupsService(DatabaseContext ctx, IGroupMembershipsService groupMembershipsService) : base(ctx)
     {
-        _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
-        _groupMembershipsService = groupMembershipsService ?? throw new ArgumentNullException(nameof(groupMembershipsService));
+        _context = ctx;
+        _groupMembershipsService = groupMembershipsService;
     }
 
     /// <summary>
-    /// Gets all groups for a specific user.
+    /// Get all groups a user is a member of
     /// </summary>
-    /// <param name="userId">The user's ID.</param>
-    /// <returns>List of groups.</returns>
+    /// <param name="userId"></param>
+    /// <returns>A list of groups the user is a member of.</returns>
     public async Task<List<GroupsModel>> GetGroupsByUserAsync(int userId)
     {
         var memberships = await _groupMembershipsService.GetMembershipsByUserIdAsync(userId);

@@ -20,11 +20,12 @@ namespace Calender_WebApp.Services
         /// </summary>
         /// <param name="email">The employee's email.</param>
         /// <returns>The employee if found; otherwise, null.</returns>
-        public async Task<EmployeesModel?> GetEmployeeByEmailAsync(string email)
+        public async Task<EmployeesModel> GetEmployeeByEmailAsync(string email)
         {
             return await _context.Employees
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Email == email);
+                .FirstOrDefaultAsync(e => e.Email == email)
+                ?? throw new InvalidOperationException("Employee not found.");
         }
 
         // Add additional services that are not related to CRUD here

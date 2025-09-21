@@ -9,35 +9,55 @@ namespace Calender_WebApp.Services;
 public class RoomsService : CrudService<RoomsModel>, IRoomsService
 {
     private readonly DatabaseContext _context;
+    private readonly IRoomBookingsService _roomBookingsService;
 
-    public RoomsService(DatabaseContext ctx) : base(ctx)
+    public RoomsService(DatabaseContext ctx, IRoomBookingsService rbs) : base(ctx)
     {
         _context = ctx;
+        _roomBookingsService = rbs;
     }
 
     /// <summary>
-    /// Gets a room by its name.
+    /// Get a room by its name.
     /// </summary>
-    public async Task<RoomsModel?> GetRoomByNameAsync(string name)
+    /// <param name="name"></param>
+    /// <returns>The room with the specified name.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the room is not found.</exception>
+    public async Task<RoomsModel> GetRoomByNameAsync(string name)
     {
-        return await _context.Rooms.FirstOrDefaultAsync(r => r.RoomName == name);
+        return await _context.Rooms.FirstOrDefaultAsync(r => r.RoomName == name)
+            ?? throw new InvalidOperationException("Room not found.");
     }
 
     /// <summary>
-    /// Gets all available rooms.
+    /// Gets all available rooms for the given date range.
     /// </summary>
-    public async Task<List<RoomsModel>> GetAvailableRoomsAsync()
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns>A list of available rooms for the specified date range.</returns>
+    public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
     {
-        return await _context.Rooms.Where(r => r.IsAvailable).ToListAsync();
+        var bookedRoomIds = await _context.RoomBookings
+            .Where(rb => rb.StartTime < end && rb.EndTime > start)
+            .Select(rb => rb.RoomId)
+            .Distinct()
+            .ToListAsync();
+
+        return await _dbSet
+            .Where(r => !bookedRoomIds.Contains(r.Id))
+            .ToListAsync();
     }
 
     /// <summary>
-    /// Checks if a room is available.
+    /// Checks if a room is available for the given date and time range.
     /// </summary>
-    public async Task<bool> IsRoomAvailableAsync(int roomId)
+    /// <param name="roomId"></param>
+    /// <param name="start"></param>
+    /// <param name="end"></param>
+    /// <returns>The availability status of the room.</returns>
+    public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
     {
-        var room = await _context.Rooms.FindAsync(roomId);
-        return room != null && room.IsAvailable;
+        return await _roomBookingsService.IsRoomAvailableAsync(roomId, start, end);
     }
 
     // Add additional services that are not related to CRUD here

@@ -16,9 +16,16 @@ public class AdminsService : CrudService<AdminsModel>, IAdminsService
         _context = ctx;
     }
 
-    public async Task<AdminsModel?> GetByUsername(string username)
+    /// <summary>
+    /// Get an admin by their username
+    /// </summary>
+    /// <param name="username"></param>
+    /// <returns>The admin with the specified username.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the admin is not found.</exception>
+    public async Task<AdminsModel> GetByUsername(string username)
     {
-        return await _context.Admins.FirstOrDefaultAsync(a => a.Username == username).ConfigureAwait(false);
+        return await _context.Admins.FirstOrDefaultAsync(a => a.Username == username).ConfigureAwait(false)
+               ?? throw new InvalidOperationException("Admin not found.");
     }
 
     //Any additional methods specific to Admins can be added here
