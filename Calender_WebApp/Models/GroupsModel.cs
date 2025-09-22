@@ -24,13 +24,13 @@ namespace Calender_WebApp.Models
         /// Name of the group.
         /// </summary>
         [Required]
-        [Column("group_name", Order = 2)]
+        [Column("group_name", Order = 1)]
         public string GroupName { get; set; } = string.Empty;
 
         /// <summary>
         /// Description of the group.
         /// </summary>
-        [Column("description", Order = 3)]
+        [Column("description", Order = 2)]
         public string? Description { get; set; }
 
         /// <summary>
