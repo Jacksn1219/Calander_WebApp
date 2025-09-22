@@ -21,15 +21,17 @@ cd client
 ```
 yarn start
 ```
+- For building:
+```
+yarn build
+```
+- For testing:
+```
+yarn test
+```
 
-- For restarting (after every change made):
-```
-yarn restart
-```
-- For watch-mode:
-```
-yarn watch
-```
+##
+If necessary you can substitute the 'yarn' for 'npm'
 
 ## Backend:
 
@@ -40,14 +42,14 @@ cd server
 
 - For running:
 ```
-yarn start
+...
 ```
 
 - For restarting (after every change made):
 ```
-yarn restart
+...
 ```
 - For watch-mode:
 ```
-yarn watch
+...
 ```
