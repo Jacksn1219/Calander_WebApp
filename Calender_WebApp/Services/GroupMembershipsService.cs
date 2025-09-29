@@ -9,10 +9,10 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class GroupMembershipsService : IGroupMembershipsService
 {
-    private readonly DatabaseContext _context;
+    private readonly AppDbContext _context;
     private readonly DbSet<GroupMembershipsModel> _dbSet;
 
-    public GroupMembershipsService(DatabaseContext ctx)
+    public GroupMembershipsService(AppDbContext ctx)
     {
         _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
         _dbSet = _context.Set<GroupMembershipsModel>();

@@ -9,10 +9,10 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class EventParticipationService : IEventParticipationService
 {
-    private readonly DatabaseContext _context;
+    private readonly AppDbContext _context;
     private readonly DbSet<EventParticipationModel> _dbSet;
 
-    public EventParticipationService(DatabaseContext ctx)
+    public EventParticipationService(AppDbContext ctx)
     {
         _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
         _dbSet = _context.Set<EventParticipationModel>();

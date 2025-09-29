@@ -1,5 +1,6 @@
 using Calender_WebApp.Services.Interfaces;
 using Calender_WebApp.Services;
+using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp;
 
@@ -8,6 +9,12 @@ class Program
     public static void Main(string[] args)
     {
         var builder = WebApplication.CreateBuilder(args);
+
+        builder.Services.AddDbContext<AppDbContext>(options =>
+            options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+
+
+
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
@@ -20,8 +27,7 @@ class Program
         builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
         builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
-        builder.Services.AddScoped<IRoomBookingsService, RoomBookingsService>();
-        builder.Services.AddScoped<IRoomsService, RoomsService>();
+
 
         // Add Swagger/OpenAPI services
         builder.Services.AddEndpointsApiExplorer();
