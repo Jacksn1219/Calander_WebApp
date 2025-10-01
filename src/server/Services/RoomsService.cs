@@ -11,7 +11,7 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
 {
     private readonly IRoomBookingsService _roomBookingsService;
 
-    public RoomsService(DatabaseContext ctx, IRoomBookingsService rbs) : base(ctx)
+    public RoomsService(AppDbContext ctx, IRoomBookingsService rbs) : base(ctx)
     {
         _roomBookingsService = rbs;
     }
@@ -26,25 +26,6 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
     {
         return await _dbSet.FirstOrDefaultAsync(r => r.RoomName == name)
             ?? throw new InvalidOperationException("Room not found.");
-    }
-
-    /// <summary>
-    /// Gets all available rooms for the given date range.
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns>A list of available rooms for the specified date range.</returns>
-    public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
-    {
-        var bookedRoomIds = await _context.RoomBookings
-            .Where(rb => rb.StartTime < end && rb.EndTime > start)
-            .Select(rb => rb.RoomId)
-            .Distinct()
-            .ToListAsync();
-
-        return await _dbSet
-            .Where(r => !bookedRoomIds.Contains(r.Id))
-            .ToListAsync();
     }
 
     /// <summary>

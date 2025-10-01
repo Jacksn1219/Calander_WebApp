@@ -10,12 +10,13 @@ namespace Calender_WebApp.Models
     /// Represents a booking for a room.
     /// </summary>
     [Table("roombookings")]
+    [PrimaryKey(nameof(RoomId), nameof(UserId))]     // <-- define composite key here
     public class RoomBookingsModel : IDbItemJunction
     {
         /// <summary>
         /// ID of the booked room.
         /// </summary>
-        [Key, Column("room_id", Order = 0)]
+        [Column("room_id", Order = 0)]
         [ForeignKey(nameof(Room))]
         public int RoomId { get; set; }
 
@@ -27,7 +28,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the employee who booked the room.
         /// </summary>
-        [Key, Column("user_id", Order = 1)]
+        [Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 

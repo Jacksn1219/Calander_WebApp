@@ -9,10 +9,10 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class RoomBookingsService : IRoomBookingsService
 {
-    private readonly DatabaseContext _context;
+    private readonly AppDbContext _context;
     private readonly DbSet<RoomBookingsModel> _dbSet;
 
-    public RoomBookingsService(DatabaseContext ctx)
+    public RoomBookingsService(AppDbContext ctx)
     {
         _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
         _dbSet = _context.Set<RoomBookingsModel>();
@@ -155,7 +155,7 @@ public class RoomBookingsService : IRoomBookingsService
             .ToListAsync();
 
         return await _context.Rooms
-            .Where(room => !bookedRoomIds.Contains(room.Id))
+            .Where(room => room.Id.HasValue && !bookedRoomIds.Contains(room.Id.Value))
             .ToListAsync();
     }
 
