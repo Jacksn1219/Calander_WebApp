@@ -1,5 +1,7 @@
 using Calender_WebApp.Models;
+using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Utils;
 using Microsoft.EntityFrameworkCore;
 // new 
 namespace Calender_WebApp.Services;
@@ -70,6 +72,8 @@ public class GroupMembershipsService : IGroupMembershipsService
     /// <param name="entity">The group membership entity to add.</param>
     /// <returns>The added group membership entity, or null if the membership already exists.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the membership already exists.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when the entity is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when model validation fails.</exception>
     public async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
         var exists = await _dbSet
@@ -77,6 +81,16 @@ public class GroupMembershipsService : IGroupMembershipsService
 
         if (exists)
             throw new InvalidOperationException("Membership already exists.");
+
+        // Validate model using whitelist util
+        var inputDict = typeof(GroupMembershipsModel)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .ToDictionary(p => p.Name, p => p.GetValue(entity) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(GroupMembershipsModel).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
 
         var entry = await _dbSet.AddAsync(entity).ConfigureAwait(false);
         await _context.SaveChangesAsync();

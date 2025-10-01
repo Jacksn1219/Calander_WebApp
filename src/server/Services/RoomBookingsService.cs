@@ -1,5 +1,7 @@
 using Calender_WebApp.Models;
+using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
@@ -56,9 +58,7 @@ public class RoomBookingsService : IRoomBookingsService
     /// </summary>
     /// <returns>List of RoomBookingsModel</returns>
     public virtual async Task<RoomBookingsModel[]> Get()
-    {
-        return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
-    }
+        => await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
     
     /// <summary>
     /// Getting a room booking by its ID is not supported. Use GetBookingsForRoomAsync instead.
@@ -119,9 +119,28 @@ public class RoomBookingsService : IRoomBookingsService
     /// <param name="model"></param>
     /// <returns>The created room booking.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the model is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the booking already exists.</exception>
+    /// <exception cref="ArgumentException">Thrown when the model validation fails.</exception>
     public async Task<RoomBookingsModel> Post(RoomBookingsModel model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
+
+        //Check if already exists
+        var exists = await _dbSet.AnyAsync(rb => rb.RoomId == model.RoomId &&
+                                                 rb.UserId == model.UserId &&
+                                                 rb.BookingDate.Date == model.BookingDate.Date &&
+                                                 rb.StartTime == model.StartTime &&
+                                                 rb.EndTime == model.EndTime);
+
+        // Validate model using whitelist util
+        var inputDict = typeof(RoomBookingsModel)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
 
         var entry = await _dbSet.AddAsync(model).ConfigureAwait(false);
         await _context.SaveChangesAsync().ConfigureAwait(false);

@@ -1,5 +1,7 @@
 using Calender_WebApp.Models;
+using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
@@ -81,6 +83,16 @@ public class EventParticipationService : IEventParticipationService
         // check if status is valid
         if (!Enum.TryParse<ParticipationStatus>(participation.Status.ToString(), true, out var status))
             throw new ArgumentException("Invalid status value", nameof(participation.Status));
+        
+        // Validate model using whitelist util
+        var inputDict = typeof(EventParticipationModel)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .ToDictionary(p => p.Name, p => p.GetValue(participation) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(EventParticipationModel).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
 
         var entry = await _dbSet.AddAsync(participation).ConfigureAwait(false);
         await _context.SaveChangesAsync().ConfigureAwait(false);
