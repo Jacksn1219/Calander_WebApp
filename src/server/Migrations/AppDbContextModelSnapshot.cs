@@ -211,77 +211,6 @@ namespace Calender_WebApp.Migrations
                     b.ToTable("officeattendance");
                 });
 
-            modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>
-                {
-                    b.Property<int>("RoomId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("room_id")
-                        .HasColumnOrder(0);
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id")
-                        .HasColumnOrder(1);
-
-                    b.Property<DateTime>("BookingDate")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("booking_date")
-                        .HasColumnOrder(2);
-
-                    b.Property<TimeSpan>("EndTime")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("end_time")
-                        .HasColumnOrder(4);
-
-                    b.Property<string>("Purpose")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("purpose")
-                        .HasColumnOrder(5);
-
-                    b.Property<TimeSpan>("StartTime")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("start_time")
-                        .HasColumnOrder(3);
-
-                    b.HasKey("RoomId", "UserId");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("roombookings");
-                });
-
-            modelBuilder.Entity("Calender_WebApp.Models.RoomsModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("room_id")
-                        .HasColumnOrder(0)
-                        .HasAnnotation("Relational:JsonPropertyName", "room_id");
-
-                    b.Property<int>("Capacity")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("capacity")
-                        .HasColumnOrder(2);
-
-                    b.Property<string>("Location")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("location")
-                        .HasColumnOrder(3);
-
-                    b.Property<string>("RoomName")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("room_name")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Id");
-
-                    b.ToTable("rooms");
-                });
-
             modelBuilder.Entity("Calender_WebApp.Models.AdminsModel", b =>
                 {
                     b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
@@ -353,25 +282,6 @@ namespace Calender_WebApp.Migrations
                     b.Navigation("Employee");
                 });
 
-            modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>
-                {
-                    b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
-                        .WithMany("RoomBookings")
-                        .HasForeignKey("RoomId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
-                        .WithMany()
-                        .HasForeignKey("UserId")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-
-                    b.Navigation("Employee");
-
-                    b.Navigation("Room");
-                });
-
             modelBuilder.Entity("Calender_WebApp.Models.EmployeesModel", b =>
                 {
                     b.Navigation("Admins");
@@ -388,11 +298,6 @@ namespace Calender_WebApp.Migrations
             modelBuilder.Entity("Calender_WebApp.Models.GroupsModel", b =>
                 {
                     b.Navigation("GroupMemberships");
-                });
-
-            modelBuilder.Entity("Calender_WebApp.Models.RoomsModel", b =>
-                {
-                    b.Navigation("RoomBookings");
                 });
 #pragma warning restore 612, 618
         }

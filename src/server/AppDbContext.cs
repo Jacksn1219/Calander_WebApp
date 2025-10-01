@@ -16,7 +16,5 @@ namespace Calender_WebApp
         public DbSet<EventParticipationModel> EventParticipations => Set<EventParticipationModel>();
         public DbSet<GroupMembershipsModel> GroupMemberships => Set<GroupMembershipsModel>();
         public DbSet<OfficeAttendanceModel> OfficeAttendances => Set<OfficeAttendanceModel>();
-        public DbSet<RoomBookingsModel> RoomBookings => Set<RoomBookingsModel>();
-        public DbSet<RoomsModel> Rooms => Set<RoomsModel>();
     }
 }
