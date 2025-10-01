@@ -75,11 +75,6 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the employee's room bookings.
         /// </summary>
-        public virtual ICollection<RoomBookingsModel> RoomBookings { get; set; } = new List<RoomBookingsModel>();
-
-        /// <summary>
-        /// Navigation property for the groups this employee belongs to.
-        /// </summary>
         public virtual ICollection<GroupMembershipsModel> GroupMemberships { get; set; } = new List<GroupMembershipsModel>();
 
         /// <summary>

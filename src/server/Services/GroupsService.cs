@@ -10,7 +10,7 @@ public class GroupsService : CrudService<GroupsModel>, IGroupsService
 {
     private readonly IGroupMembershipsService _groupMembershipsService;
 
-    public GroupsService(DatabaseContext ctx, IGroupMembershipsService groupMembershipsService) : base(ctx)
+    public GroupsService(AppDbContext ctx, IGroupMembershipsService groupMembershipsService) : base(ctx)
     {
         _groupMembershipsService = groupMembershipsService;
     }

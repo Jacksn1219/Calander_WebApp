@@ -1,37 +1,22 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Microsoft.EntityFrameworkCore;                 // <-- add this
 using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
 {
-    /// <summary>
-    /// Represents a membership relation between an employee and a group.
-    /// </summary>
     [Table("groupmemberships")]
+    [PrimaryKey(nameof(UserId), nameof(GroupId))]     // <-- define composite key here
     public class GroupMembershipsModel : IDbItemJunction
     {
-        /// <summary>
-        /// ID of the employee in this membership.
-        /// </summary>
-        [Key, Column("user_id", Order = 0)]
+        [Column("user_id")]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
-
-        /// <summary>
-        /// Navigation property for the related employee.
-        /// </summary>
         public virtual EmployeesModel Employee { get; set; } = null!;
 
-        /// <summary>
-        /// ID of the group in this membership.
-        /// </summary>
-        [Key, Column("group_id", Order = 1)]
+        [Column("group_id")]
         [ForeignKey(nameof(Group))]
         public int GroupId { get; set; }
-
-        /// <summary>
-        /// Navigation property for the related group.
-        /// </summary>
         public virtual GroupsModel Group { get; set; } = null!;
     }
 }
