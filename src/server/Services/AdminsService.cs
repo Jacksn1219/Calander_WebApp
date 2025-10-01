@@ -17,11 +17,11 @@ public class AdminsService : CrudService<AdminsModel>, IAdminsService
     /// <param name="username"></param>
     /// <returns>The admin with the specified username.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the admin is not found.</exception>
-    //public async Task<AdminsModel> GetByUsername(string username)
-    //{
-    //     return await _dbSet.FirstOrDefaultAsync(a => a. == username).ConfigureAwait(false)
-    //           ?? throw new InvalidOperationException("Admin not found.");
-    //}
+    public async Task<AdminsModel> GetByUsername(string username)
+    {
+        return await _dbSet.FirstOrDefaultAsync(a => a.Employee.Name == username).ConfigureAwait(false)
+              ?? throw new InvalidOperationException("Admin not found.");
+    }
 
     //Any additional methods specific to Admins can be added here
 }
