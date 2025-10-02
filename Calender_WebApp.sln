@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.0.31903.59
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calender_WebApp", "Calender_WebApp\Calender_WebApp.csproj", "{EA2A9457-EFA6-46E6-8802-6CE757AF7B07}"
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Calender_WebApp", "src\server\Calender_WebApp.csproj", "{EA2A9457-EFA6-46E6-8802-6CE757AF7B07}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
