@@ -10,7 +10,7 @@ public static class ModelWhitelistUtil
     public static readonly Dictionary<string, Func<object, bool>> OfficeAttendanceModelValidators = new()
     {
         { "UserId", v => v is int && (int)v > 0 },
-        { "Date", v => v is DateTime },
+        { "Date", v => v is DateTime  dt && dt.Year >= 2000 },
         { "Status", v => Enum.IsDefined(typeof(AttendanceStatus), v) }
     };
 
@@ -19,6 +19,13 @@ public static class ModelWhitelistUtil
     {
         { "UserId", v => v is int && (int)v > 0 },
         { "GroupId", v => v is int && (int)v > 0 }
+    };
+
+    // Validators for GroupsModel
+    public static readonly Dictionary<string, Func<object, bool>> GroupsModelValidators = new()
+    {
+        { "GroupName", v => v is string s && !string.IsNullOrWhiteSpace(s) },
+        { "Description", v => v == null || v is string }
     };
 
     // Validators for EventParticipationModel
@@ -51,18 +58,19 @@ public static class ModelWhitelistUtil
     {
         { "Title", v => v is string s && !string.IsNullOrWhiteSpace(s) },
         { "Description", v => v == null || v is string },
-        { "EventDate", v => v is DateTime },
+        { "EventDate", v => v is DateTime  dt && dt.Year >= 2000 },
         { "CreatedBy", v => v is int && (int)v > 0 }
     };
 
     // Validators for RoomBookingsModel
     public static readonly Dictionary<string, Func<object, bool>> RoomBookingsModelValidators = new()
     {
-        { "RoomId", v => v is int && (int)v > 0 },
-        { "UserId", v => v is int && (int)v > 0 },
-        { "BookingDate", v => v is DateTime },
-        { "StartTime", v => v is TimeSpan },
-        { "EndTime", v => v is TimeSpan }
+        { "RoomId", v => v is int i && i > 0 },
+        { "UserId", v => v is int i && i > 0 },
+        { "BookingDate", v => v is DateTime dt && dt.Year >= 2000 },
+        { "StartTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
+        { "EndTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
+        { "Purpose", v => v is string s && !string.IsNullOrWhiteSpace(s) }
     };
 
     // Validators for RoomsModel
@@ -87,6 +95,7 @@ public static class ModelWhitelistUtil
             nameof(RoomsModel) => RoomsModelValidators,
             nameof(OfficeAttendanceModel) => OfficeAttendanceModelValidators,
             nameof(GroupMembershipsModel) => GroupMembershipsModelValidators,
+            nameof(GroupsModel) => GroupsModelValidators,
             nameof(EventParticipationModel) => EventParticipationModelValidators,
             _ => null
         };
