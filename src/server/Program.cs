@@ -27,6 +27,8 @@ class Program
         builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
         builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
+        builder.Services.AddScoped<IRoomBookingsService, RoomBookingsService>();
+        builder.Services.AddScoped<IRoomsService, RoomsService>();
 
 
         // Add Swagger/OpenAPI services
