@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, Link } from 'react-router-dom';
+import { useAuth } from '../states/AuthContext';
 import Sidebar from './Sidebar';
 import '../styles/login-page.css';
 
@@ -9,13 +10,13 @@ const Login: React.FC = () => {
   const [error, setError] = useState<string | null>(null);
   const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
+  const { login } = useAuth();
 
   function validate() {
     if (!email || !password) {
       setError('Email and password are required.');
       return false;
     }
-    // simple email check
     if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
       setError('Enter a valid email address.');
       return false;
@@ -27,11 +28,20 @@ const Login: React.FC = () => {
   function submit(e: React.FormEvent) {
     e.preventDefault();
     if (!validate()) return;
+    
     if (email === 'admin@example.com' && password === 'Password123') {
-      localStorage.setItem('token', 'demo-token');
+      // Mock user data - in real app this would come from the API
+      const userData = {
+        name: 'Admin User',
+        email: 'admin@example.com',
+        role: 'Admin' as const
+      };
+      
+      login(userData);
       navigate('/home');
       return;
     }
+    
     setError('Invalid credentials. Use admin@example.com / Password123 for demo.');
   }
 
@@ -91,7 +101,11 @@ const Login: React.FC = () => {
               <button type="submit" className="primary">Sign in</button>
             </div>
           </form>
-          <div className="login-footer muted">Demo: admin@example.com / Password123</div>
+          <div className="login-footer muted">
+            Demo: admin@example.com / Password123<br />
+            <br />
+            Don't have an account? <Link to="/register" style={{ color: '#1f6feb' }}>Register here</Link>
+          </div>
         </section>
       </main>
     </div>

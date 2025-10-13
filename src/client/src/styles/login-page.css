@@ -4,42 +4,12 @@
   min-height: 100vh;
 }
 
-.sidebar {
-  width: 220px;
-  background: #0b1220;
-  color: #fff;
-  padding: 20px 12px;
-  box-sizing: border-box;
-}
-.sidebar-brand {
-  font-weight: 700;
-  margin-bottom: 16px;
-}
-.sidebar ul {
-  list-style: none;
-  padding: 0;
-  margin: 0;
-}
-.sidebar li {
-  margin: 8px 0;
-}
-.sidebar a {
-  color: #cfe3ff;
-  text-decoration: none;
-  display: inline-block;
-  padding: 6px 8px;
-  border-radius: 6px;
-}
-.sidebar li.active a {
-  background: #1f6feb;
-  color: white;
-}
-
 .main-content {
   flex: 1;
   padding: 40px;
   box-sizing: border-box;
   background: linear-gradient(180deg, #f7f9fc, #ffffff);
+  transition: margin-left 0.3s ease;
 }
 
 .login-card {
@@ -75,42 +45,3 @@
 .primary:active { transform: translateY(1px) }
 .form-error { color: #8b1c1c; background: #fff1f1; padding: 8px; border-radius: 6px }
 .login-footer { margin-top: 12px; font-size: 0.9rem }
-
-.password-input-container {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-container input {
-  width: 100%;
-  padding-right: 45px;
-}
-
-.password-toggle {
-  position: absolute;
-  right: 12px;
-  background: none;
-  border: none;
-  cursor: pointer;
-  padding: 4px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  color: #6b7280;
-  transition: color 0.2s ease;
-}
-
-.password-toggle:hover {
-  color: #374151;
-}
-
-.password-toggle:focus {
-  outline: 2px solid #3b82f6;
-  outline-offset: 2px;
-  border-radius: 4px;
-}
-
-.password-toggle svg {
-  flex-shrink: 0;
-}
