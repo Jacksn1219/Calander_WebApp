@@ -110,6 +110,16 @@ public class EventParticipationService : IEventParticipationService
         => throw new NotSupportedException("Use UpdateStatus(int userId, int eventId, string newStatus) to update the status of an event participation.");
 
     /// <summary>
+    /// Covers the Patch method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>The updated participation record.</returns>
+    /// <exception cref="NotSupportedException">Thrown when trying to update an event participation record.</exception>
+    public Task<EventParticipationModel> Patch(int userId, EventParticipationModel newTEntity)
+        => throw new NotSupportedException("Use UpdateStatus(int userId, int eventId, string newStatus) to update the status of an event participation.");
+
+    /// <summary>
     /// Updates the participation status for a user in a specific event.
     /// </summary>
     /// <param name="userId"></param>

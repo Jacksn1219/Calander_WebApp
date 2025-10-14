@@ -119,5 +119,28 @@ public class GroupMembershipsService : IGroupMembershipsService
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Get all group memberships for a specific group.
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <returns>A list of group memberships for the specified group.</returns>
+    public async Task<List<GroupMembershipsModel>> GetMembershipsByGroupIdAsync(int groupId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(gm => gm.GroupId == groupId)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Covers the Patch method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
+    public Task<GroupMembershipsModel> Patch(int userId, GroupMembershipsModel newTEntity)
+        => throw new NotSupportedException("Use Post/Delete to add/remove memberships.");
+
     // Add additional services that are not related to CRUD here
 }
