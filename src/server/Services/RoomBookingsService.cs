@@ -80,6 +80,16 @@ public class RoomBookingsService : IRoomBookingsService
         => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
 
     /// <summary>
+    /// Covers the Patch method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Thrown when attempting to update a room booking.</exception>
+    public Task<RoomBookingsModel> Patch(int userId, RoomBookingsModel newTEntity)
+        => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
+
+    /// <summary>
     /// Updates the start time of an existing room booking.
     /// </summary>
     /// <param name="entity"></param>
