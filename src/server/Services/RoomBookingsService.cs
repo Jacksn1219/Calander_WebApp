@@ -9,7 +9,7 @@ namespace Calender_WebApp.Services;
 /// <summary>
 /// Service for managing room bookings.
 /// </summary>
-public class RoomBookingsService : IRoomBookingsService
+public class RoomBookingsService : IRoomBookingsService, ICrudService<RoomBookingsModel>
 {
     private readonly AppDbContext _context;
     private readonly DbSet<RoomBookingsModel> _dbSet;
@@ -166,6 +166,19 @@ public class RoomBookingsService : IRoomBookingsService
     {
         return await _dbSet
             .Where(rb => rb.RoomId == roomId)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Gets all bookings for a specific user.
+    /// </summary>
+    /// <param name="userId">The ID of the user.</param>
+    /// <returns>A list of room bookings for the specified user.</returns>
+    public async Task<List<RoomBookingsModel>> GetBookingsByUserIdAsync(int userId)
+    {
+        return await _dbSet
+            .Where(rb => rb.UserId == userId)
+            .OrderByDescending(rb => rb.BookingDate)
             .ToListAsync();
     }
 

@@ -120,6 +120,19 @@ public class GroupMembershipsService : IGroupMembershipsService
     }
 
     /// <summary>
+    /// Get all group memberships for a specific group.
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <returns>A list of group memberships for the specified group.</returns>
+    public async Task<List<GroupMembershipsModel>> GetMembershipsByGroupIdAsync(int groupId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(gm => gm.GroupId == groupId)
+            .ToListAsync();
+    }
+
+    /// <summary>
     /// Covers the Patch method from CrudService, but is not supported.
     /// </summary>
     /// <param name="userId"></param>
