@@ -9,7 +9,7 @@ namespace Calender_WebApp.Services;
 /// <summary>
 /// Service for managing room bookings.
 /// </summary>
-public class RoomBookingsService : IRoomBookingsService, ICrudService<RoomBookingsModel>
+public class RoomBookingsService : IRoomBookingsService
 {
     private readonly AppDbContext _context;
     private readonly DbSet<RoomBookingsModel> _dbSet;
