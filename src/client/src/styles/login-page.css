@@ -1,0 +1,47 @@
+/* Layout */
+.app-layout {
+  display: flex;
+  min-height: 100vh;
+}
+
+.main-content {
+  flex: 1;
+  padding: 40px;
+  box-sizing: border-box;
+  background: linear-gradient(180deg, #f7f9fc, #ffffff);
+  transition: margin-left 0.3s ease;
+}
+
+.login-card {
+  max-width: 420px;
+  margin: 24px auto;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(16,24,40,0.08);
+  padding: 24px;
+}
+.login-card h2 {
+  margin: 0 0 8px 0;
+}
+.muted { color: #556677; font-size: 0.95rem }
+
+.login-form { display: grid; gap: 10px; margin-top: 12px }
+.login-form label { font-size: 0.9rem; color: #34414e }
+.login-form input {
+  padding: 10px 12px;
+  border: 1px solid #d9e2ec;
+  border-radius: 6px;
+  font-size: 1rem;
+}
+.form-actions { display: flex; justify-content: flex-end; margin-top: 6px }
+.primary {
+  background: #1f6feb;
+  color: white;
+  border: none;
+  padding: 10px 16px;
+  border-radius: 6px;
+  cursor: pointer;
+}
+.primary:active { transform: translateY(1px) }
+.form-error { color: #8b1c1c; background: #fff1f1; padding: 8px; border-radius: 6px }
+.login-footer { margin-top: 12px; font-size: 0.9rem }
