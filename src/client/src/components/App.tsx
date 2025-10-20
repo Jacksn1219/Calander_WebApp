@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
 import Register from './Register';
 import Home from './Home';
+import RoomBooking from './RoomBooking';
 
 export default function App() {
   return (
@@ -34,6 +35,14 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+          <Route
+            path="/roombooking"
+            element={
+              <ProtectedRoute>
+                <RoomBooking />
+              </ProtectedRoute>
+            }
+          />
           <Route 
             path="/" 
             element={
@@ -45,7 +54,6 @@ export default function App() {
     </AuthProvider>
   );
 }
-
 
 // small component to redirect authenticated users away from login/register
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
