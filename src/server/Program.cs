@@ -18,6 +18,8 @@ class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddHttpContextAccessor();
 
         // Register dependency injection for services
         builder.Services.AddScoped<IAdminsService, AdminsService>();
@@ -34,24 +36,41 @@ class Program
         // Add Swagger/OpenAPI services
         builder.Services.AddEndpointsApiExplorer();
         builder.Services.AddSwaggerGen();
+        builder.Services.AddSession(options =>
+                    {
+                        options.IdleTimeout = TimeSpan.FromMinutes(20); 
+                        options.Cookie.HttpOnly = true;                
+                        options.Cookie.IsEssential = true;             
+                    });
+        builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", corsBuilder =>
+                {
+                    corsBuilder.WithOrigins("http://localhost:3000")
+                               .AllowAnyHeader()
+                               .AllowAnyMethod()
+                               .AllowCredentials();
+                });
+            });
 
-        var app = builder.Build();
-
+            var app = builder.Build();
+            app.Urls.Add("http://localhost:3001");
         // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
-        {
-            app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
-        }
+         if (!app.Environment.IsDevelopment())
+            {
+                app.UseExceptionHandler("/Home/Error");
+                app.UseHsts();
+            }
 
         // Enable Swagger middleware
         app.UseSwagger();
         app.UseSwaggerUI();
 
         app.UseHttpsRedirection();
+        app.UseStaticFiles();
         app.UseRouting();
-
+        app.UseCors("AllowReactApp");
+        app.UseSession();
         app.UseAuthorization();
 
         app.MapStaticAssets();

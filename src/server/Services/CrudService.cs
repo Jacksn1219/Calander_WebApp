@@ -76,10 +76,13 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        // Validate model using whitelist util
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
+
+        // Validate model using whitelist util (ignore properties without validators)
         var inputDict = typeof(TEntity)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => validators == null || validators.ContainsKey(p.Name))
             .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(TEntity).Name, inputDict, out var errors))
@@ -110,10 +113,13 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
 
-        // Validate model using whitelist util
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
+
+        // Validate model using whitelist util (ignore properties without validators)
         var inputDict = typeof(TEntity)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => validators == null || validators.ContainsKey(p.Name))
             .ToDictionary(p => p.Name, p => p.GetValue(newTEntity) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(TEntity).Name, inputDict, out var errors)) {
@@ -139,9 +145,12 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
 
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
+
         foreach (var property in typeof(TEntity).GetProperties())
         {
             if (property.Name == nameof(IDbItem.Id)) continue; // Don't update Id
+            if (validators != null && !validators.ContainsKey(property.Name)) continue; // Skip non-whitelisted properties
             var newValue = property.GetValue(newTEntity);
             if (newValue != null)
             {

@@ -60,26 +60,36 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for admin records (if this user is an admin).
         /// </summary>
+        [JsonIgnore]
+        [NotMapped]
         public virtual ICollection<AdminsModel> Admins { get; set; } = new List<AdminsModel>();
 
         /// <summary>
         /// Navigation property for the employee's event participations.
         /// </summary>
+        [JsonIgnore]
+        [NotMapped]
         public virtual ICollection<EventParticipationModel> EventParticipations { get; set; } = new List<EventParticipationModel>();
 
         /// <summary>
         /// Navigation property for the employee's office attendance records.
         /// </summary>
+        [JsonIgnore]
+        [NotMapped]
         public virtual ICollection<OfficeAttendanceModel> OfficeAttendances { get; set; } = new List<OfficeAttendanceModel>();
 
         /// <summary>
         /// Navigation property for the employee's room bookings.
         /// </summary>
+        [JsonIgnore]    
+        [NotMapped]
         public virtual ICollection<GroupMembershipsModel> GroupMemberships { get; set; } = new List<GroupMembershipsModel>();
 
         /// <summary>
         /// Navigation property for the events created by this employee.
         /// </summary>
+        [JsonIgnore]
+        [NotMapped]
         public virtual ICollection<EventsModel> CreatedEvents { get; set; } = new List<EventsModel>();
     }
 }
