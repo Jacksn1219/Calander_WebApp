@@ -11,6 +11,7 @@ export default function App() {
     <AuthProvider>
       <BrowserRouter>
         <Routes>
+          {/* Login */}
           <Route 
             path="/login" 
             element={
@@ -19,6 +20,8 @@ export default function App() {
               </AuthRedirectRoute>
             } 
           />
+
+          {/* Register */}
           <Route 
             path="/register" 
             element={
@@ -27,6 +30,8 @@ export default function App() {
               </AuthRedirectRoute>
             } 
           />
+
+          {/* Home */}
           <Route
             path="/home"
             element={
@@ -35,6 +40,8 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Room Booking */}
           <Route
             path="/roombooking"
             element={
@@ -43,11 +50,11 @@ export default function App() {
               </ProtectedRoute>
             }
           />
+
+          {/* Default redirect */}
           <Route 
             path="/" 
-            element={
-              <RootRedirect />
-            } 
+            element={<RootRedirect />} 
           />
         </Routes>
       </BrowserRouter>
@@ -55,32 +62,34 @@ export default function App() {
   );
 }
 
-// small component to redirect authenticated users away from login/register
+// 🔒 Protect routes for authenticated users only
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token');
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  const user = localStorage.getItem('user');
+  return user ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+// 🚫 Redirect authenticated users away from login/register
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, logout } = useAuth();
-  
-  if (isAuthenticated) {
+  const user = localStorage.getItem('user');
+
+  if (user) {
     const confirmed = window.confirm(
       'You are already logged in. Do you want to logout and continue to this page?'
     );
-    
+
     if (confirmed) {
-      logout();
+      localStorage.removeItem('user');
       return <>{children}</>;
     } else {
       return <Navigate to="/home" replace />;
     }
   }
-  
+
   return <>{children}</>;
 };
 
+// 🔁 Root redirect logic
 const RootRedirect = () => {
-  const token = localStorage.getItem('token');
-  return token ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
+  const user = localStorage.getItem('user');
+  return user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
 };

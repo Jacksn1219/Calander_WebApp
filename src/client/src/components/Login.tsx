@@ -1,113 +1,70 @@
 import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../states/AuthContext';
-import Sidebar from './Sidebar';
-import '../styles/login-page.css';
+import { useNavigate } from 'react-router-dom';
 
 const Login: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
+  const [error, setError] = useState('');
+  const navigate = useNavigate(); // 👈 use this for React Router redirect
 
-  function validate() {
-    if (!email || !password) {
-      setError('Email and password are required.');
-      return false;
-    }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setError('Enter a valid email address.');
-      return false;
-    }
-    setError(null);
-    return true;
-  }
-
-  function submit(e: React.FormEvent) {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!validate()) return;
-    
-    if (email === 'admin@example.com' && password === 'Password123') {
-      // Mock user data - in real app this would come from the API
-      const userData = {
-        name: 'Admin User',
-        email: 'admin@example.com',
-        role: 'Admin' as const
-      };
-      
-      login(userData);
+    setError('');
+
+    try {
+      const res = await fetch('http://localhost:5000/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email, password }),
+        credentials: 'include', // 👈 allows cookies from backend
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || 'Login failed');
+      }
+
+      const data = await res.json();
+
+      // 🧠 store user info (for later)
+      localStorage.setItem('user', JSON.stringify(data.user));
+
+      // ✅ redirect to home using React Router
       navigate('/home');
-      return;
+    } catch (err: any) {
+      console.error(err);
+      setError(err.message || 'Network error');
     }
-    
-    setError('Invalid credentials. Use admin@example.com / Password123 for demo.');
-  }
+  };
 
   return (
-    <div className="app-layout">
-      <Sidebar />
-      <main className="main-content">
-        <section className="login-card" aria-labelledby="login-title">
-          <h2 id="login-title">Sign in to Office Calendar</h2>
-          <p className="muted">Enter your email and password to continue.</p>
-          <form onSubmit={submit} className="login-form" noValidate>
-            <label htmlFor="email">Email</label>
-            <input
-              id="email"
-              type="email"
-              value={email}
-              onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              autoComplete="username"
-              required
-            />
+    <div style={{ padding: '2rem' }}>
+      <h2>Login</h2>
+      <form onSubmit={handleSubmit}>
+        <div style={{ marginBottom: '1rem' }}>
+          <label>Email</label><br />
+          <input
+            type="email"
+            value={email}
+            onChange={e => setEmail(e.target.value)}
+            required
+          />
+        </div>
 
-            <label htmlFor="password">Password</label>
-            <div className="password-input-container">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Your password"
-                autoComplete="current-password"
-                required
-              />
-              <button
-                type="button"
-                className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
-              >
-                {showPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                )}
-              </button>
-            </div>
+        <div style={{ marginBottom: '1rem' }}>
+          <label>Password</label><br />
+          <input
+            type="password"
+            value={password}
+            onChange={e => setPassword(e.target.value)}
+            required
+          />
+        </div>
 
-            {error && <div role="alert" className="form-error">{error}</div>}
+        <button type="submit">Login</button>
+      </form>
 
-            <div className="form-actions">
-              <button type="submit" className="primary">Sign in</button>
-            </div>
-          </form>
-          <div className="login-footer muted">
-            Demo: admin@example.com / Password123<br />
-            <br />
-            Don't have an account? <Link to="/register" style={{ color: '#1f6feb' }}>Register here</Link>
-          </div>
-        </section>
-      </main>
+      {error && <p style={{ color: 'red' }}>{error}</p>}
     </div>
   );
 };
