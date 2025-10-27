@@ -6,14 +6,11 @@ import "../styles/login-page.css";
 import { isAuthenticated } from "../utils/auth";
 
 const Home: React.FC = () => {
-  const navigate = useNavigate();
-
-  useEffect(() => {
-    if (!isAuthenticated()) {
-      navigate("/regrister");
-    }
-  }, [navigate]);
-
+  // TODO: Backend Integration - Add user dashboard features
+  // - Fetch upcoming events (GET /api/events/upcoming)
+  // - Display user statistics (total events, attendance rate, etc.)
+  // - Show recent activity or notifications
+  // - Display office attendance status
   return (
     <main className="main-content">
       <h1>Welcome</h1>

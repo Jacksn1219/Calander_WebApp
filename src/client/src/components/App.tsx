@@ -1,66 +1,46 @@
-import React from "react";
-import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
-import { AuthProvider } from "../states/AuthContext";
-import Login from "./Login";
-import Register from "./Register";
-import Home from "./Home";
-import RoomBooking from "./RoomBooking";
-import Layout from "./Layout";
-
-
-
-
+import React from 'react';
+import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
+import { AuthProvider, useAuth } from '../states/AuthContext';
+import Login from './Login';
+import Register from './Register';
+import Home from './Home';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Layout>
-          <Routes>
-            {/* Login */}
-            <Route
-              path="/login"
-              element={
-                <AuthRedirectRoute>
-                  <Login />
-                </AuthRedirectRoute>
-              }
-            />
-
-            {/* Register */}
-            <Route
-              path="/register"
-              element={
-                <AuthRedirectRoute>
-                  <Register />
-                </AuthRedirectRoute>
-              }
-            />
-
-            {/* Home */}
-            <Route
-              path="/home"
-              element={
-                <ProtectedRoute>
-                  <Home />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Room Booking */}
-            <Route
-              path="/roombooking"
-              element={
-                <ProtectedRoute>
-                  <RoomBooking />
-                </ProtectedRoute>
-              }
-            />
-
-            {/* Default */}
-            <Route path="/" element={<RootRedirect />} />
-          </Routes>
-        </Layout>
+        <Routes>
+          <Route 
+            path="/login" 
+            element={
+              <AuthRedirectRoute>
+                <Login />
+              </AuthRedirectRoute>
+            } 
+          />
+          <Route 
+            path="/register" 
+            element={
+              <AuthRedirectRoute>
+                <Register />
+              </AuthRedirectRoute>
+            } 
+          />
+          <Route
+            path="/home"
+            element={
+              <ProtectedRoute>
+                <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route 
+            path="/" 
+            element={
+              <RootRedirect />
+            } 
+          />
+        </Routes>
       </BrowserRouter>
     </AuthProvider>
   );
