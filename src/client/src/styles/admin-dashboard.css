@@ -1,0 +1,158 @@
+.admin-layout {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  min-height: 100vh;
+  width: 100%;
+  background-color: #f9fafb;
+}
+
+.admin-dashboard {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  padding: 2rem;
+  box-sizing: border-box;
+}
+
+.sidebar.collapsed + .admin-dashboard {
+  margin-left: 60px;
+}
+
+.events-section {
+  background-color: white;
+  padding: 24px;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+  width: 100%;
+  max-width: 95%;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.events-section h1 {
+  font-size: 2em;
+  margin: 0;
+}
+
+.events-section h2 {
+  font-size: 1.25em;
+  margin: 0.5rem 0;
+}
+
+.create-button {
+  align-self: flex-end;
+  background-color: #d1fadf;
+  border: 1px solid #a3e4b1;
+  color: #034f1e;
+  padding: 0.75rem 1.25rem;
+  border-radius: 8px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.create-button:hover {
+  background-color: #b9f0ca;
+}
+
+.admin-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.95rem;
+  overflow-x: auto;
+}
+
+.admin-table th,
+.admin-table td {
+  border: 1px solid #e5e7eb;
+  padding: 0.75rem;
+  text-align: center;
+}
+
+.admin-table th {
+  background-color: #f3f4f6;
+  font-weight: 600;
+}
+
+.admin-table tr:nth-child(even) {
+  background-color: #fafafa;
+}
+
+.edit-button {
+  background-color: #dbeafe;
+  color: #1e3a8a;
+  border: 1px solid #93c5fd;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+}
+
+.edit-button:hover {
+  background-color: #bfdbfe;
+}
+
+.delete-button {
+  background-color: #fee2e2;
+  color: #7f1d1d;
+  border: 1px solid #fca5a5;
+  padding: 0.5rem 0.75rem;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.delete-button:hover {
+  background-color: #fecaca;
+}
+
+@media only screen and (max-width: 920px) {
+  .admin-dashboard {
+    padding: 1rem;
+    margin-left: 0 !important;
+  }
+
+  .events-section {
+    max-width: 100%;
+    padding: 16px;
+  }
+
+  .admin-table th,
+  .admin-table td {
+    font-size: 0.85rem;
+    padding: 0.5rem;
+  }
+
+  .create-button {
+    align-self: flex-start;
+  }
+
+  .admin-table {
+    display: block;
+    overflow-x: auto;
+    white-space: nowrap;
+  }
+}
+
+@media only screen and (max-width: 600px) {
+  .admin-table th,
+  .admin-table td {
+    padding: 0.5rem 0.25rem;
+  }
+
+  .events-section h1 {
+    font-size: 1.5em;
+  }
+
+  .events-section h2 {
+    font-size: 1.1em;
+  }
+
+  .edit-button,
+  .delete-button {
+    padding: 0.35rem 0.5rem;
+    font-size: 0.75rem;
+  }
+}

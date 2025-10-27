@@ -5,6 +5,7 @@ import Login from './Login';
 import Register from './Register';
 import Home from './Home';
 import RoomBooking from './RoomBooking';
+import AdminDashboard from './AdminDashboard';
 
 export default function App() {
   return (
@@ -40,6 +41,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <RoomBooking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admindashboard"
+            element={
+              <ProtectedRoute>
+                <AdminDashboard />
               </ProtectedRoute>
             }
           />
