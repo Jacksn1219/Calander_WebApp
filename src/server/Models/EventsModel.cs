@@ -43,6 +43,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// ID of the user who created the event.
         /// </summary>
+        [Required]
         [Column("created_by", Order = 4)]
         [ForeignKey(nameof(CreatedByUser))]
         public int CreatedBy { get; set; }
@@ -50,6 +51,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the employee who created the event.
         /// </summary>
-        public virtual EmployeesModel CreatedByUser { get; set; } = null!;
+        [JsonIgnore]
+        public virtual EmployeesModel? CreatedByUser { get; set; } = null!;
     }
 }
