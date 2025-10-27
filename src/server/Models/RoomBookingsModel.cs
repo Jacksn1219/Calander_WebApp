@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -23,7 +24,8 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the related room.
         /// </summary>
-        public virtual RoomsModel Room { get; set; } = null!;
+        [JsonIgnore]
+        public virtual RoomsModel? Room { get; set; } = null!;
 
         /// <summary>
         /// ID of the employee who booked the room.
@@ -35,7 +37,8 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the related employee.
         /// </summary>
-        public virtual EmployeesModel Employee { get; set; } = null!;
+        [JsonIgnore]
+        public virtual EmployeesModel? Employee { get; set; } = null!;
 
         /// <summary>
         /// Date of the booking.

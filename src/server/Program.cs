@@ -1,5 +1,6 @@
 using Calender_WebApp.Services.Interfaces;
 using Calender_WebApp.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp;
@@ -13,15 +14,36 @@ class Program
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
-
-
-        // Add services to the container.
-        builder.Services.AddControllersWithViews();
+        // 🔐 Authentication
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/auth/login";
+                options.LogoutPath = "/auth/logout";
+                options.AccessDeniedPath = "/auth/denied";
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+            });
+        builder.Services.AddAuthorization();
         builder.Services.AddDistributedMemoryCache();
         builder.Services.AddHttpContextAccessor();
 
-        // Register dependency injection for services
+        // 🌐 CORS for React frontend
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
+        });
+
+        // 🧩 Register app services
         builder.Services.AddScoped<IAdminsService, AdminsService>();
         builder.Services.AddScoped<IEmployeesService, EmployeesService>();
         builder.Services.AddScoped<IEventParticipationService, EventParticipationService>();
@@ -62,7 +84,6 @@ class Program
                 app.UseHsts();
             }
 
-        // Enable Swagger middleware
         app.UseSwagger();
         app.UseSwaggerUI();
 
@@ -73,12 +94,7 @@ class Program
         app.UseSession();
         app.UseAuthorization();
 
-        app.MapStaticAssets();
-
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
-            .WithStaticAssets();
+        app.MapControllers();
 
         app.Run();
     }

@@ -1,3 +1,4 @@
+using System.Linq;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 
@@ -19,11 +20,13 @@ public class GroupsService : CrudService<GroupsModel>, IGroupsService
     /// Get all groups a user is a member of
     /// </summary>
     /// <param name="userId"></param>
-    /// <returns>A list of groups the user is a member of.</returns>
     public async Task<List<GroupsModel>> GetGroupsByUserAsync(int userId)
     {
         var memberships = await _groupMembershipsService.GetMembershipsByUserIdAsync(userId);
-        return memberships.Select(m => m.Group).ToList();
+        return memberships
+            .Where(m => m.Group != null)
+            .Select(m => m.Group!)
+            .ToList();
     }
 
     // Add additional services that are not related to CRUD here
