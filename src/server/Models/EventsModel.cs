@@ -52,6 +52,6 @@ namespace Calender_WebApp.Models
         /// Navigation property for the employee who created the event.
         /// </summary>
         [JsonIgnore]
-        public virtual EmployeesModel? CreatedByUser { get; set; } = null!;
+        public virtual EmployeesModel? CreatedByUser { get; set; }
     }
 }

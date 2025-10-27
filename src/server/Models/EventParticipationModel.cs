@@ -19,8 +19,10 @@ namespace Calender_WebApp.Models
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
-        public virtual EventsModel Event { get; set; } = null!;
-        public virtual EmployeesModel Employee { get; set; } = null!;
+        
+        public virtual EventsModel Event { get; set; } 
+        
+        public virtual EmployeesModel Employee { get; set; } 
 
         [Required]
         [Column("status")]
