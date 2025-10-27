@@ -1,63 +1,31 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../states/AuthContext';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useRegisterForm } from '../hooks/hooks';
 import Sidebar from './Sidebar';
 import '../styles/login-page.css';
 
 const Register: React.FC = () => {
-  const [name, setName] = useState('');
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'Admin' | 'User'>('User');
-  const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  function validate() {
-    if (!name || !email || !password || !confirmPassword) {
-      setError('All fields are required.');
-      return false;
-    }
-    
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setError('Enter a valid email address.');
-      return false;
-    }
-
-    if (password.length < 8) {
-      setError('Password must be at least 8 characters long.');
-      return false;
-    }
-
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return false;
-    }
-
-    setError(null);
-    return true;
-  }
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!validate()) return;
-
-    const userData = { name, email, role };
-
-    setTimeout(() => {
-      setSuccess('Registration successful! Logging you in...');
-      console.log('Mock user created:', userData);
-      
-      setTimeout(() => {
-        login(userData);
-        navigate('/home');
-      }, 1000);
-    }, 500);
-  }
+  // TODO: Backend Integration - useRegisterForm hook uses mock registration
+  // Replace with actual POST request to /api/employees/register endpoint
+  const {
+    name,
+    setName,
+    email,
+    setEmail,
+    password,
+    setPassword,
+    confirmPassword,
+    setConfirmPassword,
+    role,
+    setRole,
+    error,
+    success,
+    showPassword,
+    togglePasswordVisibility,
+    showConfirmPassword,
+    toggleConfirmPasswordVisibility,
+    handleSubmit,
+  } = useRegisterForm();
 
   const PasswordToggle = ({ 
     show, 
@@ -102,7 +70,7 @@ const Register: React.FC = () => {
             </div>
           )}
 
-          <form onSubmit={submit} className="login-form" noValidate>
+          <form onSubmit={handleSubmit} className="login-form" noValidate>
             <label htmlFor="name">Full Name</label>
             <input
               id="name"
@@ -153,7 +121,7 @@ const Register: React.FC = () => {
               />
               <PasswordToggle
                 show={showPassword}
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={togglePasswordVisibility}
                 ariaLabel={showPassword ? 'Hide password' : 'Show password'}
               />
             </div>
@@ -171,7 +139,7 @@ const Register: React.FC = () => {
               />
               <PasswordToggle
                 show={showConfirmPassword}
-                onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                onClick={toggleConfirmPasswordVisibility}
                 ariaLabel={showConfirmPassword ? 'Hide confirm password' : 'Show confirm password'}
               />
             </div>

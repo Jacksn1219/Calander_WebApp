@@ -4,6 +4,7 @@ import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
 import Register from './Register';
 import Home from './Home';
+import MyEvents from './MyEvents';
 
 export default function App() {
   return (
@@ -31,6 +32,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Home />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/my-events"
+            element={
+              <ProtectedRoute>
+                <MyEvents />
               </ProtectedRoute>
             }
           />

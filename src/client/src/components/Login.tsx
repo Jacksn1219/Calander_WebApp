@@ -1,49 +1,22 @@
-import React, { useState } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
-import { useAuth } from '../states/AuthContext';
+import React from 'react';
+import { Link } from 'react-router-dom';
+import { useLoginForm } from '../hooks/hooks';
 import Sidebar from './Sidebar';
 import '../styles/login-page.css';
 
 const Login: React.FC = () => {
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [error, setError] = useState<string | null>(null);
-  const [showPassword, setShowPassword] = useState(false);
-  const navigate = useNavigate();
-  const { login } = useAuth();
-
-  function validate() {
-    if (!email || !password) {
-      setError('Email and password are required.');
-      return false;
-    }
-    if (!/^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email)) {
-      setError('Enter a valid email address.');
-      return false;
-    }
-    setError(null);
-    return true;
-  }
-
-  function submit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!validate()) return;
-    
-    if (email === 'admin@example.com' && password === 'Password123') {
-      // Mock user data - in real app this would come from the API
-      const userData = {
-        name: 'Admin User',
-        email: 'admin@example.com',
-        role: 'Admin' as const
-      };
-      
-      login(userData);
-      navigate('/home');
-      return;
-    }
-    
-    setError('Invalid credentials. Use admin@example.com / Password123 for demo.');
-  }
+  // TODO: Backend Integration - useLoginForm hook uses mock authentication
+  // Replace localStorage token with actual JWT from backend API
+  const {
+    email,
+    setEmail,
+    password,
+    setPassword,
+    error,
+    showPassword,
+    togglePasswordVisibility,
+    handleSubmit,
+  } = useLoginForm();
 
   return (
     <div className="app-layout">
@@ -52,7 +25,7 @@ const Login: React.FC = () => {
         <section className="login-card" aria-labelledby="login-title">
           <h2 id="login-title">Sign in to Office Calendar</h2>
           <p className="muted">Enter your email and password to continue.</p>
-          <form onSubmit={submit} className="login-form" noValidate>
+          <form onSubmit={handleSubmit} className="login-form" noValidate>
             <label htmlFor="email">Email</label>
             <input
               id="email"
@@ -78,7 +51,7 @@ const Login: React.FC = () => {
               <button
                 type="button"
                 className="password-toggle"
-                onClick={() => setShowPassword(!showPassword)}
+                onClick={togglePasswordVisibility}
                 aria-label={showPassword ? 'Hide password' : 'Show password'}
               >
                 {showPassword ? (
