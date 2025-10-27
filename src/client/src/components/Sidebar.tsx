@@ -1,25 +1,13 @@
-import React, { useState } from 'react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
+import React from 'react';
+import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
+import { useSidebar } from '../hooks/hooks';
 import '../styles/sidebar.css';
 
 const Sidebar: React.FC = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const { isCollapsed, toggleSidebar, handleLogout } = useSidebar();
   const location = useLocation();
-  const navigate = useNavigate();
-  const { user, isAuthenticated, logout } = useAuth();
-
-  const handleLogout = () => {
-    const confirmed = window.confirm('Are you sure you want to logout?');
-    if (confirmed) {
-      logout();
-      navigate('/login');
-    }
-  };
-
-  const toggleSidebar = () => {
-    setIsCollapsed(!isCollapsed);
-  };
+  const { user, isAuthenticated } = useAuth();
 
   const HamburgerIcon = () => (
     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

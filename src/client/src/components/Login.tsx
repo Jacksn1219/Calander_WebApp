@@ -12,7 +12,6 @@ export default function Login() {
   const [success, setSuccess] = useState("");
   const navigate = useNavigate();
 
-  // 🧭 If already logged in, go to home
   useEffect(() => {
     const user = localStorage.getItem("user");
     if (user) navigate("/home");

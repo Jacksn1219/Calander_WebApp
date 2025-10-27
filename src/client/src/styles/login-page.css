@@ -27,21 +27,14 @@
 
 .login-form { display: grid; gap: 10px; margin-top: 12px }
 .login-form label { font-size: 0.9rem; color: #34414e }
-.login-form input {
+.login-form input,
+.login-form select {
   padding: 10px 12px;
   border: 1px solid #d9e2ec;
   border-radius: 6px;
   font-size: 1rem;
+  width: 100%;
+  box-sizing: border-box;
 }
-.form-actions { display: flex; justify-content: flex-end; margin-top: 6px }
-.primary {
-  background: #1f6feb;
-  color: white;
-  border: none;
-  padding: 10px 16px;
-  border-radius: 6px;
-  cursor: pointer;
-}
-.primary:active { transform: translateY(1px) }
 .form-error { color: #8b1c1c; background: #fff1f1; padding: 8px; border-radius: 6px }
 .login-footer { margin-top: 12px; font-size: 0.9rem }
