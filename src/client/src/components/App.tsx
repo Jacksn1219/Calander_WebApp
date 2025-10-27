@@ -6,6 +6,7 @@ import Register from './Register';
 import Home from './Home';
 import RoomBooking from './RoomBooking';
 import AdminDashboard from './AdminDashboard';
+import MyEvents from './MyEvents';
 
 export default function App() {
   return (
@@ -49,6 +50,15 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+                }
+            />
+            <Route
+            
+            path="/my-events"
+            element={
+              <ProtectedRoute>
+                <MyEvents />
               </ProtectedRoute>
             }
           />

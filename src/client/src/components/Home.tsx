@@ -4,6 +4,11 @@ import '../styles/index.css';
 import '../styles/login-page.css';
 
 const Home: React.FC = () => {
+  // TODO: Backend Integration - Add user dashboard features
+  // - Fetch upcoming events (GET /api/events/upcoming)
+  // - Display user statistics (total events, attendance rate, etc.)
+  // - Show recent activity or notifications
+  // - Display office attendance status
   return (
     <div className="app-layout">
       <Sidebar />

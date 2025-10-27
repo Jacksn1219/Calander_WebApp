@@ -21,7 +21,7 @@ code {
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: width 0.3s ease;
+  transition: all 0.3s ease;
   position: relative;
 }
 
