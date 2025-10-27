@@ -1,88 +1,119 @@
-import React from 'react';
-import { Link } from 'react-router-dom';
-import { useLoginForm } from '../hooks/hooks';
-import Sidebar from './Sidebar';
-import '../styles/login-page.css';
+"use client";
 
-const Login: React.FC = () => {
-  // TODO: Backend Integration - useLoginForm hook uses mock authentication
-  // Replace localStorage token with actual JWT from backend API
-  const {
-    email,
-    setEmail,
-    password,
-    setPassword,
-    error,
-    showPassword,
-    togglePasswordVisibility,
-    handleSubmit,
-  } = useLoginForm();
+import "../styles/global.css";
+import "../styles/login-page.css";
+import React, { useState, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
+
+export default function Login() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
+  const navigate = useNavigate();
+
+  useEffect(() => {
+    const user = localStorage.getItem("user");
+    if (user) navigate("/home");
+  }, [navigate]);
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setError("");
+    setSuccess("");
+
+    try {
+      const res = await fetch("http://localhost:5000/auth/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.message || "Login failed");
+      }
+
+      const data = await res.json();
+      localStorage.setItem("user", JSON.stringify(data.user || { email }));
+
+      setSuccess("Login successful!");
+      setTimeout(() => navigate("/home"), 700);
+    } catch (err: any) {
+      setError(err.message || "Network error");
+    }
+  };
 
   return (
-    <div className="app-layout">
-      <Sidebar />
-      <main className="main-content">
-        <section className="login-card" aria-labelledby="login-title">
-          <h2 id="login-title">Sign in to Office Calendar</h2>
-          <p className="muted">Enter your email and password to continue.</p>
-          <form onSubmit={handleSubmit} className="login-form" noValidate>
-            <label htmlFor="email">Email</label>
+    <div className="app-layout bg-[#f7f9fc] min-h-screen flex flex-col items-center justify-center">
+      <main className="main-content flex flex-col items-center justify-center w-full">
+        {/* === Title === */}
+        <h2 className="text-4xl font-bold mb-6 text-[#0b1220] font-bebas uppercase tracking-wide">
+          Calendar
+        </h2>
+
+        {/* === Toggle Buttons === */}
+        <div className="flex justify-center gap-6 mb-8">
+          <button
+            className="px-10 py-4 text-xl font-semibold rounded-2xl bg-[#1f6feb] text-white shadow-md hover:scale-105 transition-all duration-300"
+          >
+            Login
+          </button>
+          <button
+            onClick={() => navigate("/register")}
+            className="px-10 py-4 text-xl font-semibold rounded-2xl border border-[#1f6feb] text-[#1f6feb] hover:bg-[#1f6feb]/10 hover:scale-105 transition-all duration-300"
+          >
+            Register
+          </button>
+        </div>
+
+        {/* === Form Section === */}
+        <div className="login-card shadow-xl rounded-2xl p-10 bg-white max-w-md w-full">
+          <form onSubmit={handleSubmit} className="login-form text-left">
+            <label className="block text-sm font-medium text-gray-600 mb-1">
+              Email
+            </label>
             <input
-              id="email"
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
-              placeholder="you@domain.com"
-              autoComplete="username"
               required
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#1f6feb] focus:outline-none"
             />
 
-            <label htmlFor="password">Password</label>
-            <div className="password-input-container">
-              <input
-                id="password"
-                type={showPassword ? 'text' : 'password'}
-                value={password}
-                onChange={(e) => setPassword(e.target.value)}
-                placeholder="Your password"
-                autoComplete="current-password"
-                required
-              />
+            <label className="block text-sm font-medium text-gray-600 mb-1 mt-3">
+              Password
+            </label>
+            <input
+              type="password"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full px-4 py-3 rounded-lg border border-gray-300 focus:ring-2 focus:ring-[#1f6feb] focus:outline-none"
+            />
+
+            {error && (
+              <div className="form-error mt-3 bg-red-50 text-red-700 px-3 py-2 rounded">
+                {error}
+              </div>
+            )}
+            {success && (
+              <div className="bg-green-100 text-green-700 px-3 py-2 rounded mt-3">
+                {success}
+              </div>
+            )}
+
+            <div className="form-actions mt-6">
               <button
-                type="button"
-                className="password-toggle"
-                onClick={togglePasswordVisibility}
-                aria-label={showPassword ? 'Hide password' : 'Show password'}
+                type="submit"
+                className="primary w-full py-3 text-lg rounded-lg bg-[#1f6feb] text-white font-semibold hover:bg-[#174cbf] transition-all duration-300"
               >
-                {showPassword ? (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19m-6.72-1.07a3 3 0 1 1-4.24-4.24"/>
-                    <line x1="1" y1="1" x2="23" y2="23"/>
-                  </svg>
-                ) : (
-                  <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                    <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/>
-                    <circle cx="12" cy="12" r="3"/>
-                  </svg>
-                )}
+                Login
               </button>
             </div>
-
-            {error && <div role="alert" className="form-error">{error}</div>}
-
-            <div className="form-actions">
-              <button type="submit" className="primary">Sign in</button>
-            </div>
           </form>
-          <div className="login-footer muted">
-            Demo: admin@example.com / Password123<br />
-            <br />
-            Don't have an account? <Link to="/register" style={{ color: '#1f6feb' }}>Register here</Link>
-          </div>
-        </section>
+        </div>
       </main>
     </div>
   );
-};
-
-export default Login;
+}

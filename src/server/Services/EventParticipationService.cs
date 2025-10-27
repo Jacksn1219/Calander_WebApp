@@ -1,5 +1,7 @@
 using Calender_WebApp.Models;
+using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Utils;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
@@ -81,6 +83,16 @@ public class EventParticipationService : IEventParticipationService
         // check if status is valid
         if (!Enum.TryParse<ParticipationStatus>(participation.Status.ToString(), true, out var status))
             throw new ArgumentException("Invalid status value", nameof(participation.Status));
+        
+        // Validate model using whitelist util
+        var inputDict = typeof(EventParticipationModel)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .ToDictionary(p => p.Name, p => p.GetValue(participation) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(EventParticipationModel).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
 
         var entry = await _dbSet.AddAsync(participation).ConfigureAwait(false);
         await _context.SaveChangesAsync().ConfigureAwait(false);
@@ -95,6 +107,16 @@ public class EventParticipationService : IEventParticipationService
     /// <returns>The updated participation record.</returns>
     /// <exception cref="NotSupportedException">Thrown when trying to update an event participation record.</exception>
     public Task<EventParticipationModel> Put(int userId, EventParticipationModel newTEntity)
+        => throw new NotSupportedException("Use UpdateStatus(int userId, int eventId, string newStatus) to update the status of an event participation.");
+
+    /// <summary>
+    /// Covers the Patch method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>The updated participation record.</returns>
+    /// <exception cref="NotSupportedException">Thrown when trying to update an event participation record.</exception>
+    public Task<EventParticipationModel> Patch(int userId, EventParticipationModel newTEntity)
         => throw new NotSupportedException("Use UpdateStatus(int userId, int eventId, string newStatus) to update the status of an event participation.");
 
     /// <summary>

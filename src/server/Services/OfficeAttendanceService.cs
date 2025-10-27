@@ -37,5 +37,18 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Get all attendance records for a specific user
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns>A list of attendance records for the specified user.</returns>
+    public async Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId)
+    {
+        return await _dbSet
+            .Where(a => a.UserId == userId)
+            .OrderByDescending(a => a.Date)
+            .ToListAsync();
+    }
+
     // Add any additional methods specific to OfficeAttendance here if needed
 }

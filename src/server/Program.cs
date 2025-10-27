@@ -1,5 +1,6 @@
 using Calender_WebApp.Services.Interfaces;
 using Calender_WebApp.Services;
+using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp;
@@ -13,13 +14,34 @@ class Program
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
+        builder.Services.AddControllers();
+        builder.Services.AddEndpointsApiExplorer();
+        builder.Services.AddSwaggerGen();
 
+        // 🔐 Authentication
+        builder.Services.AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+            .AddCookie(options =>
+            {
+                options.LoginPath = "/auth/login";
+                options.LogoutPath = "/auth/logout";
+                options.AccessDeniedPath = "/auth/denied";
+                options.ExpireTimeSpan = TimeSpan.FromHours(8);
+            });
+        builder.Services.AddAuthorization();
 
+        // 🌐 CORS for React frontend
+        builder.Services.AddCors(options =>
+        {
+            options.AddPolicy("AllowFrontend", policy =>
+            {
+                policy.WithOrigins("http://localhost:5173", "http://localhost:3000")
+                      .AllowAnyHeader()
+                      .AllowAnyMethod()
+                      .AllowCredentials();
+            });
+        });
 
-        // Add services to the container.
-        builder.Services.AddControllersWithViews();
-
-        // Register dependency injection for services
+        // 🧩 Register app services
         builder.Services.AddScoped<IAdminsService, AdminsService>();
         builder.Services.AddScoped<IEmployeesService, EmployeesService>();
         builder.Services.AddScoped<IEventParticipationService, EventParticipationService>();
@@ -27,37 +49,32 @@ class Program
         builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
         builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
-
-
-        // Add Swagger/OpenAPI services
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddScoped<IRoomBookingsService, RoomBookingsService>();
+        builder.Services.AddScoped<IRoomsService, RoomsService>();
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
-        // Enable Swagger middleware
         app.UseSwagger();
         app.UseSwaggerUI();
 
-        app.UseHttpsRedirection();
+        // 🚫 Disable HTTPS redirect in local dev (prevents mixed-content errors)
+        // app.UseHttpsRedirection();
+
+        app.UseStaticFiles();
+
         app.UseRouting();
 
+        app.UseCors("AllowFrontend");
+        app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapStaticAssets();
-
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
-            .WithStaticAssets();
+        app.MapControllers();
 
         app.Run();
     }

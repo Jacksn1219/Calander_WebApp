@@ -1,87 +1,97 @@
-import React from 'react';
-import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../states/AuthContext';
-import Login from './Login';
-import Register from './Register';
-import Home from './Home';
-import MyEvents from './MyEvents';
+import React from "react";
+import { BrowserRouter, Routes, Route, Navigate } from "react-router-dom";
+import { AuthProvider } from "../states/AuthContext";
+import Login from "./Login";
+import Register from "./Register";
+import Home from "./Home";
+import RoomBooking from "./RoomBooking";
+import Layout from "./Layout";
+
+
+
+
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        <Routes>
-          <Route 
-            path="/login" 
-            element={
-              <AuthRedirectRoute>
-                <Login />
-              </AuthRedirectRoute>
-            } 
-          />
-          <Route 
-            path="/register" 
-            element={
-              <AuthRedirectRoute>
-                <Register />
-              </AuthRedirectRoute>
-            } 
-          />
-          <Route
-            path="/home"
-            element={
-              <ProtectedRoute>
-                <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/my-events"
-            element={
-              <ProtectedRoute>
-                <MyEvents />
-              </ProtectedRoute>
-            }
-          />
-          <Route 
-            path="/" 
-            element={
-              <RootRedirect />
-            } 
-          />
-        </Routes>
+        <Layout>
+          <Routes>
+            {/* Login */}
+            <Route
+              path="/login"
+              element={
+                <AuthRedirectRoute>
+                  <Login />
+                </AuthRedirectRoute>
+              }
+            />
+
+            {/* Register */}
+            <Route
+              path="/register"
+              element={
+                <AuthRedirectRoute>
+                  <Register />
+                </AuthRedirectRoute>
+              }
+            />
+
+            {/* Home */}
+            <Route
+              path="/home"
+              element={
+                <ProtectedRoute>
+                  <Home />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Room Booking */}
+            <Route
+              path="/roombooking"
+              element={
+                <ProtectedRoute>
+                  <RoomBooking />
+                </ProtectedRoute>
+              }
+            />
+
+            {/* Default */}
+            <Route path="/" element={<RootRedirect />} />
+          </Routes>
+        </Layout>
       </BrowserRouter>
     </AuthProvider>
   );
 }
 
-
-// small component to redirect authenticated users away from login/register
+console.log("✅ Using cinematic Register component");
+// 🔒 Protected pages
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token');
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  const user = localStorage.getItem("user");
+  return user ? <>{children}</> : <Navigate to="/login" replace />;
 };
 
+// 🚫 Auth redirect logic
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {
-  const { isAuthenticated, logout } = useAuth();
-  
-  if (isAuthenticated) {
+  const user = localStorage.getItem("user");
+  if (user) {
     const confirmed = window.confirm(
-      'You are already logged in. Do you want to logout and continue to this page?'
+      "You are already logged in. Do you want to logout and continue to this page?"
     );
-    
     if (confirmed) {
-      logout();
+      localStorage.removeItem("user");
       return <>{children}</>;
     } else {
       return <Navigate to="/home" replace />;
     }
   }
-  
   return <>{children}</>;
 };
 
+// 🔁 Default redirect
 const RootRedirect = () => {
-  const token = localStorage.getItem('token');
-  return token ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
+  const user = localStorage.getItem("user");
+  return user ? <Navigate to="/home" replace /> : <Navigate to="/login" replace />;
 };
