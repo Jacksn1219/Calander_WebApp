@@ -1,4 +1,4 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 
@@ -376,3 +376,131 @@ export const useEventDialog = (events: any[]) => {
   };
 };
 
+export interface EventItem {
+  id: string;
+  title: string;
+  description: string;
+  date: string;
+  createdBy: string;
+}
+
+const dummyEvents: EventItem[] = [
+  { id: "id1", title: "Event 1", description: "Description 1", date: "2025-11-01", createdBy: "Admin" },
+  { id: "id2", title: "Event 2", description: "Description 2", date: "2025-11-02", createdBy: "Admin" },
+  { id: "id3", title: "Event 3", description: "Description 3", date: "2025-11-03", createdBy: "Admin" },
+];
+
+export const useAdminDashboard = () => {
+  const [events, setEvents] = useState<EventItem[]>(dummyEvents);
+  const navigate = useNavigate();
+
+  const handleCreate = () => {
+    navigate("/create");
+  };
+
+  const handleEdit = (id: string) => {
+    navigate(`/edit/${id}`);
+  };
+
+  const handleDelete = (id: string) => {
+    if (window.confirm("Are you sure you want to delete this event?")) {
+
+      // TODO: Add API for delete here
+
+      setEvents((prev) => prev.filter((event) => event.id !== id));
+    }
+  };
+
+  return { events, handleCreate, handleEdit, handleDelete };
+};
+
+export const useEditEvent = (id: string | undefined) => {
+  const navigate = useNavigate();
+
+  const [eventData, setEventData] = useState<EventItem | null>(null);
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    createdBy: "",
+  });
+
+  useEffect(() => {
+    const foundEvent = dummyEvents.find((e) => e.id === id);
+    if (foundEvent) {
+      setEventData(foundEvent);
+      setFormData({
+        title: foundEvent.title,
+        description: foundEvent.description,
+        date: foundEvent.date,
+        createdBy: foundEvent.createdBy,
+      });
+    } else {
+      alert("Event not found");
+      navigate("/admindashboard");
+    }
+  }, [id, navigate]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    if (!formData.title || !formData.date) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    // TODO: Replace with API PUT/PATCH
+    console.log("Updated event:", { id, ...formData });
+    alert("Event updated successfully!");
+    navigate("/admindashboard");
+  };
+
+  const handleCancel = () => {
+    navigate("/admindashboard");
+  };
+
+  return { eventData, formData, handleChange, handleSave, handleCancel };
+};
+
+export const useCreateEvent = () => {
+  const navigate = useNavigate();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    createdBy: "Admin",
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((prev) => ({ ...prev, [name]: value }));
+  };
+
+  const handleSave = () => {
+    if (!formData.title || !formData.date) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    const newEvent = {
+      id: `id${Math.floor(Math.random() * 10000)}`,
+      ...formData,
+    };
+
+    // TODO: Replace this with API POST later
+    console.log("Created event:", newEvent);
+
+    alert("Event created successfully!");
+    navigate("/admindashboard");
+  };
+
+  const handleCancel = () => {
+    navigate("/admindashboard");
+  };
+
+  return { formData, handleChange, handleSave, handleCancel };
+};

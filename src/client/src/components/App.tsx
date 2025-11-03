@@ -7,6 +7,8 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import AdminDashboard from './AdminDashboard';
 import MyEvents from './MyEvents';
+import EditEvent from './EditEvent';
+import CreateEvent from './CreateEvent';
 
 export default function App() {
   return (
@@ -50,6 +52,22 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AdminDashboard />
+              </ProtectedRoute>
+                }
+            />
+          <Route
+            path="/create"
+            element={
+              <ProtectedRoute>
+                <CreateEvent />
+              </ProtectedRoute>
+                }
+            />
+          <Route
+            path="/edit/:id"
+            element={
+              <ProtectedRoute>
+                <EditEvent />
               </ProtectedRoute>
                 }
             />
