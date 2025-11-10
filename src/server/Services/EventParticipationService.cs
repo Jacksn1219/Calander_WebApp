@@ -79,7 +79,7 @@ public class EventParticipationService : IEventParticipationService
         Console.WriteLine("Attempting to create participation record...");
         if (participation == null) throw new ArgumentNullException(nameof(participation));
         Console.WriteLine($"Participation details: EventId={participation.EventId}, UserId={participation.UserId}, Status={participation.Status}");
-        
+
         if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
             throw new InvalidOperationException("User is already participating in this event.");
 
@@ -87,10 +87,13 @@ public class EventParticipationService : IEventParticipationService
         if (!Enum.TryParse<ParticipationStatus>(participation.Status.ToString(), true, out var status))
             throw new ArgumentException("Invalid status value", nameof(participation.Status));
         
-        // Validate model using whitelist util
+
+        // Validate model using whitelist util (ignore navigation properties)
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(EventParticipationModel).Name);
         var inputDict = typeof(EventParticipationModel)
             .GetProperties()
-            .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => validators == null || validators.ContainsKey(p.Name))
+            .Where(p => p.PropertyType.IsValueType || p.PropertyType == typeof(string))
             .ToDictionary(p => p.Name, p => p.GetValue(participation) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(EventParticipationModel).Name, inputDict, out var errors)) {
@@ -172,4 +175,15 @@ public class EventParticipationService : IEventParticipationService
     }
     
     // Add additional services that are not related to CRUD here
+        /// <summary>
+    /// Get all participants for a specific event
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <returns>The list of participants for the specified event.</returns>
+    public async Task<List<EventParticipationModel>> GetParticipantsByUserIdAsync(int userId)
+    {
+        return await _dbSet
+            .Where(ep => ep.UserId == userId)
+            .ToListAsync();
+    }
 }

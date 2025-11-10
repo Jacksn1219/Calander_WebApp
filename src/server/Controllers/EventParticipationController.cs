@@ -37,7 +37,8 @@ public class EventParticipationController : ControllerBase
 	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)
 	{
 		// You need to implement GetByUser in your service if needed, or remove this endpoint.
-		return BadRequest("GetByUser is not implemented in the service.");
+		var participations = await _eventParticipationService.GetParticipantsByUserIdAsync(userId).ConfigureAwait(false);
+		return Ok(participations);
 	}
 
 	// GET /api/event-participation/event/{eventId}/user/{userId}
@@ -55,6 +56,7 @@ public class EventParticipationController : ControllerBase
 	[HttpPost]
 	public async Task<ActionResult<EventParticipationModel>> Create([FromBody] EventParticipationModel participation)
 	{
+		Console.WriteLine("Create participation called");
 		if (participation == null){
 			Console.WriteLine("wrong input"	);
 			return BadRequest("Participation payload must be provided.");

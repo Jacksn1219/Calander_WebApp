@@ -21,10 +21,10 @@ namespace Calender_WebApp.Models
         public int UserId { get; set; }
 
         [JsonIgnore]
-        public virtual EventsModel Event { get; set; } 
+        public virtual EventsModel? Event { get; set; } 
         
         [JsonIgnore]
-        public virtual EmployeesModel Employee { get; set; } 
+        public virtual EmployeesModel? Employee { get; set; } 
 
         [Required]
         [Column("status")]
