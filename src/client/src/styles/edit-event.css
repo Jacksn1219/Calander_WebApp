@@ -74,32 +74,25 @@
 }
 
 .edit-event-buttons button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.edit-event-save {
-  background-color: #38a169;
+  align-self: flex-end;
+  border: 1px solid #a3e4b1;
+  background: #1f6feb;
   color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+  border: none;
 }
 
 .edit-event-save:hover {
-  background-color: #2f855a;
-  transform: translateY(-1px);
-}
-
-.edit-event-cancel {
-  background-color: #e2e8f0;
-  color: #2d3748;
+  background: #1557c0;
 }
 
 .edit-event-cancel:hover {
-  background-color: #cbd5e0;
-  transform: translateY(-1px);
+  background: #1557c0;
 }
 
 @media (max-width: 1024px) {

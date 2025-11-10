@@ -5,6 +5,7 @@
   min-height: 100vh;
   width: 100%;
   background-color: #f9fafb;
+  overflow: hidden;
 }
 
 .admin-dashboard {
@@ -13,6 +14,7 @@
   flex-direction: column;
   padding: 2rem;
   box-sizing: border-box;
+  overflow: hidden;
 }
 
 .sidebar.collapsed + .admin-dashboard {
@@ -29,6 +31,8 @@
   display: flex;
   flex-direction: column;
   gap: 1rem;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
 }
 
 .events-section h1 {
@@ -43,17 +47,20 @@
 
 .create-button {
   align-self: flex-end;
-  background-color: #d1fadf;
+  background: #1f6feb;
   border: 1px solid #a3e4b1;
-  color: #034f1e;
-  padding: 0.75rem 1.25rem;
-  border-radius: 8px;
-  font-weight: 600;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
   cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+  border: none;
 }
 
 .create-button:hover {
-  background-color: #b9f0ca;
+  background: #1557c0;
 }
 
 .admin-table {
@@ -139,7 +146,7 @@
 @media only screen and (max-width: 600px) {
   .admin-table th,
   .admin-table td {
-    padding: 0.5rem 0.25rem;
+    padding: 0.5rem 0.35rem;
   }
 
   .events-section h1 {
@@ -152,7 +159,6 @@
 
   .edit-button,
   .delete-button {
-    padding: 0.35rem 0.5rem;
-    font-size: 0.75rem;
+    padding: 0.25rem 0.4rem;
   }
 }

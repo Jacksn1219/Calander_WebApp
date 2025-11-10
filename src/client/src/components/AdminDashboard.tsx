@@ -15,17 +15,17 @@ const AdminDashboard: React.FC = () => {
           <h2>Events</h2>
 
           <button className="create-button" onClick={handleCreate}>
-            CREATE EVENT
+            Create new event
           </button>
-
+          { events.length != 0 ? (
           <table className="admin-table">
             <thead>
               <tr>
-                <th>id</th>
-                <th>title</th>
-                <th>description</th>
-                <th>datum</th>
-                <th>created_by</th>
+                <th>Username</th>
+                <th>Title</th>
+                <th>Description</th>
+                <th>Date</th>
+                <th>Created By</th>
                 <th>Edit</th>
                 <th>Delete</th>
               </tr>
@@ -52,6 +52,7 @@ const AdminDashboard: React.FC = () => {
               ))}
             </tbody>
           </table>
+          ) : <h2>There are no events. Create an event first</h2>}
         </div>
       </div>
     </div>

@@ -74,32 +74,25 @@
 }
 
 .create-event-buttons button {
-  padding: 0.75rem 1.5rem;
-  border-radius: 8px;
-  font-weight: 600;
-  cursor: pointer;
-  border: none;
-  transition: background-color 0.2s, transform 0.1s;
-}
-
-.create-event-save {
-  background-color: #38a169;
+  align-self: flex-end;
+  border: 1px solid #a3e4b1;
+  background: #1f6feb;
   color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+  border: none;
 }
 
 .create-event-save:hover {
-  background-color: #2f855a;
-  transform: translateY(-1px);
-}
-
-.create-event-cancel {
-  background-color: #e2e8f0;
-  color: #2d3748;
+  background: #1557c0;
 }
 
 .create-event-cancel:hover {
-  background-color: #cbd5e0;
-  transform: translateY(-1px);
+  background: #1557c0;
 }
 
 @media (max-width: 1024px) {
@@ -110,8 +103,21 @@
 }
 
 @media (max-width: 768px) {
+  html, body {
+    overflow:hidden;
+  }
+
   .create-event-dashboard {
-    padding: 1rem;
+    padding: 0rem;
+    flex:none;
+    display:initial;
+    justify-content:unset;
+    width: 120%;
+    /* margin: 0;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%); */
   }
 
   .create-event-section {
@@ -138,13 +144,6 @@
   }
 }
 
-@media (max-width: 1420px) {
-  .create-event-form input,
-  .create-event-form textarea {
-    width: 93%;
-  }
-}
-
 @media (min-width: 1440px) {
   .create-event-section {
     max-width: 800px;
@@ -153,5 +152,10 @@
 
   .create-event-section h1 {
     font-size: 2rem;
+  }
+
+  .create-event-form input,
+  .create-event-form textarea {
+    width: 93%;
   }
 }
