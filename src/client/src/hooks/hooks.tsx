@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 
 /**
@@ -390,9 +390,26 @@ const dummyEvents: EventItem[] = [
   { id: "id3", title: "Event 3", description: "Description 3", date: "2025-11-03", createdBy: "Admin" },
 ];
 
+const loadEvents = (): EventItem[] => {
+  const data = localStorage.getItem("events");
+  if (data)
+  {
+    return JSON.parse(data);
+  }
+  else
+  {
+    return dummyEvents;
+  }
+};
+
 export const useAdminDashboard = () => {
-  const [events, setEvents] = useState<EventItem[]>(dummyEvents);
+  const [events, setEvents] = useState<EventItem[]>([]);
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    setEvents(loadEvents());
+  }, [location]);
 
   const handleCreate = () => {
     navigate("/create");
@@ -404,10 +421,9 @@ export const useAdminDashboard = () => {
 
   const handleDelete = (id: string) => {
     if (window.confirm("Are you sure you want to delete this event?")) {
-
-      // TODO: Add API for delete here
-
-      setEvents((prev) => prev.filter((event) => event.id !== id));
+      const updated = events.filter((event) => event.id !== id);
+      setEvents(updated);
+      localStorage.setItem("events", JSON.stringify(updated));
     }
   };
 
@@ -416,7 +432,6 @@ export const useAdminDashboard = () => {
 
 export const useEditEvent = (id: string | undefined) => {
   const navigate = useNavigate();
-
   const [eventData, setEventData] = useState<EventItem | null>(null);
   const [formData, setFormData] = useState({
     title: "",
@@ -426,7 +441,8 @@ export const useEditEvent = (id: string | undefined) => {
   });
 
   useEffect(() => {
-    const foundEvent = dummyEvents.find((e) => e.id === id);
+    const loadedEvents = loadEvents();
+    const foundEvent = loadedEvents.find((e) => e.id === id);
     if (foundEvent) {
       setEventData(foundEvent);
       setFormData({
@@ -452,9 +468,12 @@ export const useEditEvent = (id: string | undefined) => {
       return;
     }
 
-    // TODO: Replace with API PUT/PATCH
-    console.log("Updated event:", { id, ...formData });
-    alert("Event updated successfully!");
+    const loadedEvents = loadEvents();
+    const updatedEvents = loadedEvents.map((event) =>
+      event.id === id ? { ...event, ...formData } : event
+    );
+
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
     navigate("/admindashboard");
   };
 
@@ -486,15 +505,12 @@ export const useCreateEvent = () => {
       return;
     }
 
-    const newEvent = {
-      id: `id${Math.floor(Math.random() * 10000)}`,
-      ...formData,
-    };
+    const stored = loadEvents();
+    const nextId = `id${stored.length + 1}`;
+    const updatedEvents = [...stored, { id: nextId, ...formData }];
 
-    // TODO: Replace this with API POST later
-    console.log("Created event:", newEvent);
+    localStorage.setItem("events", JSON.stringify(updatedEvents));
 
-    alert("Event created successfully!");
     navigate("/admindashboard");
   };
 
