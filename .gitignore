@@ -53,8 +53,8 @@ TestResults/
 ######################
 *.log
 *.sqlite
-*.db-shm
 *.db-wal
+*.db-shm
 *.db
 # OS generated files #
 ######################
