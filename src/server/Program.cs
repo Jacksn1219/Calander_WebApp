@@ -1,64 +1,93 @@
-using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp;
 using Calender_WebApp.Services;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
+using Calender_WebApp.Models;
 
-namespace Calender_WebApp;
+var builder = WebApplication.CreateBuilder(args);
 
-class Program
+// Database
+builder.Services.AddDbContext<AppDbContext>(options =>
+    options.UseSqlite(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+// Services
+builder.Services.AddScoped<AuthService>();
+
+// Controllers + Swagger
+builder.Services.AddControllers();
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen(options =>
 {
-    public static void Main(string[] args)
+    options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
     {
-        var builder = WebApplication.CreateBuilder(args);
+        In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+        Description = "Voer JWT token in: Bearer {token}",
+        Name = "Authorization",
+        Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+        Scheme = "Bearer"
+    });
 
-        builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+    options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement {
+    {
+        new Microsoft.OpenApi.Models.OpenApiSecurityScheme {
+            Reference = new Microsoft.OpenApi.Models.OpenApiReference {
+                Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                Id = "Bearer"
+            }
+        }, new string[] { }
+    }});
+});
 
+// JWT Authentication
+var jwt = builder.Configuration.GetSection("Jwt");
+builder.Services.AddAuthentication(options =>
+{
+    options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+    options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+})
+.AddJwtBearer(options =>
+{
+    options.TokenValidationParameters = new TokenValidationParameters
+    {
+        ValidateIssuer = true,
+        ValidateAudience = true,
+        ValidateLifetime = true,
+        ValidateIssuerSigningKey = true,
+        ValidIssuer = jwt["Issuer"],
+        ValidAudience = jwt["Audience"],
+        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!))
+    };
+});
 
+var app = builder.Build();
 
+// ✅ Swagger altijd tonen
+app.UseSwagger();
+app.UseSwaggerUI();
 
-        // Add services to the container.
-        builder.Services.AddControllersWithViews();
+// Middleware
+app.UseAuthentication();
+app.UseAuthorization();
 
-        // Register dependency injection for services
-        builder.Services.AddScoped<IAdminsService, AdminsService>();
-        builder.Services.AddScoped<IEmployeesService, EmployeesService>();
-        builder.Services.AddScoped<IEventParticipationService, EventParticipationService>();
-        builder.Services.AddScoped<IEventsService, EventsService>();
-        builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
-        builder.Services.AddScoped<IGroupsService, GroupsService>();
-        builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
+app.MapControllers();
 
-
-        // Add Swagger/OpenAPI services
-        builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
-
-        var app = builder.Build();
-
-        // Configure the HTTP request pipeline.
-        if (!app.Environment.IsDevelopment())
+// ✅ Dummy user aanmaken bij eerste start
+using (var scope = app.Services.CreateScope())
+{
+    var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+    if (!db.Employees.Any())
+    {
+        db.Employees.Add(new EmployeesModel
         {
-            app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
-            app.UseHsts();
-        }
-
-        // Enable Swagger middleware
-        app.UseSwagger();
-        app.UseSwaggerUI();
-
-        app.UseHttpsRedirection();
-        app.UseRouting();
-
-        app.UseAuthorization();
-
-        app.MapStaticAssets();
-
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
-            .WithStaticAssets();
-
-        app.Run();
+            Name = "bart",
+            Email = "bart@test.com",
+            Password = "1234",
+            Role = UserRole.Admin
+        });
+        db.SaveChanges();
     }
 }
+
+app.Run();
