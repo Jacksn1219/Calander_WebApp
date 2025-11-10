@@ -26,5 +26,20 @@ namespace Calender_WebApp.Services
         }
 
         // Add additional services that are not related to CRUD here
+        public override async Task<EmployeesModel> Post(EmployeesModel entity)
+        {
+            if (entity == null)
+                throw new ArgumentNullException(nameof(entity));
+
+			// check for unique email
+            var existingEmployee = await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Email == entity.Email)
+                .ConfigureAwait(false);
+            if (existingEmployee != null)
+                throw new InvalidOperationException("An employee with the same email already exists.");
+            entity.Password = BCrypt.Net.BCrypt.HashPassword(entity.Password);
+            return await base.Post(entity).ConfigureAwait(false);
+        }
     }
 }

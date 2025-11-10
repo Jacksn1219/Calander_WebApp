@@ -1,4 +1,5 @@
 using Calender_WebApp.Models;
+using Calender_WebApp.Services.Interfaces;
 using Microsoft.IdentityModel.Tokens;
 using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
@@ -6,8 +7,9 @@ using System.Text;
 
 namespace Calender_WebApp.Services
 {
-    public class AuthService
+    public class AuthService : IAuthService
     {
+
         private readonly AppDbContext _db;
         private readonly IConfiguration _config;
 
