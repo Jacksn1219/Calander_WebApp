@@ -55,12 +55,15 @@ public class EventParticipationController : ControllerBase
 	[HttpPost]
 	public async Task<ActionResult<EventParticipationModel>> Create([FromBody] EventParticipationModel participation)
 	{
-		if (participation == null)
+		if (participation == null){
+			Console.WriteLine("wrong input"	);
 			return BadRequest("Participation payload must be provided.");
+		}
 
 		if (!ModelState.IsValid)
+		{	Console.WriteLine("invalid model state"	);		
 			return ValidationProblem(ModelState);
-
+		}
 		try
 		{
 			var created = await _eventParticipationService.Post(participation).ConfigureAwait(false);

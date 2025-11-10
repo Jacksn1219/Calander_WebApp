@@ -76,7 +76,10 @@ public class EventParticipationService : IEventParticipationService
     /// <exception cref="ArgumentException">Thrown when the status is invalid.</exception>
     public async Task<EventParticipationModel> Post(EventParticipationModel participation)
     {
+        Console.WriteLine("Attempting to create participation record...");
         if (participation == null) throw new ArgumentNullException(nameof(participation));
+        Console.WriteLine($"Participation details: EventId={participation.EventId}, UserId={participation.UserId}, Status={participation.Status}");
+        
         if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
             throw new InvalidOperationException("User is already participating in this event.");
 
