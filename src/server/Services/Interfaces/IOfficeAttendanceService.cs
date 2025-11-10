@@ -6,6 +6,7 @@ namespace Calender_WebApp.Services.Interfaces
     {
         Task<OfficeAttendanceModel> GetAttendanceByUserAndDateAsync(int userId, DateTime date);
         Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date);
+        Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId);
 
         // Add any additional methods specific to OfficeAttendance here if needed
     }

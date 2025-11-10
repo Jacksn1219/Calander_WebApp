@@ -12,16 +12,17 @@ namespace Calender_WebApp.Services
         public EmployeesService(AppDbContext ctx) : base(ctx) { }
 
         /// <summary>
-        /// Gets an employee by their email address.
+        /// returns an list of employees with the same email address.
         /// </summary>
         /// <param name="email">The employee's email.</param>
         /// <returns>The employee if found; otherwise, null.</returns>
-        public async Task<EmployeesModel> GetEmployeeByEmailAsync(string email)
+
+        public async Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email)
         {
             return await _dbSet
                 .AsNoTracking()
-                .FirstOrDefaultAsync(e => e.Email == email)
-                ?? throw new InvalidOperationException("Employee not found.");
+                .Where(e => e.Email == email)
+                .ToListAsync();
         }
 
         // Add additional services that are not related to CRUD here
