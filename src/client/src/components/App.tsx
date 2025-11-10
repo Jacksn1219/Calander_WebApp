@@ -56,7 +56,7 @@ export default function App() {
                 }
             />
           <Route
-            path="/create"
+            path="/admindashboard/create"
             element={
               <ProtectedRoute>
                 <CreateEvent />
@@ -64,7 +64,7 @@ export default function App() {
                 }
             />
           <Route
-            path="/edit/:id"
+            path="/admindashboard/edit/:id"
             element={
               <ProtectedRoute>
                 <EditEvent />

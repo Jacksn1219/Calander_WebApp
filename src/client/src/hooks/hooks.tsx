@@ -412,11 +412,11 @@ export const useAdminDashboard = () => {
   }, [location]);
 
   const handleCreate = () => {
-    navigate("/create");
+    navigate("/admindashboard/create");
   };
 
   const handleEdit = (id: string) => {
-    navigate(`/edit/${id}`);
+    navigate(`/admindashboard/edit/${id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -459,7 +459,7 @@ export const useEditEvent = (id: string | undefined) => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((events) => ({ ...events, [name]: value }));
   };
 
   const handleSave = () => {
@@ -496,7 +496,7 @@ export const useCreateEvent = () => {
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((prev) => ({ ...prev, [name]: value }));
+    setFormData((events) => ({ ...events, [name]: value }));
   };
 
   const handleSave = () => {
