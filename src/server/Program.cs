@@ -1,6 +1,11 @@
-using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp;
+using Calender_WebApp.Models;
 using Calender_WebApp.Services;
+using Calender_WebApp.Services.Interfaces;
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using System.Text;
 
 namespace Calender_WebApp;
 
@@ -18,8 +23,11 @@ class Program
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();
+        builder.Services.AddDistributedMemoryCache();
+        builder.Services.AddHttpContextAccessor();
 
         // Register dependency injection for services
+        builder.Services.AddScoped<AuthService>();
         builder.Services.AddScoped<IAdminsService, AdminsService>();
         builder.Services.AddScoped<IEmployeesService, EmployeesService>();
         builder.Services.AddScoped<IEventParticipationService, EventParticipationService>();
@@ -27,37 +35,131 @@ class Program
         builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
         builder.Services.AddScoped<IGroupsService, GroupsService>();
         builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
+        builder.Services.AddScoped<IRoomBookingsService, RoomBookingsService>();
+        builder.Services.AddScoped<IRoomsService, RoomsService>();
 
 
         // Add Swagger/OpenAPI services
+        
+        // Controllers + Swagger
         builder.Services.AddEndpointsApiExplorer();
-        builder.Services.AddSwaggerGen();
+        builder.Services.AddSwaggerGen(options =>
+        {
+            options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+            {
+                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                Description = "Voer JWT token in: Bearer {token}",
+                Name = "Authorization",
+                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                Scheme = "Bearer"
+            });
+
+            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement {
+            {
+                new Microsoft.OpenApi.Models.OpenApiSecurityScheme {
+                    Reference = new Microsoft.OpenApi.Models.OpenApiReference {
+                        Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                        Id = "Bearer"
+                    }
+                }, new string[] { }
+            }});
+        });
+        builder.Services.AddSession(options =>
+                    {
+                        options.IdleTimeout = TimeSpan.FromMinutes(20); 
+                        options.Cookie.HttpOnly = true;                
+                        options.Cookie.IsEssential = true;             
+                    });
+        builder.Services.AddCors(options =>
+            {
+                options.AddPolicy("AllowReactApp", corsBuilder =>
+                {
+                    corsBuilder.WithOrigins("http://localhost:3000")
+                            .AllowAnyHeader()
+                            .AllowAnyMethod()
+                            .AllowCredentials();
+                });
+            });
+                    // JWT Authentication
+        var jwt = builder.Configuration.GetSection("Jwt");
+        builder.Services.AddAuthentication(options =>
+        {
+            options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
+            options.DefaultChallengeScheme = JwtBearerDefaults.AuthenticationScheme;
+        })
+        .AddJwtBearer(options =>
+        {
+            options.TokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateIssuer = true,
+                ValidateAudience = true,
+                ValidateLifetime = true,
+                ValidateIssuerSigningKey = true,
+                ValidIssuer = jwt["Issuer"],
+                ValidAudience = jwt["Audience"],
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!))
+            };
+        });
+
 
         var app = builder.Build();
 
-        // Configure the HTTP request pipeline.
+        // Ensure database is created and migrated to latest version on startup
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+            db.Database.Migrate();
+        }
+        app.Urls.Add("http://localhost:3001");
+    // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
-            // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
             app.UseHsts();
         }
 
         // Enable Swagger middleware
         app.UseSwagger();
         app.UseSwaggerUI();
-
-        app.UseHttpsRedirection();
-        app.UseRouting();
-
+        app.UseAuthentication();
         app.UseAuthorization();
 
-        app.MapStaticAssets();
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();
+        app.UseRouting();
+        app.UseCors("AllowReactApp");
+        app.UseSession();
+        app.UseAuthorization();
 
-        app.MapControllerRoute(
-            name: "default",
-            pattern: "{controller=Home}/{action=Index}/{id?}")
-            .WithStaticAssets();
+        app.MapControllers();
+
+        // ✅ One-time setup / seeding
+        using (var scope = app.Services.CreateScope())
+        {
+            var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+            // Optional: migrate any existing plain passwords to bcrypt hashes
+            foreach (var user in db.Employees.ToList())
+            {
+                if (!user.Password.StartsWith("$2")) // bcrypt hashes start with "$2"
+                {
+                    user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+                }
+            }
+
+            if (!db.Employees.Any())
+            {
+                db.Employees.Add(new EmployeesModel
+                {
+                    Name = "bart",
+                    Email = "bart@test.com",
+                    Password = BCrypt.Net.BCrypt.HashPassword("1234"), // ✅ hash before saving
+                    Role = UserRole.Admin
+                });
+            }
+
+            db.SaveChanges();
+        }
 
         app.Run();
     }

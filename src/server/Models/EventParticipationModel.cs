@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;              // <-- add this
 using Calender_WebApp.Models.Interfaces;
+using System.Text.Json.Serialization;
 
 namespace Calender_WebApp.Models
 {
@@ -19,8 +20,11 @@ namespace Calender_WebApp.Models
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
-        public virtual EventsModel Event { get; set; } = null!;
-        public virtual EmployeesModel Employee { get; set; } = null!;
+        [JsonIgnore]
+        public virtual EventsModel? Event { get; set; } 
+        
+        [JsonIgnore]
+        public virtual EmployeesModel? Employee { get; set; } 
 
         [Required]
         [Column("status")]

@@ -1,3 +1,4 @@
+using Calender_WebApp.Utils;
 using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
@@ -69,10 +70,26 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <param name="model"></param>
     /// <returns>The created entity.</returns>
     /// <exception cref="ArgumentNullException">Thrown when the model is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when the model validation fails.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the entity creation fails.</exception>
     public virtual async Task<TEntity> Post(TEntity model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
-        
+
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
+
+        // Validate model using whitelist util (ignore properties without validators)
+        var inputDict = typeof(TEntity)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => validators == null || validators.ContainsKey(p.Name))
+            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(TEntity).Name, inputDict, out var errors))
+        {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
+
         // Set to 0 for int, null for nullable types
         model.Id = default;
 
@@ -87,12 +104,27 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     /// <param name="id"></param>
     /// <param name="newTEntity"></param>
     /// <returns>The updated entity.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when the new entity is null.</exception
+    /// <exception cref="ArgumentNullException">Thrown when the new entity is null.</exception>
+    /// <exception cref="InvalidOperationException">Thrown when the entity is not found.</exception>
+    /// <exception cref="ArgumentException">Thrown when the model validation fails.</exception>
     public virtual async Task<TEntity> Put(int id, TEntity newTEntity)
     {
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
+
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
+
+        // Validate model using whitelist util (ignore properties without validators)
+        var inputDict = typeof(TEntity)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => validators == null || validators.ContainsKey(p.Name))
+            .ToDictionary(p => p.Name, p => p.GetValue(newTEntity) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(TEntity).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
 
         newTEntity.Id = dbTEntity.Id; // Ensure the ID is not changed
         _context.Entry(dbTEntity).CurrentValues.SetValues(newTEntity);
@@ -113,9 +145,12 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
 
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
+
         foreach (var property in typeof(TEntity).GetProperties())
         {
             if (property.Name == nameof(IDbItem.Id)) continue; // Don't update Id
+            if (validators != null && !validators.ContainsKey(property.Name)) continue; // Skip non-whitelisted properties
             var newValue = property.GetValue(newTEntity);
             if (newValue != null)
             {

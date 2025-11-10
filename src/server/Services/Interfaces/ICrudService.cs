@@ -9,4 +9,5 @@ public interface ICrudService<TEntity> where TEntity : class
     public Task<TEntity[]> Get();
     public Task<TEntity> Put(int id, TEntity model);
     public Task<TEntity> Post(TEntity model);
+    public Task<TEntity> Patch(int id, TEntity model);
 }
