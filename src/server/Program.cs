@@ -1,10 +1,10 @@
 using Calender_WebApp;
+using Calender_WebApp.Models;
 using Calender_WebApp.Services;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
-using Calender_WebApp.Models;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -63,31 +63,41 @@ builder.Services.AddAuthentication(options =>
 
 var app = builder.Build();
 
-// ✅ Swagger altijd tonen
+// ✅ Swagger always on
 app.UseSwagger();
 app.UseSwaggerUI();
 
-// Middleware
 app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
 
-// ✅ Dummy user aanmaken bij eerste start
+// ✅ One-time setup / seeding
 using (var scope = app.Services.CreateScope())
 {
     var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
+
+    // Optional: migrate any existing plain passwords to bcrypt hashes
+    foreach (var user in db.Employees.ToList())
+    {
+        if (!user.Password.StartsWith("$2")) // bcrypt hashes start with "$2"
+        {
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+        }
+    }
+
     if (!db.Employees.Any())
     {
         db.Employees.Add(new EmployeesModel
         {
             Name = "bart",
             Email = "bart@test.com",
-            Password = "1234",
+            Password = BCrypt.Net.BCrypt.HashPassword("1234"), // ✅ hash before saving
             Role = UserRole.Admin
         });
-        db.SaveChanges();
     }
+
+    db.SaveChanges();
 }
 
 app.Run();

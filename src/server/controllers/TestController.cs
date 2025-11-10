@@ -7,7 +7,7 @@ namespace Calender_WebApp.Controllers
     [Route("api/test")]
     public class TestController : ControllerBase
     {
-        // 👇 Deze endpoint is beveiligd met JWT
+        //endpoint JWT
         [HttpGet("secure")]
         [Authorize]
         public IActionResult SecureEndpoint()
@@ -15,7 +15,7 @@ namespace Calender_WebApp.Controllers
             return Ok("✅ Je bent geauthenticeerd! JWT werkt correct.");
         }
 
-        // 👇 Deze endpoint is openbaar
+        // endpoint openbaar 
         [HttpGet("public")]
         public IActionResult PublicEndpoint()
         {

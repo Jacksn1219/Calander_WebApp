@@ -17,9 +17,22 @@ namespace Calender_WebApp.Services
             _config = config;
         }
 
+        // bcrypt validation
         public EmployeesModel? ValidateUser(string email, string password)
         {
-            return _db.Employees.FirstOrDefault(u => u.Email == email && u.Password == password);
+            var user = _db.Employees.FirstOrDefault(u => u.Email == email);
+            if (user == null)
+                return null;
+
+            // Compare the plain password with the stored bcrypt hash
+            bool verified = BCrypt.Net.BCrypt.Verify(password, user.Password);
+            return verified ? user : null;
+        }
+
+        // Helper
+        public static string HashPassword(string password)
+        {
+            return BCrypt.Net.BCrypt.HashPassword(password);
         }
 
         public string GenerateToken(EmployeesModel user)
