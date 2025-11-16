@@ -18,9 +18,6 @@ const EditEvent: React.FC = () => {
           <h1>Edit Event</h1>
 
           <div className="edit-event-form">
-            <label>ID:</label>
-            <input type="text" value={id} disabled />
-
             <label>Title:</label>
             <input
               type="text"

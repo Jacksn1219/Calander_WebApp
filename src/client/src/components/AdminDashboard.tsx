@@ -21,7 +21,6 @@ const AdminDashboard: React.FC = () => {
           <table className="admin-table">
             <thead>
               <tr>
-                <th>Username</th>
                 <th>Title</th>
                 <th>Description</th>
                 <th>Date</th>
@@ -33,7 +32,6 @@ const AdminDashboard: React.FC = () => {
             <tbody>
               {events.map((event) => (
                 <tr key={event.id}>
-                  <td>{event.id}</td>
                   <td>{event.title}</td>
                   <td>{event.description}</td>
                   <td>{event.date}</td>
