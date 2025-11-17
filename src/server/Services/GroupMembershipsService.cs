@@ -85,8 +85,8 @@ public class GroupMembershipsService : IGroupMembershipsService
         // Validate model using whitelist util
         var inputDict = typeof(GroupMembershipsModel)
             .GetProperties()
-            .Where(p => p.Name != nameof(IDbItem.Id))
-            .ToDictionary(p => p.Name, p => p.GetValue(entity) ?? (object)string.Empty);
+            .Where(p => p.Name != nameof(IDbItem.Id) && p.Name != "Employee" && p.Name != "Group")
+            .ToDictionary(p => p.Name, p => p.GetValue(entity) ?? string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(GroupMembershipsModel).Name, inputDict, out var errors)) {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
@@ -126,6 +126,10 @@ public class GroupMembershipsService : IGroupMembershipsService
     /// <returns>A list of group memberships for the specified group.</returns>
     public async Task<List<GroupMembershipsModel>> GetMembershipsByGroupIdAsync(int groupId)
     {
+        var groupExists = await _context.Set<GroupsModel>().AnyAsync(g => g.Id == groupId);
+        if (!groupExists)
+            throw new ArgumentException($"Group with ID {groupId} does not exist.");
+
         return await _dbSet
             .AsNoTracking()
             .Where(gm => gm.GroupId == groupId)
