@@ -78,7 +78,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 7. OfficeAttendanceController --- Done
+## 7. OfficeAttendanceController -- Done
 **Service:** `IOfficeAttendanceService`  
 **Endpoints:**
 - `GET /api/office-attendance` — Get all attendance records
@@ -92,7 +92,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 8. RoomsController
+## 8. RoomsController -- Done
 **Service:** `IRoomsService`  
 **Endpoints:**
 - `GET /api/rooms` — Get all rooms
@@ -119,6 +119,3 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 10. CrudController (Base/Generic - Optional)
-**Service:** `ICrudService<T>`  
-This would be a base controller that other controllers inherit from, providing common CRUD operations.
