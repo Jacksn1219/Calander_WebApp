@@ -1,4 +1,4 @@
-.admin-layout {
+.administrative-layout {
   display: flex;
   flex-direction: row;
   align-items: flex-start;
@@ -8,7 +8,7 @@
   overflow: hidden;
 }
 
-.admin-dashboard {
+.administrative-dashboard {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -17,7 +17,7 @@
   overflow: hidden;
 }
 
-.sidebar.collapsed + .admin-dashboard {
+.sidebar.collapsed + .administrative-dashboard {
   margin-left: 60px;
 }
 
@@ -47,7 +47,7 @@
 
 .create-button {
   align-self: flex-end;
-  background: #1f6feb;
+  background: #00870e;
   border: 1px solid #a3e4b1;
   color: white;
   padding: 12px 18px;
@@ -60,29 +60,29 @@
 }
 
 .create-button:hover {
-  background: #1557c0;
+  background: #006e0b;
 }
 
-.admin-table {
+.administrative-table {
   width: 100%;
   border-collapse: collapse;
   font-size: 0.95rem;
   overflow-x: auto;
 }
 
-.admin-table th,
-.admin-table td {
+.administrative-table th,
+.administrative-table td {
   border: 1px solid #e5e7eb;
   padding: 0.75rem;
   text-align: center;
 }
 
-.admin-table th {
+.administrative-table th {
   background-color: #f3f4f6;
   font-weight: 600;
 }
 
-.admin-table tr:nth-child(even) {
+.administrative-table tr:nth-child(even) {
   background-color: #fafafa;
 }
 
@@ -116,7 +116,7 @@
 }
 
 @media only screen and (max-width: 920px) {
-  .admin-dashboard {
+  .administrative-dashboard {
     padding: 1rem;
     margin-left: 0 !important;
   }
@@ -126,8 +126,8 @@
     padding: 16px;
   }
 
-  .admin-table th,
-  .admin-table td {
+  .administrative-table th,
+  .administrative-table td {
     font-size: 0.85rem;
     padding: 0.5rem;
   }
@@ -136,7 +136,7 @@
     align-self: flex-start;
   }
 
-  .admin-table {
+  .administrative-table {
     display: block;
     overflow-x: auto;
     white-space: nowrap;
@@ -144,8 +144,8 @@
 }
 
 @media only screen and (max-width: 600px) {
-  .admin-table th,
-  .admin-table td {
+  .administrative-table th,
+  .administrative-table td {
     padding: 0.5rem 0.35rem;
   }
 

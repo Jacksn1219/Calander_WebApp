@@ -44,8 +44,8 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && <span>Roombooking</span>}
         </Link>
       </li>
-      <li className={location.pathname === '/admindashboard' ? 'active' : ''}>
-        <Link to="/admindashboard" title="Admindashboard">
+      <li className={location.pathname === '/administrative-dashboard' ? 'active' : ''}>
+        <Link to="/administrative-dashboard" title="administrative-dashboard">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
           <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
           <g id="SVGRepo_iconCarrier">
@@ -54,7 +54,7 @@ const Sidebar: React.FC = () => {
             <path d="M21 9L3 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 21L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
           </g>
         </svg>
-          {!isCollapsed && <span>Admin Dashboard</span>}
+          {!isCollapsed && <span>Administrative Dashboard</span>}
         </Link>
       </li>
       <li className={location.pathname === '/my-events' ? 'active' : ''}>

@@ -5,10 +5,10 @@ import Login from './Login';
 import Register from './Register';
 import Home from './Home';
 import RoomBooking from './RoomBooking';
-import AdminDashboard from './AdminDashboard';
 import MyEvents from './MyEvents';
 import EditEvent from './EditEvent';
 import CreateEvent from './CreateEvent';
+import AdministrativeDashboard from './AdministrativeDashboard';
 
 export default function App() {
   return (
@@ -48,15 +48,15 @@ export default function App() {
             }
           />
           <Route
-            path="/admindashboard"
+            path="/administrative-dashboard"
             element={
               <ProtectedRoute>
-                <AdminDashboard />
+                <AdministrativeDashboard />
               </ProtectedRoute>
                 }
             />
           <Route
-            path="/admindashboard/create"
+            path="/administrative-dashboard/create"
             element={
               <ProtectedRoute>
                 <CreateEvent />
@@ -64,7 +64,7 @@ export default function App() {
                 }
             />
           <Route
-            path="/admindashboard/edit/:id"
+            path="/administrative-dashboard/edit/:id"
             element={
               <ProtectedRoute>
                 <EditEvent />

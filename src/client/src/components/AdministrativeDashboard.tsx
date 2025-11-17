@@ -1,30 +1,31 @@
 import React from "react";
-import "../styles/admin-dashboard.css";
+import "../styles/administrative-dashboard.css";
 import Sidebar from "./Sidebar";
-import { useAdminDashboard } from "../hooks/hooks";
+import { useAdministrativeDashboard } from "../hooks/hooks";
 
-const AdminDashboard: React.FC = () => {
-  const { events, handleCreate, handleEdit, handleDelete } = useAdminDashboard();
+const AdministrativeDashboard: React.FC = () => {
+  const { events, handleCreate, handleEdit, handleViewAttendees, handleDelete } = useAdministrativeDashboard();
 
   return (
-    <div className="admin-layout">
+    <div className="administrative-layout">
       <Sidebar />
-      <div className="admin-dashboard">
+      <div className="administrative-dashboard">
         <div className="events-section">
-          <h1>Admin Dashboard</h1>
+          <h1>Administrative Dashboard</h1>
           <h2>Events</h2>
 
           <button className="create-button" onClick={handleCreate}>
             Create new event
           </button>
           { events.length != 0 ? (
-          <table className="admin-table">
+          <table className="administrative-table">
             <thead>
               <tr>
                 <th>Title</th>
                 <th>Description</th>
                 <th>Date</th>
                 <th>Created By</th>
+                <th>Attendees</th>
                 <th>Edit</th>
                 <th>Delete</th>
               </tr>
@@ -36,6 +37,11 @@ const AdminDashboard: React.FC = () => {
                   <td>{event.description}</td>
                   <td>{event.date}</td>
                   <td>{event.createdBy}</td>
+                  <td>
+                    <button className="view-button" onClick={() => handleViewAttendees(event.id)}>
+                      VIEW
+                    </button>
+                  </td>
                   <td>
                     <button className="edit-button" onClick={() => handleEdit(event.id)}>
                       EDIT
@@ -57,4 +63,4 @@ const AdminDashboard: React.FC = () => {
   );
 };
 
-export default AdminDashboard;
+export default AdministrativeDashboard;

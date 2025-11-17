@@ -402,7 +402,7 @@ const loadEvents = (): EventItem[] => {
   }
 };
 
-export const useAdminDashboard = () => {
+export const useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const navigate = useNavigate();
   const location = useLocation();
@@ -412,11 +412,15 @@ export const useAdminDashboard = () => {
   }, [location]);
 
   const handleCreate = () => {
-    navigate("/admindashboard/create");
+    navigate("/administrative-dashboard/create");
   };
 
   const handleEdit = (id: string) => {
-    navigate(`/admindashboard/edit/${id}`);
+    navigate(`/administrative-dashboard/edit/${id}`);
+  };
+
+  const handleViewAttendees = (id: string) => {
+    navigate(`/administrative-dashboard/view-attendees/${id}`);
   };
 
   const handleDelete = (id: string) => {
@@ -427,7 +431,7 @@ export const useAdminDashboard = () => {
     }
   };
 
-  return { events, handleCreate, handleEdit, handleDelete };
+  return { events, handleCreate, handleEdit, handleViewAttendees, handleDelete };
 };
 
 export const useEditEvent = (id: string | undefined) => {
@@ -453,7 +457,7 @@ export const useEditEvent = (id: string | undefined) => {
       });
     } else {
       alert("Event not found");
-      navigate("/admindashboard");
+      navigate("/administrative-dashboard");
     }
   }, [id, navigate]);
 
@@ -474,11 +478,11 @@ export const useEditEvent = (id: string | undefined) => {
     );
 
     localStorage.setItem("events", JSON.stringify(updatedEvents));
-    navigate("/admindashboard");
+    navigate("/administrative-dashboard");
   };
 
   const handleCancel = () => {
-    navigate("/admindashboard");
+    navigate("/administrative-dashboard");
   };
 
   return { eventData, formData, handleChange, handleSave, handleCancel };
@@ -511,12 +515,22 @@ export const useCreateEvent = () => {
 
     localStorage.setItem("events", JSON.stringify(updatedEvents));
 
-    navigate("/admindashboard");
+    navigate("/administrative-dashboard");
   };
 
   const handleCancel = () => {
-    navigate("/admindashboard");
+    navigate("/administrative-dashboard");
   };
 
   return { formData, handleChange, handleSave, handleCancel };
 };
+
+export const useViewAttendees = () => {
+  const navigate = useNavigate();
+
+  const handleBack = () => {
+    navigate("/administrative-dashboard");
+  }
+
+  return { handleBack };
+}
