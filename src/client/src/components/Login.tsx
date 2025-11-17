@@ -5,8 +5,7 @@ import Sidebar from './Sidebar';
 import '../styles/login-page.css';
 
 const Login: React.FC = () => {
-  // TODO: Backend Integration - useLoginForm hook uses mock authentication
-  // Replace localStorage token with actual JWT from backend API
+
   const {
     email,
     setEmail,
@@ -71,7 +70,7 @@ const Login: React.FC = () => {
             {error && <div role="alert" className="form-error">{error}</div>}
 
             <div className="form-actions">
-              <button type="submit" className="primary">Sign in</button>
+              <button type="submit" className="primary-btn">Sign in</button>
             </div>
           </form>
           <div className="login-footer muted">
