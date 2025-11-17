@@ -1,5 +1,7 @@
 using Calender_WebApp.Models;
+using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Utils;
 using Microsoft.EntityFrameworkCore;
 // new 
 namespace Calender_WebApp.Services;
@@ -70,6 +72,8 @@ public class GroupMembershipsService : IGroupMembershipsService
     /// <param name="entity">The group membership entity to add.</param>
     /// <returns>The added group membership entity, or null if the membership already exists.</returns>
     /// <exception cref="InvalidOperationException">Thrown when the membership already exists.</exception>
+    /// <exception cref="ArgumentNullException">Thrown when the entity is null.</exception>
+    /// <exception cref="ArgumentException">Thrown when model validation fails.</exception>
     public async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
         var exists = await _dbSet
@@ -77,6 +81,16 @@ public class GroupMembershipsService : IGroupMembershipsService
 
         if (exists)
             throw new InvalidOperationException("Membership already exists.");
+
+        // Validate model using whitelist util
+        var inputDict = typeof(GroupMembershipsModel)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .ToDictionary(p => p.Name, p => p.GetValue(entity) ?? (object)string.Empty);
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(GroupMembershipsModel).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
 
         var entry = await _dbSet.AddAsync(entity).ConfigureAwait(false);
         await _context.SaveChangesAsync();
@@ -104,6 +118,29 @@ public class GroupMembershipsService : IGroupMembershipsService
             .Where(gm => gm.UserId == userId)
             .ToListAsync();
     }
+
+    /// <summary>
+    /// Get all group memberships for a specific group.
+    /// </summary>
+    /// <param name="groupId"></param>
+    /// <returns>A list of group memberships for the specified group.</returns>
+    public async Task<List<GroupMembershipsModel>> GetMembershipsByGroupIdAsync(int groupId)
+    {
+        return await _dbSet
+            .AsNoTracking()
+            .Where(gm => gm.GroupId == groupId)
+            .ToListAsync();
+    }
+
+    /// <summary>
+    /// Covers the Patch method from CrudService, but is not supported.
+    /// </summary>
+    /// <param name="userId"></param>
+    /// <param name="newTEntity"></param>
+    /// <returns>This method is not supported.</returns>
+    /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
+    public Task<GroupMembershipsModel> Patch(int userId, GroupMembershipsModel newTEntity)
+        => throw new NotSupportedException("Use Post/Delete to add/remove memberships.");
 
     // Add additional services that are not related to CRUD here
 }

@@ -45,7 +45,8 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the related employee.
         /// </summary>
-        public virtual EmployeesModel Employee { get; set; } = null!;
+        [JsonIgnore]
+        public virtual EmployeesModel? Employee { get; set; }
 
         /// <summary>
         /// Permissions assigned to this admin.
