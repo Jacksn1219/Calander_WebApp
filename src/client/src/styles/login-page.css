@@ -38,3 +38,18 @@
 }
 .form-error { color: #8b1c1c; background: #fff1f1; padding: 8px; border-radius: 6px }
 .login-footer { margin-top: 12px; font-size: 0.9rem }
+
+.primary-btn {
+  background-color: #01c926;
+  color: white;
+  border: none;
+  padding: 12px;
+  border-radius: 6px;
+  font-size: 1rem;
+  cursor: pointer;
+  width: 100%;
+  transition: background-color 0.2s;
+}
+.primary-btn:hover {
+  background-color: #00940c;
+}
