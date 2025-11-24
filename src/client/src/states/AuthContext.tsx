@@ -1,6 +1,7 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 
 export interface User {
+  userId?: number;
   name: string;
   email: string;
   role: 'Admin' | 'User';
@@ -9,7 +10,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
-  login: (user: User) => void;
+  login: (user: User, token?: string) => void;
   logout: () => void;
 }
 
@@ -48,18 +49,13 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
     }
   }, []);
 
-  const login = (userData: User) => {
-    // TODO: Backend Integration - Currently using mock token
-    // Should receive actual JWT token from POST /api/auth/login
-    // Store token in localStorage and set Authorization header for future requests
+  const login = (userData: User, token?: string) => {
     setUser(userData);
-    localStorage.setItem('token', 'demo-token');
+    localStorage.setItem('token', token ?? 'demo-token');
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
   const logout = () => {
-    // TODO: Backend Integration - Should notify backend of logout
-    // POST /api/auth/logout to invalidate session/token if using refresh tokens
     setUser(null);
     localStorage.removeItem('token');
     localStorage.removeItem('user');

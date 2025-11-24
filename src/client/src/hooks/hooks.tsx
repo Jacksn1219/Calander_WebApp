@@ -1,6 +1,7 @@
 import { useState, useCallback, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
+import { apiFetch } from '../config/api';
 
 /**
  * Custom hook for form validation and error handling
@@ -87,6 +88,7 @@ export const usePasswordVisibility = () => {
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [loading, setLoading] = useState(false);
   const { error, setError, validateEmail, validatePassword, clearError } = useFormValidation();
   const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
   const navigate = useNavigate();
@@ -104,26 +106,48 @@ export const useLoginForm = () => {
     return true;
   }, [email, password, validateEmail, clearError, setError]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
+    setLoading(true);
+    setError(null);
 
-    // TODO: Backend Integration - Replace mock authentication with actual API call
-    // POST /api/auth/login with { email, password }
-    // Should return { token: string, user: { name, email, role, userId } }
-    // Use EmployeesService authentication endpoint
-    if (email === 'admin@example.com' && password === 'Password123') {
-      const userData = {
-        name: 'Admin User',
-        email: 'admin@example.com',
-        role: 'Admin' as const,
-      };
-      login(userData);
+    try {
+      const response = await apiFetch('/api/auth/login', {
+        method: 'POST',
+        body: JSON.stringify({ email, password })
+      });
+
+      if (!response.ok) {
+        // Attempt to parse error text
+        const text = await response.text();
+        throw new Error(text || 'Login failed');
+      }
+
+      const data = await response.json();
+      // Expected format : { token: string, user: { userId, name, email, role } }
+      const token: string | undefined = data.token || data.Token; 
+      const user = data.user;
+
+      if (!token || !user) {
+        throw new Error('Malformed login response');
+      }
+
+      // Persist token & user via context
+      login({
+        userId: user.userId,
+        name: user.name,
+        email: user.email,
+        role: user.role
+      }, token);
+
       navigate('/home');
-      return;
+    } catch (err: any) {
+      console.error('Login error:', err);
+      setError(err.message ?? 'Unexpected error during login');
+    } finally {
+      setLoading(false);
     }
-
-    setError('Invalid credentials. Use admin@example.com / Password123 for demo.');
   }, [email, password, validate, login, navigate, setError]);
 
   return {
@@ -131,6 +155,7 @@ export const useLoginForm = () => {
     setEmail,
     password,
     setPassword,
+    loading,
     error,
     showPassword,
     togglePasswordVisibility,
