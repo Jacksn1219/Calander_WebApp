@@ -1,6 +1,14 @@
 
 .events-header {
   margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.events-header-left {
+  flex: 1;
 }
 
 .events-header h1 {
@@ -10,6 +18,24 @@
 
 .events-header .muted {
   margin: 0;
+}
+
+.btn-restore {
+  background: #9b59b6;
+  color: white;
+  border: none;
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+  white-space: nowrap;
+  flex-shrink: 0;
+}
+
+.btn-restore:hover {
+  background: #8e44ad;
 }
 
 .calendar-container {

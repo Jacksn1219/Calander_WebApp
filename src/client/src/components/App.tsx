@@ -4,7 +4,7 @@ import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
 import Register from './Register';
 import Home from './Home';
-import MyEvents from './MyEvents';
+import Calendar from './Calendar';
 
 export default function App() {
   return (
@@ -36,10 +36,10 @@ export default function App() {
             }
           />
           <Route
-            path="/my-events"
+            path="/calendar"
             element={
               <ProtectedRoute>
-                <MyEvents />
+                <Calendar />
               </ProtectedRoute>
             }
           />
