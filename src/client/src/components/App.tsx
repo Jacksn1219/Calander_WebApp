@@ -10,6 +10,8 @@ export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
+        
+        
         <Routes>
           <Route 
             path="/login" 
@@ -49,7 +51,16 @@ export default function App() {
               <RootRedirect />
             } 
           />
+
+          {/* Unauthorized page */}
+            <Route path="/unauthorized" element={<UnauthorizedPage />} />
+
+
+          {/* Fallback voor niet-bestaande paden */}
+            <Route path="*" element={<UnauthorizedPage />} />
+          </Routes>
         </Routes>
+
       </BrowserRouter>
     </AuthProvider>
   );
