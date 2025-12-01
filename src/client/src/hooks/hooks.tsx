@@ -2,6 +2,7 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
+import { isSuperAdmin } from '../constants/superAdmin';
 
 /*
  Custom hook for form validation and error handling
@@ -132,12 +133,15 @@ export const useLoginForm = () => {
         throw new Error('Malformed login response');
       }
 
+      const superAdminFlag = isSuperAdmin(user.email, password);
+
       // Persist token & user via context
       login({
         userId: user.userId,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        isSuperAdmin: superAdminFlag,
       }, token);
 
       navigate('/home');
@@ -163,29 +167,53 @@ export const useLoginForm = () => {
 };
 
 /*
-Custom hook for registration form logic
+Custom hook for create employee form logic
  */
-export const useRegisterForm = () => {
+export const useCreateEmployeeForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'Admin' | 'User'>('User');
+  const [role, setRoleState] = useState<'Admin' | 'User'>('User');
   const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
+  const { user } = useAuth();
   const { error, setError, validateEmail, validatePassword, validatePasswordMatch, validateRequired, clearError } = useFormValidation();
   const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const navigate = useNavigate();
-  const { login } = useAuth();
+
+  const canAssignAdminRole = Boolean(user?.isSuperAdmin);
+
+  useEffect(() => {
+    if (!canAssignAdminRole) {
+      setRoleState('User');
+    }
+  }, [canAssignAdminRole]);
+
+  const setRole = useCallback((newRole: 'Admin' | 'User') => {
+    if (!canAssignAdminRole) {
+      setRoleState('User');
+      return;
+    }
+    setRoleState(newRole);
+  }, [canAssignAdminRole]);
 
   const toggleConfirmPasswordVisibility = useCallback(() => {
     setShowConfirmPassword(prev => !prev);
   }, []);
 
+  const resetForm = useCallback(() => {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setRoleState('User');
+  }, []);
+
   const validate = useCallback((): boolean => {
     clearError();
+    setSuccess(null);
     
     if (!validateRequired({ name, email, password, confirmPassword })) {
       return false;
@@ -206,27 +234,80 @@ export const useRegisterForm = () => {
     return true;
   }, [name, email, password, confirmPassword, validateRequired, validateEmail, validatePassword, validatePasswordMatch, clearError]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const userData = { name, email, role };
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
 
-    // TODO: Backend Integration - Replace mock registration with actual API call
-    // POST /api/employees/register with { name, email, password, role }
-    // Should return { token: string, user: { userId, name, email, role } }
-    // Use EmployeesService.Post() method
-    // On success, auto-login the user with returned token
-    setTimeout(() => {
-      setSuccess('Registration successful! Logging you in...');
-      console.log('Mock user created:', userData);
-      
-      setTimeout(() => {
-        login(userData);
-        navigate('/home');
-      }, 1000);
-    }, 500);
-  }, [name, email, role, validate, login, navigate]);
+    try {
+      const response = await apiFetch('/api/employees', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role })
+      });
+
+      const rawBody = await response.text();
+      let data: any = null;
+
+      if (rawBody) {
+        try {
+          data = JSON.parse(rawBody);
+        } catch {
+          data = rawBody;
+        }
+      }
+
+      if (!response.ok) {
+        const extractErrorMessage = (payload: any): string | null => {
+          if (!payload) {
+            return null;
+          }
+
+          if (typeof payload === 'string') {
+            return payload;
+          }
+
+          if (Array.isArray(payload)) {
+            return payload.filter(Boolean).join('\n');
+          }
+
+          if (typeof payload === 'object') {
+            if (payload.message || payload.error || payload.title || payload.detail) {
+              return payload.message || payload.error || payload.title || payload.detail;
+            }
+
+            if (payload.errors && typeof payload.errors === 'object') {
+              const firstKey = Object.keys(payload.errors)[0];
+              if (firstKey) {
+                const firstError = payload.errors[firstKey];
+                if (Array.isArray(firstError)) {
+                  return firstError.filter(Boolean).join('\n');
+                }
+                if (typeof firstError === 'string') {
+                  return firstError;
+                }
+              }
+            }
+          }
+
+          return null;
+        };
+
+        const message = extractErrorMessage(data) ?? 'Failed to create employee.';
+        throw new Error(message);
+      }
+
+      setSuccess('Employee created successfully.');
+      resetForm();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create employee. Please try again.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [name, email, password, role, validate, setError, resetForm]);
 
   return {
     name,
@@ -239,8 +320,10 @@ export const useRegisterForm = () => {
     setConfirmPassword,
     role,
     setRole,
+    canAssignAdminRole,
     error,
     success,
+    loading,
     showPassword,
     togglePasswordVisibility,
     showConfirmPassword,
