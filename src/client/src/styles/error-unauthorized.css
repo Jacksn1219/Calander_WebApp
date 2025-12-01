@@ -1,0 +1,47 @@
+.error-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 40px;
+  background: linear-gradient(180deg, #f7f9fc, #ffffff);
+}
+
+.error-content {
+  max-width: 420px;
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(16, 24, 40, 0.08);
+  padding: 32px;
+  text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 20px; /* zorgt voor ruimte tussen heading, tekst en knop */
+}
+
+.error-content h1 {
+  font-size: 2rem;
+  margin: 0;
+  color: #d9534f;
+}
+
+.error-content p {
+  font-size: 1.1rem;
+  color: #556677;
+  margin: 0;
+}
+
+.error-button {
+  background-color: #257cae;
+  color: white;
+  padding: 12px 24px;
+  border-radius: 6px;
+  font-size: 1rem;
+  text-decoration: none;
+  font-weight: 600;
+  transition: background-color 0.2s ease;
+}
+
+.error-button:hover {
+  background-color: #2778c3;
+}

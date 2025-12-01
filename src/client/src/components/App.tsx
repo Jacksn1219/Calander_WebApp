@@ -5,13 +5,13 @@ import Login from './Login';
 import Register from './Register';
 import Home from './Home';
 import MyEvents from './MyEvents';
+import UnauthorizedPage from './UnauthorizedPage';
+import Error from './Error';
 
 export default function App() {
   return (
     <AuthProvider>
       <BrowserRouter>
-        
-        
         <Routes>
           <Route 
             path="/login" 
@@ -57,10 +57,8 @@ export default function App() {
 
 
           {/* Fallback voor niet-bestaande paden */}
-            <Route path="*" element={<UnauthorizedPage />} />
-          </Routes>
+            <Route path="*" element={<Error />} />
         </Routes>
-
       </BrowserRouter>
     </AuthProvider>
   );
