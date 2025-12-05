@@ -143,9 +143,12 @@ public class RoomBookingsService : IRoomBookingsService
                                                  rb.EndTime == model.EndTime);
 
         // Validate model using whitelist util
+        // Build validation input excluding navigation properties and internal IDs
         var inputDict = typeof(RoomBookingsModel)
             .GetProperties()
-            .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => p.Name != nameof(IDbItem.Id)
+                        && p.Name != nameof(RoomBookingsModel.Room)
+                        && p.Name != nameof(RoomBookingsModel.Employee))
             .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
