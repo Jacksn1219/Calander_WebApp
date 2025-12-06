@@ -11,9 +11,12 @@ namespace Calender_WebApp.Models
     /// Represents a booking for a room.
     /// </summary>
     [Table("roombookings")]
-    [PrimaryKey(nameof(RoomId), nameof(UserId))]     // <-- define composite key here
     public class RoomBookingsModel : IDbItemJunction
     {
+        [Key]
+        [JsonPropertyName("booking_id")]
+        [Column("booking_id")]
+        public int Id { get; set; }
         /// <summary>
         /// ID of the booked room.
         /// </summary>

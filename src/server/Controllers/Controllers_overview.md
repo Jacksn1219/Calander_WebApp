@@ -7,10 +7,10 @@ Based on your **Services** folder, you need the following **10 controllers**:
 ## 1. AdminsController --- Done
 **Service:** `IAdminsService`  
 **Endpoints:**
-- `GET /api/admins` — Get all admins
+- `GET /api/admins/all-admins` — Get all admins 
 - `GET /api/admins/{id}` — Get admin by ID
 - `GET /api/admins/by-username/{username}` — Get admin by username
-- `POST /api/admins` — Create new admin
+- `POST /api/admins/create-admin` — Create new admin
 - `PUT /api/admins/{id}` — Update admin
 - `DELETE /api/admins/{id}` — Delete admin
 
@@ -69,12 +69,11 @@ Based on your **Services** folder, you need the following **10 controllers**:
 ## 6. GroupMembershipsController -- Done
 **Service:** `IGroupMembershipsService`  
 **Endpoints:**
-- `GET /api/group-memberships` — Get all memberships
-- `GET /api/group-memberships/group/{groupId}` — Get memberships by group
-- `GET /api/group-memberships/user/{userId}` — Get memberships by user
-- `POST /api/group-memberships` — Add user to group
-- `PUT /api/group-memberships` -- Update Memberships 
-- `DELETE /api/group-memberships` — Remove user from group
+- `GET /api/GroupsMemberships` — Get all memberships (new)
+- `GET /api/GroupsMemberships/group/{groupId}` — Get memberships by group (new)
+- `GET /api/GroupsMemberships/user/{userId}` — Get memberships by user (new)
+- `POST /api/GroupsMemberships` — Add user to group (new)
+- `DELETE /api/GroupsMemberships` — Remove user from group (new)
 
 ---
 
@@ -116,6 +115,21 @@ Based on your **Services** folder, you need the following **10 controllers**:
 - `PATCH /api/room-bookings/update-start-time` — Update booking start time (body: booking details + newStartTime)
 - `PATCH /api/room-bookings/update-end-time` — Update booking end time (body: booking details + newEndTime)
 - `DELETE /api/room-bookings` — Delete booking (body: booking details)
+
+---
+
+## 10. AuthController
+**Service:** `AuthService`  
+**Endpoints:**
+- `POST /api/auth/login` — Login (new)
+
+---
+
+## 11. TestController
+**Service:** —  
+**Endpoints:**
+- `GET /api/test/secure` — Authenticated test endpoint (new)
+- `GET /api/test/public` — Public test endpoint (new)
 
 ---
 

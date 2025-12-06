@@ -52,12 +52,26 @@ public class RoomsController : ControllerBase
     [HttpGet("{id}/availability")]
     public async Task<ActionResult<bool>> CheckAvailability(int id, [FromQuery] DateTime start, [FromQuery] DateTime end)
     {
+        // Validate query parameters
+        if (start == default || end == default)
+        {
+            return BadRequest("Invalid time range: start and end must be valid date-time values.");
+        }
+
+        if (end <= start)
+        {
+            return BadRequest("Invalid time range: end must be after start.");
+        }
+
         try
         {
+            // Ensure room exists; service throws InvalidOperationException when not found
+            await _roomsService.GetById(id).ConfigureAwait(false);
+
             var isAvailable = await _roomsService.IsRoomAvailableAsync(id, start, end).ConfigureAwait(false);
             return Ok(isAvailable);
         }
-        catch (KeyNotFoundException)
+        catch (InvalidOperationException)
         {
             return NotFound();
         }
