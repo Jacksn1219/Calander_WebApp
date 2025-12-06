@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useLocation, useNavigate } from 'react-router-dom';
+import { useLocation, useNavigate, useParams } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
 
@@ -402,66 +402,86 @@ export const useEventDialog = (events: any[]) => {
 };
 
 export interface EventItem {
-  id: string;
+  event_id: number;
   title: string;
   description: string;
-  date: string;
-  createdBy: string;
+  eventDate: string;
+  createdBy: number;
 }
 
-const dummyEvents: EventItem[] = [
-  { id: "id1", title: "Event 1", description: "Description 1", date: "2025-11-01", createdBy: "Admin" },
-  { id: "id2", title: "Event 2", description: "Description 2", date: "2025-11-02", createdBy: "Admin" },
-  { id: "id3", title: "Event 3", description: "Description 3", date: "2025-11-03", createdBy: "Admin" },
-];
-
-const loadEvents = (): EventItem[] => {
-  const data = localStorage.getItem("events");
-  if (data)
-  {
-    return JSON.parse(data);
-  }
-  else
-  {
-    return dummyEvents;
-  }
-};
+export interface Employee {
+  user_id: number;
+  name: string;
+  email: string;
+}
 
 export const useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
+  const [currentEvent, setEvent] = useState<EventItem>();
+  const [usernames, setUsernames] = useState<Record<number, string>>({});
   const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
-    setEvents(loadEvents());
+    fetchEvents();
   }, [location]);
 
-  const handleCreate = () => {
-    navigate("/administrative-dashboard/create");
-  };
+  const fetchEvents = async () => {
+    try {
+      const response = await apiFetch("/api/events");
+      if (!response.ok) throw new Error("Failed to fetch events");
+      const data: EventItem[] = await response.json();
 
-  const handleEdit = (id: string) => {
-    navigate(`/administrative-dashboard/edit/${id}`);
-  };
+      setEvents(data);
 
-  const handleViewAttendees = (id: string) => {
-    navigate(`/administrative-dashboard/view-attendees/${id}`);
-  };
+      for (const e of data) {
+        loadUsername(Number(e.createdBy));
+      }
 
-  const handleDelete = (id: string) => {
-    if (window.confirm("Are you sure you want to delete this event?")) {
-      const updated = events.filter((event) => event.id !== id);
-      setEvents(updated);
-      localStorage.setItem("events", JSON.stringify(updated));
+    } catch (err) {
+      console.error("Fetching events failed:", err);
+      setEvents([]);
     }
   };
 
-  return { events, handleCreate, handleEdit, handleViewAttendees, handleDelete };
+  const loadUsername = async (id: number) => {
+    if (usernames[id]) return;
+
+    try {
+      const response = await apiFetch(`/api/employees/${id}`);
+      if (!response.ok) throw new Error("Failed fetching employee");
+
+      const employee = await response.json();
+
+      setUsernames((u) => ({...u, [id]: employee.name}));
+    } catch (err) {
+      console.error("Error fetching username:", err);
+    }
+  };
+
+  const handleCreate = () => navigate("/administrative-dashboard/create");
+  const handleEdit = (event: EventItem) => navigate(`/administrative-dashboard/edit/${event.event_id}`, { state: { event }});
+  const handleViewAttendees = (id: number) => navigate(`/administrative-dashboard/view-attendees/${id}`);
+  
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete?")) return;
+
+    try {
+      const res = await apiFetch(`/api/events/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed delete");
+
+      setEvents((prev) => prev.filter((e) => e.event_id !== id));
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+
+  return { events, currentEvent, setEvent, usernames, handleCreate, handleEdit, handleViewAttendees, handleDelete };
 };
 
-export const useEditEvent = (id: string | undefined) => {
+export const useEditEvent = (event: EventItem | undefined, onClose?: () => void) => {
   const navigate = useNavigate();
-  const [eventData, setEventData] = useState<EventItem | null>(null);
+  const currentEvent = event;
   const [formData, setFormData] = useState({
     title: "",
     description: "",
@@ -470,57 +490,68 @@ export const useEditEvent = (id: string | undefined) => {
   });
 
   useEffect(() => {
-    const loadedEvents = loadEvents();
-    const foundEvent = loadedEvents.find((e) => e.id === id);
-    if (foundEvent) {
-      setEventData(foundEvent);
+    if (currentEvent) {
       setFormData({
-        title: foundEvent.title,
-        description: foundEvent.description,
-        date: foundEvent.date,
-        createdBy: foundEvent.createdBy,
+        title: currentEvent.title,
+        description: currentEvent.description,
+        date: new Date(currentEvent.eventDate).toISOString().split("T")[0],
+        createdBy: currentEvent.createdBy.toString()
       });
     } else {
       alert("Event not found");
-      navigate("/administrative-dashboard");
+      setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+      if (onClose) onClose();
     }
-  }, [id, navigate]);
+  }, [navigate]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
     setFormData((events) => ({ ...events, [name]: value }));
   };
 
-  const handleSave = () => {
+  const handleSave = async () => {
     if (!formData.title || !formData.date) {
       alert("Please fill in all required fields");
       return;
     }
 
-    const loadedEvents = loadEvents();
-    const updatedEvents = loadedEvents.map((event) =>
-      event.id === id ? { ...event, ...formData } : event
-    );
-
-    localStorage.setItem("events", JSON.stringify(updatedEvents));
-    navigate("/administrative-dashboard");
+    try {
+      const response = await apiFetch(`/api/events/${currentEvent?.event_id}`, { 
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_id: currentEvent?.event_id,
+          title: formData.title,
+          description: formData.description,
+          eventDate: new Date(formData.date).toISOString(),
+          createdBy: currentEvent?.createdBy
+        })
+      });
+      if (!response.ok) throw new Error("Failed to update event");
+      setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+      if (onClose) onClose();
+    } catch (err: any) {
+      console.error("Error updating event:", err);
+      alert("Failed to update event");
+    }
   };
 
   const handleCancel = () => {
-    navigate("/administrative-dashboard");
+    setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+    if (onClose) onClose();
   };
 
-  return { eventData, formData, handleChange, handleSave, handleCancel };
+  return { formData, handleChange, handleSave, handleCancel };
 };
 
-export const useCreateEvent = () => {
-  const navigate = useNavigate();
+export const useCreateEvent = (onClose?: () => void) => {
+  const { user } = useAuth();
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     date: "",
-    createdBy: "Admin",
+    createdBy: user?.userId,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
@@ -528,34 +559,99 @@ export const useCreateEvent = () => {
     setFormData((events) => ({ ...events, [name]: value }));
   };
 
-  const handleSave = () => {
-    if (!formData.title || !formData.date) {
-      alert("Please fill in all required fields");
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!user?.userId) {
+      alert("User is not logged in.");
       return;
     }
 
-    const stored = loadEvents();
-    const nextId = `id${stored.length + 1}`;
-    const updatedEvents = [...stored, { id: nextId, ...formData }];
+    if (!formData.title.trim()) {
+      alert("Title cannot be empty");
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert("Description cannot be empty");
+      return;
+    }
+    if (!formData.date.trim()) {
+      alert("Date cannot be empty");
+      return;
+    }
 
-    localStorage.setItem("events", JSON.stringify(updatedEvents));
+    try {
+      const response = await apiFetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_id: null,
+          title: formData.title,
+          description: formData.description,
+          eventDate: new Date(formData.date).toISOString(),
+          createdBy: user.userId,
+        }),
+      });
 
-    navigate("/administrative-dashboard");
+      if (!response.ok) {
+        alert("Failed to create event");
+        console.error("Server response error:", response.status);
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Event created:", result);
+
+      setFormData({ title: "", description: "", date: "", createdBy: user.userId });
+      if (onClose) onClose();
+    } catch (err: any) {
+      console.error("Events error:", err);
+      alert("Error creating an event");
+    }
   };
 
   const handleCancel = () => {
-    navigate("/administrative-dashboard");
+    setFormData({ title: "", description: "", date: "", createdBy: user?.userId });
+    if (onClose) onClose();
   };
 
-  return { formData, handleChange, handleSave, handleCancel };
+  return { formData, handleChange, handleSubmit, handleCancel };
 };
 
+
+
 export const useViewAttendees = () => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
   const navigate = useNavigate();
+  const { id } = useParams();
 
-  const handleBack = () => {
-    navigate("/administrative-dashboard");
-  }
+  useEffect(() => {
+    if (!id) return;
+    fetchUsers(Number(id));
+  }, [id]);
 
-  return { handleBack };
-}
+  const fetchUsers = async (id: number) => {
+    try {
+      const response = await apiFetch(`/api/event-participation/event/${id}`);
+      if (!response.ok) throw new Error("Failed");
+
+      const participations = await response.json();
+
+      const users = [];
+      for (const participation of participations) {
+        const res = await apiFetch(`/api/employees/${participation.userId}`);
+        const user = await res.json();
+        users.push(user);
+      }
+
+      setEmployees(users);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleBack = () => navigate("/administrative-dashboard");
+
+  return { employees, handleBack };
+};

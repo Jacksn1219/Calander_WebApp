@@ -1,10 +1,14 @@
-import React from "react";
+import React, { useState } from "react";
 import "../styles/administrative-dashboard.css";
 import Sidebar from "./Sidebar";
 import { useAdministrativeDashboard } from "../hooks/hooks";
+import CreateEventDialog from "./CreateEventDialog";
+import EditEventDialog from "./EditEventDialog";
 
 const AdministrativeDashboard: React.FC = () => {
-  const { events, handleCreate, handleEdit, handleViewAttendees, handleDelete } = useAdministrativeDashboard();
+  const { events, currentEvent, setEvent, usernames, handleCreate, handleEdit, handleViewAttendees, handleDelete } = useAdministrativeDashboard();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [showEditDialog, setShowEditDialog] = useState(false);
 
   return (
     <div className="administrative-layout">
@@ -14,9 +18,8 @@ const AdministrativeDashboard: React.FC = () => {
           <h1>Administrative Dashboard</h1>
           <h2>Events</h2>
 
-          <button className="create-button" onClick={handleCreate}>
-            Create new event
-          </button>
+          <button className="create-button" onClick={() => setShowCreateDialog(true)}>Create new event</button>
+
           { events.length != 0 ? (
           <table className="administrative-table">
             <thead>
@@ -32,23 +35,29 @@ const AdministrativeDashboard: React.FC = () => {
             </thead>
             <tbody>
               {events.map((event) => (
-                <tr key={event.id}>
+                <tr key={event.event_id}>
                   <td>{event.title}</td>
                   <td>{event.description}</td>
-                  <td>{event.date}</td>
-                  <td>{event.createdBy}</td>
+                  <td>{event.eventDate}</td>
+                  <td>{usernames[event.createdBy]}</td>
                   <td>
-                    <button className="view-button" onClick={() => handleViewAttendees(event.id)}>
+                    <button className="view-button" onClick={() => handleViewAttendees(event.event_id)}>
                       VIEW
                     </button>
                   </td>
                   <td>
-                    <button className="edit-button" onClick={() => handleEdit(event.id)}>
+                    <button
+                      className="edit-button"
+                      onClick={() => {
+                        setEvent(event);
+                        setShowEditDialog(true);
+                      }}
+                    >
                       EDIT
                     </button>
                   </td>
                   <td>
-                    <button className="delete-button" onClick={() => handleDelete(event.id)}>
+                    <button className="delete-button" onClick={() => handleDelete(event.event_id)}>
                       DELETE
                     </button>
                   </td>
@@ -59,6 +68,15 @@ const AdministrativeDashboard: React.FC = () => {
           ) : <h2>There are no events. Create an event first</h2>}
         </div>
       </div>
+      {showCreateDialog && (
+        <CreateEventDialog onClose={() => setShowCreateDialog(false)} />
+      )}
+      {showEditDialog && (
+        <EditEventDialog 
+          currentEvent={currentEvent} 
+          onClose={() => setShowEditDialog(false)} 
+        />
+      )}
     </div>
   );
 };
