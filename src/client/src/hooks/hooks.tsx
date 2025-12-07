@@ -419,7 +419,6 @@ export const useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEvent, setEvent] = useState<EventItem>();
   const [usernames, setUsernames] = useState<Record<number, string>>({});
-  const navigate = useNavigate();
   const location = useLocation();
 
   useEffect(() => {
@@ -458,10 +457,6 @@ export const useAdministrativeDashboard = () => {
       console.error("Error fetching username:", err);
     }
   };
-
-  const handleCreate = () => navigate("/administrative-dashboard/create");
-  const handleEdit = (event: EventItem) => navigate(`/administrative-dashboard/edit/${event.event_id}`, { state: { event }});
-  const handleViewAttendees = (id: number) => navigate(`/administrative-dashboard/view-attendees/${id}`);
   
   const handleDelete = async (id: number) => {
     if (!window.confirm("Delete?")) return;
@@ -476,7 +471,7 @@ export const useAdministrativeDashboard = () => {
     }
   };
 
-  return { events, currentEvent, setEvent, usernames, handleCreate, handleEdit, handleViewAttendees, handleDelete };
+  return { events, currentEvent, setEvent, usernames, handleDelete };
 };
 
 export const useEditEvent = (event: EventItem | undefined, onClose?: () => void) => {
@@ -620,19 +615,17 @@ export const useCreateEvent = (onClose?: () => void) => {
 
 
 
-export const useViewAttendees = () => {
+export const useViewAttendees = (event: EventItem | undefined, onClose?: () => void) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
-  const navigate = useNavigate();
-  const { id } = useParams();
 
   useEffect(() => {
-    if (!id) return;
-    fetchUsers(Number(id));
-  }, [id]);
+    if (!event?.event_id) return;
+    fetchUsers(event.event_id);
+  }, [event?.event_id]);
 
-  const fetchUsers = async (id: number) => {
+  const fetchUsers = async (eventId: number) => {
     try {
-      const response = await apiFetch(`/api/event-participation/event/${id}`);
+      const response = await apiFetch(`/api/event-participation/event/${eventId}`);
       if (!response.ok) throw new Error("Failed");
 
       const participations = await response.json();
@@ -651,7 +644,9 @@ export const useViewAttendees = () => {
     }
   };
 
-  const handleBack = () => navigate("/administrative-dashboard");
+  const handleCancel = () => {
+    if (onClose) onClose();
+  }
 
-  return { employees, handleBack };
+  return { employees, handleCancel };
 };

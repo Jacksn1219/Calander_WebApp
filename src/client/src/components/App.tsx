@@ -7,7 +7,6 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import MyEvents from './MyEvents';
 import AdministrativeDashboard from './AdministrativeDashboard';
-import ViewAttendees from './ViewAttendees';
 
 export default function App() {
   return (
@@ -51,14 +50,6 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <AdministrativeDashboard />
-              </ProtectedRoute>
-                }
-            />
-          <Route
-            path="/administrative-dashboard/view-attendees/:id"
-            element={
-              <ProtectedRoute>
-                <ViewAttendees />
               </ProtectedRoute>
                 }
             />

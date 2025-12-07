@@ -24,13 +24,9 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
           <h2>Edit Event</h2>
           <button className="btn-close" onClick={onClose} aria-label="Close">×</button>
         </div>
-
         <div className="dialog-body">
-          
           <div className="event-details">
-
             <div className="create-event-form">
-
                 <label>Title:</label>
                 <input
                 type="text"
@@ -38,7 +34,6 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
                 value={formData.title}
                 onChange={handleChange}
                 />
-
                 <label>Description:</label>
                 <textarea
                 name="description"
@@ -46,7 +41,6 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
                 onChange={handleChange}
                 rows={4}
                 />
-
                 <label>Date:</label>
                 <input
                 type="date"
@@ -54,12 +48,10 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
                 value={formData.date}
                 onChange={handleChange}
                 />
-
                 <div className="edit-event-buttons">
                 <button className="edit-event-save" onClick={handleSave}>SAVE</button>
                 <button className="edit-event-cancel" onClick={handleCancel}>CANCEL</button>
                 </div>
-
             </div>
           </div>
         </div>

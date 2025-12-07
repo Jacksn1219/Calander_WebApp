@@ -23,13 +23,9 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose }) => {
           <h2>Create Event</h2>
           <button className="btn-close" onClick={onClose} aria-label="Close">×</button>
         </div>
-
         <div className="dialog-body">
-          
           <div className="event-details">
-
             <div className="create-event-form">
-
               <label>Title:</label>
               <input
                 type="text"
@@ -38,7 +34,6 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose }) => {
                 onChange={handleChange}
                 placeholder="Enter event title"
               />
-
               <label>Description:</label>
               <textarea
                 name="description"
@@ -47,7 +42,6 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose }) => {
                 onChange={handleChange}
                 placeholder="Enter event description"
               />
-
               <label>Date:</label>
               <input
                 type="date"
@@ -55,7 +49,6 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose }) => {
                 value={formData.date}
                 onChange={handleChange}
               />
-
               <div className="create-event-buttons">
                 <button className="create-event-save" onClick={(e) => handleSubmit(e)}>
                   CREATE
@@ -64,10 +57,8 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose }) => {
                   CANCEL
                 </button>
               </div>
-
             </div>
           </div>
-
         </div>
       </div>
     </div>

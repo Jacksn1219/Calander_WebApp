@@ -4,11 +4,13 @@ import Sidebar from "./Sidebar";
 import { useAdministrativeDashboard } from "../hooks/hooks";
 import CreateEventDialog from "./CreateEventDialog";
 import EditEventDialog from "./EditEventDialog";
+import ViewAttendeesDialog from "./ViewAttendeesDialog";
 
 const AdministrativeDashboard: React.FC = () => {
-  const { events, currentEvent, setEvent, usernames, handleCreate, handleEdit, handleViewAttendees, handleDelete } = useAdministrativeDashboard();
+  const { events, currentEvent, setEvent, usernames, handleDelete } = useAdministrativeDashboard();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
+  const [showViewDialog, setShowViewDialog] = useState(false);
 
   return (
     <div className="administrative-layout">
@@ -38,10 +40,16 @@ const AdministrativeDashboard: React.FC = () => {
                 <tr key={event.event_id}>
                   <td>{event.title}</td>
                   <td>{event.description}</td>
-                  <td>{event.eventDate}</td>
+                  <td>{new Date(event.eventDate).toLocaleDateString()}</td>
                   <td>{usernames[event.createdBy]}</td>
                   <td>
-                    <button className="view-button" onClick={() => handleViewAttendees(event.event_id)}>
+                    <button
+                      className="view-button"
+                      onClick={() => {
+                        setEvent(event);
+                        setShowViewDialog(true);
+                      }}
+                    >
                       VIEW
                     </button>
                   </td>
@@ -75,6 +83,12 @@ const AdministrativeDashboard: React.FC = () => {
         <EditEventDialog 
           currentEvent={currentEvent} 
           onClose={() => setShowEditDialog(false)} 
+        />
+      )}
+      {showViewDialog && (
+        <ViewAttendeesDialog 
+          currentEvent={currentEvent} 
+          onClose={() => setShowViewDialog(false)} 
         />
       )}
     </div>
