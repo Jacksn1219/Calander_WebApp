@@ -18,9 +18,6 @@ class Program
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
-
-
-
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddDistributedMemoryCache();
@@ -113,7 +110,11 @@ class Program
             db.Database.Migrate();
         }
         app.Urls.Add("http://localhost:3001");
-    // Configure the HTTP request pipeline.
+        
+        // Redirect root URL to Swagger
+        app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
+
+        // Configure the HTTP request pipeline.
         if (!app.Environment.IsDevelopment())
         {
             app.UseExceptionHandler("/Home/Error");
@@ -135,7 +136,7 @@ class Program
 
         app.MapControllers();
 
-        // ✅ One-time setup / seeding
+        // One-time setup / seeding
         using (var scope = app.Services.CreateScope())
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
@@ -155,7 +156,7 @@ class Program
                 {
                     Name = "bart",
                     Email = "bart@test.com",
-                    Password = BCrypt.Net.BCrypt.HashPassword("1234"), // ✅ hash before saving
+                    Password = BCrypt.Net.BCrypt.HashPassword("1234"), // hash before saving
                     Role = UserRole.Admin
                 });
             }
