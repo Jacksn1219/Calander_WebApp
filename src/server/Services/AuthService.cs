@@ -58,5 +58,20 @@ namespace Calender_WebApp.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+
+        public async Task<EmployeesModel> RegisterUser(EmployeesModel user)
+        {
+            var exists = _db.Employees.FirstOrDefault(u => u.Email == user.Email);
+            if (exists != null)
+                throw new Exception("Email bestaat al.");
+
+            user.Password = BCrypt.Net.BCrypt.HashPassword(user.Password);
+
+            _db.Employees.Add(user);
+            await _db.SaveChangesAsync();
+            return user;
+        }
+
     }
 }

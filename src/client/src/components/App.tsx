@@ -5,8 +5,9 @@ import Login from './Login';
 import Register from './Register';
 import Home from './Home';
 import MyEvents from './MyEvents';
-import UnauthorizedPage from './UnauthorizedPage';
+import ErrorPage from './Error';
 import Error from './Error';
+import UnauthorizedPage from './UnauthorizedPage';
 
 export default function App() {
   return (
@@ -53,8 +54,7 @@ export default function App() {
           />
 
           {/* Unauthorized page */}
-            <Route path="/unauthorized" element={<UnauthorizedPage />} />
-
+          <Route path="/unauthorized" element={<UnauthorizedPage />} />
 
           {/* Fallback voor niet-bestaande paden */}
             <Route path="*" element={<Error />} />
@@ -68,8 +68,17 @@ export default function App() {
 // small component to redirect authenticated users away from login/register
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+
+  if (!token) {
+    return <Navigate to="/unauthorized" replace />;
+  }
+
+  return <>{children}</>;
 };
+
+
+
+
 
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, logout } = useAuth();

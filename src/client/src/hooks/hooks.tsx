@@ -170,6 +170,10 @@ export const useLoginForm = () => {
   };
 };
 
+
+
+
+
 /**
  * Custom hook for registration form logic
  */
@@ -214,27 +218,64 @@ export const useRegisterForm = () => {
     return true;
   }, [name, email, password, confirmPassword, validateRequired, validateEmail, validatePassword, validatePasswordMatch, clearError]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+
+
+
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const userData = { name, email, role };
+    setError(null);
+    setSuccess(null);
 
-    // TODO: Backend Integration - Replace mock registration with actual API call
-    // POST /api/employees/register with { name, email, password, role }
-    // Should return { token: string, user: { userId, name, email, role } }
-    // Use EmployeesService.Post() method
-    // On success, auto-login the user with returned token
-    setTimeout(() => {
+    try {
+      const response = await apiFetch('/api/auth/register', {
+        method: 'POST',
+        body: JSON.stringify({
+          name,
+          email,
+          password,
+          role            // 'Admin' | 'User'
+        })
+      });
+
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Registration failed');
+      }
+
+      const data = await response.json();
+
+      const token: string | undefined = data.token || data.Token;
+      const user = data.user;
+
+      if (!token || !user) {
+        throw new Error('Malformed registration response');
+      }
+
+      // Direct inloggen met echte backend user + token
+      login(
+        {
+          userId: user.userId,
+          name: user.name,
+          email: user.email,
+          role: user.role
+        },
+        token
+      );
+
       setSuccess('Registration successful! Logging you in...');
-      console.log('Mock user created:', userData);
-      
-      setTimeout(() => {
-        login(userData);
-        navigate('/home');
-      }, 1000);
-    }, 500);
-  }, [name, email, role, validate, login, navigate]);
+      navigate('/home');
+    } catch (err: any) {
+      console.error('Registration error:', err);
+      setError(err.message ?? 'Unexpected error during registration');
+    }
+  }, [name, email, password, role, validate, login, navigate, setError, setSuccess]);
+
+
+
+
+
 
   return {
     name,
@@ -256,6 +297,12 @@ export const useRegisterForm = () => {
     handleSubmit,
   };
 };
+
+
+
+
+
+
 
 /**
  * Custom hook for sidebar logic

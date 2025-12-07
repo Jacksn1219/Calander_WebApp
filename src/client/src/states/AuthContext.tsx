@@ -1,4 +1,5 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiFetch } from '../config/api';
 
 export interface User {
   userId?: number;
@@ -32,26 +33,64 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
-    // TODO: Backend Integration - Validate token with backend on app load
-    // Should verify JWT token is still valid with backend API
-    // GET /api/auth/verify or GET /api/auth/me to fetch current user
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (token && storedUser) {
-      try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-      } catch (error) {
-        localStorage.removeItem('token');
+    const initAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setUser(null);
         localStorage.removeItem('user');
+        return;
       }
-    }
+
+      let storedUser: User | null = null;
+      const storedUserRaw = localStorage.getItem('user');
+      if (storedUserRaw) {
+        try {
+          storedUser = JSON.parse(storedUserRaw);
+          setUser(storedUser);
+        } catch {
+          storedUser = null;
+        }
+      }
+
+      try {
+        const response = await apiFetch('/api/auth/me');
+        if (!response.ok) {
+          if (response.status === 401 || response.status === 403) {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            setUser(null);
+          }
+          return;
+        }
+
+        const data = await response.json();
+        const apiUser = data.user;
+
+        const normalizedUser: User = {
+          userId:
+            typeof apiUser.userId === 'string'
+              ? parseInt(apiUser.userId, 10)
+              : apiUser.userId,
+          name: storedUser?.name ?? '',
+          email: apiUser.email,
+          role: apiUser.role as 'Admin' | 'User',
+        };
+
+        setUser(normalizedUser);
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+      } catch (err) {
+        console.error('Error validating token on app load:', err);
+      }
+    };
+
+    initAuth();
   }, []);
 
   const login = (userData: User, token?: string) => {
     setUser(userData);
-    localStorage.setItem('token', token ?? 'demo-token');
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
@@ -62,12 +101,14 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{
-    user,
-      isAuthenticated: !!user,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );

@@ -1,6 +1,6 @@
 import '../styles/error-unauthorized.css';
 
-export default function ErrorUnauthorized() {
+export default function ErrorPage() {
   return (
     <div className="app-layout">
       <main className="main-content">
