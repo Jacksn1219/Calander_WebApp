@@ -36,6 +36,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Collection of memberships associated with this group.
         /// </summary>
+        [JsonIgnore]
         public virtual ICollection<GroupMembershipsModel> GroupMemberships { get; set; } = new List<GroupMembershipsModel>();
     }
 }

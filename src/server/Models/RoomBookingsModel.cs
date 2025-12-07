@@ -1,6 +1,7 @@
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
@@ -10,9 +11,12 @@ namespace Calender_WebApp.Models
     /// Represents a booking for a room.
     /// </summary>
     [Table("roombookings")]
-    [PrimaryKey(nameof(RoomId), nameof(UserId))]     // <-- define composite key here
     public class RoomBookingsModel : IDbItemJunction
     {
+        [Key]
+        [JsonPropertyName("booking_id")]
+        [Column("booking_id")]
+        public int Id { get; set; }
         /// <summary>
         /// ID of the booked room.
         /// </summary>
@@ -23,7 +27,8 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the related room.
         /// </summary>
-        public virtual RoomsModel Room { get; set; } = null!;
+        [JsonIgnore]
+        public virtual RoomsModel? Room { get; set; }
 
         /// <summary>
         /// ID of the employee who booked the room.
@@ -35,7 +40,8 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Navigation property for the related employee.
         /// </summary>
-        public virtual EmployeesModel Employee { get; set; } = null!;
+        [JsonIgnore]
+        public virtual EmployeesModel? Employee { get; set; }
 
         /// <summary>
         /// Date of the booking.

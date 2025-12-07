@@ -3,6 +3,7 @@ using System;
 using Calender_WebApp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calender_WebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251205205926_RoomBookings_AddIdAndUniqueIndex")]
+    partial class RoomBookings_AddIdAndUniqueIndex
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -209,86 +212,6 @@ namespace Calender_WebApp.Migrations
                     b.HasIndex("UserId");
 
                     b.ToTable("officeattendance");
-                });
-
-            modelBuilder.Entity("Calender_WebApp.Models.ReminderPreferencesModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id")
-                        .HasColumnOrder(0)
-                        .HasAnnotation("Relational:JsonPropertyName", "user_id");
-
-                    b.Property<bool>("BookingReminder")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("booking_reminder")
-                        .HasColumnOrder(2);
-
-                    b.Property<bool>("EventReminder")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("event_reminder")
-                        .HasColumnOrder(1);
-
-                    b.Property<TimeSpan>("ReminderAdvanceMinutes")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("reminder_advance_minutes")
-                        .HasColumnOrder(3);
-
-                    b.HasKey("Id");
-
-                    b.ToTable("reminderpreferences");
-                });
-
-            modelBuilder.Entity("Calender_WebApp.Models.RemindersModel", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("reminder_id")
-                        .HasColumnOrder(0)
-                        .HasAnnotation("Relational:JsonPropertyName", "reminder_id");
-
-                    b.Property<bool>("IsSent")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("is_sent")
-                        .HasColumnOrder(5);
-
-                    b.Property<string>("Message")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("message")
-                        .HasColumnOrder(7);
-
-                    b.Property<int>("RelatedEntityId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("related_entity_id")
-                        .HasColumnOrder(3);
-
-                    b.Property<DateTime>("ReminderTime")
-                        .HasColumnType("TEXT")
-                        .HasColumnName("reminder_time")
-                        .HasColumnOrder(4);
-
-                    b.Property<int>("ReminderType")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("reminder_type")
-                        .HasColumnOrder(2);
-
-                    b.Property<string>("Title")
-                        .IsRequired()
-                        .HasColumnType("TEXT")
-                        .HasColumnName("title")
-                        .HasColumnOrder(6);
-
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Id");
-
-                    b.ToTable("reminders");
                 });
 
             modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>

@@ -37,10 +37,11 @@ public class RoomBookingsService : IRoomBookingsService
     /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> Delete(RoomBookingsModel model)
     {
+        var normalizedDate = model.BookingDate.Date;
         var booking = await _dbSet
             .FirstOrDefaultAsync(rb => rb.RoomId == model.RoomId &&
                                        rb.UserId == model.UserId &&
-                                       rb.BookingDate.Date == model.BookingDate.Date &&
+                                       rb.BookingDate == normalizedDate &&
                                        rb.StartTime == model.StartTime &&
                                        rb.EndTime == model.EndTime
             );
@@ -98,7 +99,11 @@ public class RoomBookingsService : IRoomBookingsService
     /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> UpdateStartTime(RoomBookingsModel entity, TimeSpan newStartTime)
     {
-        var booking = await _dbSet.FindAsync(entity.RoomId, entity.UserId, entity.BookingDate, entity.StartTime, entity.EndTime);
+        var day = entity.BookingDate.Date;
+        var booking = await _dbSet.FirstOrDefaultAsync(b =>
+            b.RoomId == entity.RoomId &&
+            b.BookingDate == day &&
+            b.StartTime == entity.StartTime);
         if (booking == null) throw new InvalidOperationException("Booking not found.");
 
         booking.StartTime = newStartTime;
@@ -115,7 +120,11 @@ public class RoomBookingsService : IRoomBookingsService
     /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> UpdateEndTime(RoomBookingsModel entity, TimeSpan newEndTime)
     {
-        var booking = await _dbSet.FindAsync(entity.RoomId, entity.UserId, entity.BookingDate, entity.StartTime, entity.EndTime);
+        var day = entity.BookingDate.Date;
+        var booking = await _dbSet.FirstOrDefaultAsync(b =>
+            b.RoomId == entity.RoomId &&
+            b.BookingDate == day &&
+            b.StartTime == entity.StartTime);
         if (booking == null) throw new InvalidOperationException("Booking not found.");
 
         booking.EndTime = newEndTime;
@@ -135,17 +144,36 @@ public class RoomBookingsService : IRoomBookingsService
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        //Check if already exists
-        var exists = await _dbSet.AnyAsync(rb => rb.RoomId == model.RoomId &&
-                                                 rb.UserId == model.UserId &&
-                                                 rb.BookingDate.Date == model.BookingDate.Date &&
-                                                 rb.StartTime == model.StartTime &&
-                                                 rb.EndTime == model.EndTime);
+        // Normalize date to date-only and times to minute precision (zero seconds)
+        model.BookingDate = model.BookingDate.Date;
+        model.StartTime = new TimeSpan(model.StartTime.Hours, model.StartTime.Minutes, 0);
+        model.EndTime = new TimeSpan(model.EndTime.Hours, model.EndTime.Minutes, 0);
+
+        if (model.EndTime <= model.StartTime)
+            throw new ArgumentException("EndTime must be greater than StartTime.");
+
+        // Load bookings for same room & date; SQLite may not translate TimeSpan comparisons
+        var dayBookings = await _dbSet
+            .Where(rb => rb.RoomId == model.RoomId && rb.BookingDate == model.BookingDate)
+            .ToListAsync();
+
+        // Check exact duplicate of slot
+        var exactExists = dayBookings.Any(rb => rb.StartTime == model.StartTime);
+        if (exactExists)
+            throw new InvalidOperationException("An identical booking slot already exists.");
+
+        // Overlap check in-memory for same room & date
+        var overlaps = dayBookings.Any(rb => rb.StartTime < model.EndTime && rb.EndTime > model.StartTime);
+        if (overlaps)
+            throw new InvalidOperationException("Room is not available for the requested time window.");
 
         // Validate model using whitelist util
+        // Build validation input excluding navigation properties and internal IDs
         var inputDict = typeof(RoomBookingsModel)
             .GetProperties()
-            .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => p.Name != nameof(IDbItem.Id)
+                        && p.Name != nameof(RoomBookingsModel.Room)
+                        && p.Name != nameof(RoomBookingsModel.Employee))
             .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
@@ -190,14 +218,29 @@ public class RoomBookingsService : IRoomBookingsService
     /// <returns>A list of available rooms for the specified date range.</returns>
     public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
     {
-        var bookedRoomIds = await _dbSet
-            .Where(rb => rb.BookingDate.Date >= start.Date && rb.BookingDate.Date <= end.Date)
-            .Select(rb => rb.RoomId)
-            .Distinct()
+        // Improvement: consider time overlap, not only date.
+        // - Fetch bookings in the date range
+        // - For each room, exclude only if any booking overlaps the requested time window
+        // - Overlap rule: booking.StartTime < end.TimeOfDay && booking.EndTime > start.TimeOfDay
+        // Note: Evaluate TimeSpan comparisons in-memory to avoid EF/SQLite translation issues.
+
+        var startDay = start.Date;
+        var endDay = end.Date;
+        var startTime = start.TimeOfDay;
+        var endTime = end.TimeOfDay;
+
+        var bookingsInRange = await _dbSet
+            .Where(rb => rb.BookingDate >= startDay && rb.BookingDate <= endDay)
             .ToListAsync();
 
+        var unavailableRoomIds = bookingsInRange
+            .Where(rb => rb.StartTime < endTime && rb.EndTime > startTime)
+            .Select(rb => rb.RoomId)
+            .Distinct()
+            .ToHashSet();
+
         return await _context.Rooms
-            .Where(room => room.Id.HasValue && !bookedRoomIds.Contains(room.Id.Value))
+            .Where(room => room.Id.HasValue && !unavailableRoomIds.Contains(room.Id.Value))
             .ToListAsync();
     }
 
@@ -210,11 +253,17 @@ public class RoomBookingsService : IRoomBookingsService
     /// <returns>The availability status of the room.</returns>
     public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
     {
-        return !await _dbSet
-            .AnyAsync(rb => rb.RoomId == roomId &&
-                            rb.BookingDate.Date == start.Date &&
-                            rb.StartTime < end.TimeOfDay &&
-                            rb.EndTime > start.TimeOfDay);
+        var day = start.Date;
+        var startTime = start.TimeOfDay;
+        var endTime = end.TimeOfDay;
+
+        // SQLite provider struggles to translate TimeSpan comparisons; evaluate overlaps in-memory
+        var dayBookings = await _dbSet
+            .Where(rb => rb.RoomId == roomId && rb.BookingDate == day)
+            .ToListAsync();
+
+        var hasOverlap = dayBookings.Any(rb => rb.StartTime < endTime && rb.EndTime > startTime);
+        return !hasOverlap;
     }
 
     // Add additional services that are not related to CRUD here
