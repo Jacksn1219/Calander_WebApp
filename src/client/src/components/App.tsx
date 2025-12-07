@@ -6,8 +6,6 @@ import Register from './Register';
 import Home from './Home';
 import RoomBooking from './RoomBooking';
 import MyEvents from './MyEvents';
-// import EditEvent from './EditEvent';
-// import CreateEvent from './CreateEvent';
 import AdministrativeDashboard from './AdministrativeDashboard';
 import ViewAttendees from './ViewAttendees';
 
