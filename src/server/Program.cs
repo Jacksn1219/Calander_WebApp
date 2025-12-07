@@ -37,6 +37,8 @@ class Program
         builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
         builder.Services.AddScoped<IRoomBookingsService, RoomBookingsService>();
         builder.Services.AddScoped<IRoomsService, RoomsService>();
+        builder.Services.AddScoped<IRemindersService, RemindersService>();
+        builder.Services.AddScoped<IReminderPreferencesService, ReminderPreferencesService>();
 
 
         // Add Swagger/OpenAPI services
