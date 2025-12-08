@@ -27,13 +27,13 @@ const ViewAttendeesDialog: React.FC<ViewAttendeesDialogProps> = ({ currentEvent,
         <div className="dialog-body">
           <div className="event-details">
             <div>
-                { employees.length != 0 ? (
+                { employees.length !== 0 ? (
                 <>
                     <h2>Users</h2>
                     <table className="administrative-table">
                         <thead>
                         <tr>
-                            <th>User Id</th>
+                            {/* <th>User Id</th> */}
                             <th>Name</th>
                             <th>Email</th>
                         </tr>
@@ -41,9 +41,9 @@ const ViewAttendeesDialog: React.FC<ViewAttendeesDialogProps> = ({ currentEvent,
                         <tbody>
                         {employees.map((employee) => (
                             <tr key={employee.user_id}>
-                            <td>{employee.user_id}</td>
-                            <td>{employee.name}</td>
-                            <td>{employee.email}</td>
+                              {/* <td>{employee.user_id}</td> */}
+                              <td>{employee.name}</td>
+                              <td>{employee.email}</td>
                             </tr>
                         ))}
                         </tbody>
