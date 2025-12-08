@@ -3,6 +3,7 @@ using System;
 using Calender_WebApp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calender_WebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251205124218_Update_RoomBookings_PK")]
+    partial class Update_RoomBookings_PK
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -213,11 +216,15 @@ namespace Calender_WebApp.Migrations
 
             modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>
                 {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
+                    b.Property<int>("RoomId")
                         .HasColumnType("INTEGER")
-                        .HasColumnName("booking_id")
-                        .HasAnnotation("Relational:JsonPropertyName", "booking_id");
+                        .HasColumnName("room_id")
+                        .HasColumnOrder(0);
+
+                    b.Property<int>("UserId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("user_id")
+                        .HasColumnOrder(1);
 
                     b.Property<DateTime>("BookingDate")
                         .HasColumnType("TEXT")
@@ -235,24 +242,12 @@ namespace Calender_WebApp.Migrations
                         .HasColumnName("purpose")
                         .HasColumnOrder(5);
 
-                    b.Property<int>("RoomId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("room_id")
-                        .HasColumnOrder(0);
-
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("TEXT")
                         .HasColumnName("start_time")
                         .HasColumnOrder(3);
 
-                    b.Property<int>("UserId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("user_id")
-                        .HasColumnOrder(1);
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("RoomId");
+                    b.HasKey("RoomId", "UserId");
 
                     b.HasIndex("UserId");
 
