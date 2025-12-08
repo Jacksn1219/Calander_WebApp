@@ -65,9 +65,10 @@ const Register: React.FC = () => {
           <p className="muted">Join Office Calendar to manage your schedule.</p>
           
           {success && (
-            <div style={{ color: '#0f5132', background: '#d1e7dd', padding: '8px', borderRadius: '6px', marginBottom: '12px' }}>
-              {success}
-            </div>
+            <div className="banner banner-success" role="status">{success}</div>
+          )}
+          {error && !success && (
+            <div className="banner banner-error" role="alert">{error}</div>
           )}
 
           <form onSubmit={handleSubmit} className="login-form" noValidate>
@@ -144,7 +145,6 @@ const Register: React.FC = () => {
               />
             </div>
 
-            {error && <div role="alert" className="form-error">{error}</div>}
 
             <div className="form-actions">
               <button type="submit" className="primary">Create Account</button>
