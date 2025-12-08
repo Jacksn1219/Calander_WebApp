@@ -1,5 +1,5 @@
 import { useState, useCallback, useEffect } from 'react';
-import { useLocation, useNavigate, useParams } from 'react-router-dom';
+import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
 
@@ -419,11 +419,10 @@ export const useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEvent, setEvent] = useState<EventItem>();
   const [usernames, setUsernames] = useState<Record<number, string>>({});
-  const location = useLocation();
 
   useEffect(() => {
     fetchEvents();
-  }, [location]);
+  }, []);
 
   const fetchEvents = async () => {
     try {
@@ -485,19 +484,18 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   });
 
   useEffect(() => {
-    if (currentEvent) {
-      setFormData({
-        title: currentEvent.title,
-        description: currentEvent.description,
-        date: new Date(currentEvent.eventDate).toISOString().split("T")[0],
-        createdBy: currentEvent.createdBy.toString()
-      });
-    } else {
+    if (!currentEvent) {
       alert("Event not found");
-      setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
       onClose();
+      return;
     }
-  }, [navigate]);
+    setFormData({
+      title: currentEvent.title,
+      description: currentEvent.description,
+      date: new Date(currentEvent.eventDate).toISOString().split("T")[0],
+      createdBy: currentEvent.createdBy.toString()
+    });
+  }, [currentEvent]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
