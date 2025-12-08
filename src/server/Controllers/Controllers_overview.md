@@ -4,19 +4,19 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 1. AdminsController
+## 1. AdminsController --- Done
 **Service:** `IAdminsService`  
 **Endpoints:**
-- `GET /api/admins` — Get all admins
+- `GET /api/admins/all-admins` — Get all admins 
 - `GET /api/admins/{id}` — Get admin by ID
 - `GET /api/admins/by-username/{username}` — Get admin by username
-- `POST /api/admins` — Create new admin
+- `POST /api/admins/create-admin` — Create new admin
 - `PUT /api/admins/{id}` — Update admin
 - `DELETE /api/admins/{id}` — Delete admin
 
 ---
 
-## 2. EmployeesController
+## 2. EmployeesController --- Done
 **Service:** `IEmployeesService`  
 **Endpoints:**
 - `GET /api/employees` — Get all employees
@@ -28,7 +28,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 3. EventsController
+## 3. EventsController --- Done
 **Service:** `IEventsService`  
 **Endpoints:**
 - `GET /api/events` — Get all events
@@ -41,7 +41,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 4. EventParticipationController
+## 4. EventParticipationController --- Done
 **Service:** `IEventParticipationService`  
 **Endpoints:**
 - `GET /api/event-participation` — Get all participations
@@ -54,7 +54,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 5. GroupsController
+## 5. GroupsController -- Done wel na vragen voor de laatse endpoint
 **Service:** `IGroupsService`  
 **Endpoints:**
 - `GET /api/groups` — Get all groups
@@ -66,18 +66,18 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 6. GroupMembershipsController
+## 6. GroupMembershipsController -- Done
 **Service:** `IGroupMembershipsService`  
 **Endpoints:**
-- `GET /api/group-memberships` — Get all memberships
-- `GET /api/group-memberships/group/{groupId}` — Get memberships by group
-- `GET /api/group-memberships/user/{userId}` — Get memberships by user
-- `POST /api/group-memberships` — Add user to group
-- `DELETE /api/group-memberships` — Remove user from group
+- `GET /api/GroupsMemberships` — Get all memberships (new)
+- `GET /api/GroupsMemberships/group/{groupId}` — Get memberships by group (new)
+- `GET /api/GroupsMemberships/user/{userId}` — Get memberships by user (new)
+- `POST /api/GroupsMemberships` — Add user to group (new)
+- `DELETE /api/GroupsMemberships` — Remove user from group (new)
 
 ---
 
-## 7. OfficeAttendanceController
+## 7. OfficeAttendanceController -- Done
 **Service:** `IOfficeAttendanceService`  
 **Endpoints:**
 - `GET /api/office-attendance` — Get all attendance records
@@ -91,7 +91,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 8. RoomsController
+## 8. RoomsController -- Done
 **Service:** `IRoomsService`  
 **Endpoints:**
 - `GET /api/rooms` — Get all rooms
@@ -118,6 +118,18 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 10. CrudController (Base/Generic - Optional)
-**Service:** `ICrudService<T>`  
-This would be a base controller that other controllers inherit from, providing common CRUD operations.
+## 10. AuthController
+**Service:** `AuthService`  
+**Endpoints:**
+- `POST /api/auth/login` — Login (new)
+
+---
+
+## 11. TestController
+**Service:** —  
+**Endpoints:**
+- `GET /api/test/secure` — Authenticated test endpoint (new)
+- `GET /api/test/public` — Public test endpoint (new)
+
+---
+

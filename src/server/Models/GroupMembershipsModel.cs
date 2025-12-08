@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using Microsoft.EntityFrameworkCore;                 // <-- add this
 using Calender_WebApp.Models.Interfaces;
+using System.Text.Json.Serialization;
 
 namespace Calender_WebApp.Models
 {
@@ -12,11 +13,13 @@ namespace Calender_WebApp.Models
         [Column("user_id")]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
-        public virtual EmployeesModel Employee { get; set; } = null!;
+        [JsonIgnore]
+        public virtual EmployeesModel? Employee { get; set; }
 
         [Column("group_id")]
         [ForeignKey(nameof(Group))]
         public int GroupId { get; set; }
-        public virtual GroupsModel Group { get; set; } = null!;
+        [JsonIgnore]
+        public virtual GroupsModel? Group { get; set; }
     }
 }

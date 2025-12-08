@@ -43,6 +43,7 @@ namespace Calender_WebApp.Models
         /// <summary>
         /// Collection of bookings associated with this room.
         /// </summary>
+        [JsonIgnore]
         public virtual ICollection<RoomBookingsModel> RoomBookings { get; set; } = new List<RoomBookingsModel>();
     }
 }
