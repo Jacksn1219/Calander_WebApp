@@ -672,6 +672,255 @@ export const useCalendarEvents = (user: { userId?: number; role?: string } | nul
   };
 };
 
+export interface EventItem {
+  event_id: number;
+  title: string;
+  description: string;
+  eventDate: string;
+  createdBy: number;
+}
+
+export interface Employee {
+  user_id: number;
+  name: string;
+  email: string;
+}
+
+export const useAdministrativeDashboard = () => {
+  const [events, setEvents] = useState<EventItem[]>([]);
+  const [currentEvent, setEvent] = useState<EventItem>();
+  const [usernames, setUsernames] = useState<Record<number, string>>({});
+
+  useEffect(() => {
+    fetchEvents();
+  }, []);
+
+  const fetchEvents = async () => {
+    try {
+      const response = await apiFetch("/api/events");
+      if (!response.ok) throw new Error("Failed to fetch events");
+      const data: EventItem[] = await response.json();
+
+      setEvents(data);
+
+      for (const e of data) {
+        loadUsername(Number(e.createdBy));
+      }
+
+    } catch (err) {
+      console.error("Fetching events failed:", err);
+      setEvents([]);
+    }
+  };
+
+  const loadUsername = async (id: number) => {
+    if (usernames[id]) return;
+
+    try {
+      const response = await apiFetch(`/api/employees/${id}`);
+      if (!response.ok) throw new Error("Failed fetching employee");
+
+      const employee = await response.json();
+
+      setUsernames((u) => ({...u, [id]: employee.name}));
+    } catch (err) {
+      console.error("Error fetching username:", err);
+    }
+  };
+  
+  const handleDelete = async (id: number) => {
+    if (!window.confirm("Delete?")) return;
+
+    try {
+      const res = await apiFetch(`/api/events/${id}`, { method: "DELETE" });
+      if (!res.ok) throw new Error("Failed delete");
+
+      setEvents((prev) => prev.filter((e) => e.event_id !== id));
+    } catch (err) {
+      console.error("Error:", err);
+    }
+  };
+
+  return { events, currentEvent, setEvent, usernames, handleDelete, fetchEvents };
+};
+
+export const useEditEvent = (event: EventItem | undefined, onClose: () => void, reloadEvents: () => void) => {
+  const navigate = useNavigate();
+  const currentEvent = event;
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    createdBy: "",
+  });
+
+  useEffect(() => {
+    if (!currentEvent) {
+      alert("Event not found");
+      onClose();
+      return;
+    }
+    setFormData({
+      title: currentEvent.title,
+      description: currentEvent.description,
+      date: new Date(currentEvent.eventDate).toISOString().split("T")[0],
+      createdBy: currentEvent.createdBy.toString()
+    });
+  }, [currentEvent]);
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((events) => ({ ...events, [name]: value }));
+  };
+
+  const handleSave = async () => {
+    if (!formData.title || !formData.date) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
+    try {
+      const response = await apiFetch(`/api/events/${currentEvent?.event_id}`, { 
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_id: currentEvent?.event_id,
+          title: formData.title,
+          description: formData.description,
+          eventDate: new Date(formData.date).toISOString(),
+          createdBy: currentEvent?.createdBy
+        })
+      });
+      if (!response.ok) throw new Error("Failed to update event");
+      setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+      reloadEvents();
+      onClose();
+    } catch (err: any) {
+      console.error("Error updating event:", err);
+      alert("Failed to update event");
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+    onClose();
+  };
+
+  return { formData, handleChange, handleSave, handleCancel };
+};
+
+export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) => {
+  const { user } = useAuth();
+
+  const [formData, setFormData] = useState({
+    title: "",
+    description: "",
+    date: "",
+    createdBy: user?.userId,
+  });
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+    const { name, value } = e.target;
+    setFormData((events) => ({ ...events, [name]: value }));
+  };
+
+  const handleSubmit = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+
+    if (!user?.userId) {
+      alert("User is not logged in.");
+      return;
+    }
+
+    if (!formData.title.trim()) {
+      alert("Title cannot be empty");
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert("Description cannot be empty");
+      return;
+    }
+    if (!formData.date.trim()) {
+      alert("Date cannot be empty");
+      return;
+    }
+
+    try {
+      const response = await apiFetch("/api/events", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          event_id: null,
+          title: formData.title,
+          description: formData.description,
+          eventDate: new Date(formData.date).toISOString(),
+          createdBy: user.userId,
+        }),
+      });
+
+      if (!response.ok) {
+        alert("Failed to create event");
+        console.error("Server response error:", response.status);
+        return;
+      }
+
+      const result = await response.json();
+      console.log("Event created:", result);
+
+      setFormData({ title: "", description: "", date: "", createdBy: user.userId });
+      reloadEvents();
+      onClose();
+    } catch (err: any) {
+      console.error("Events error:", err);
+      alert("Error creating an event");
+    }
+  };
+
+  const handleCancel = () => {
+    setFormData({ title: "", description: "", date: "", createdBy: user?.userId });
+    onClose();
+  };
+
+  return { formData, handleChange, handleSubmit, handleCancel };
+};
+
+
+
+export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {
+  const [employees, setEmployees] = useState<Employee[]>([]);
+
+  useEffect(() => {
+    if (!event?.event_id) return;
+    fetchUsers(event.event_id);
+  }, [event?.event_id]);
+
+  const fetchUsers = async (eventId: number) => {
+    try {
+      const response = await apiFetch(`/api/event-participation/event/${eventId}`);
+      if (!response.ok) throw new Error("Failed");
+
+      const participations = await response.json();
+
+      const users = [];
+      for (const participation of participations) {
+        const res = await apiFetch(`/api/employees/${participation.userId}`);
+        const user = await res.json();
+        users.push(user);
+      }
+
+      setEmployees(users);
+
+    } catch (err) {
+      console.error(err);
+    }
+  };
+
+  const handleCancel = () => {
+    onClose();
+  }
+
+  return { employees, handleCancel };
+};
 /**
  * Custom hook for managing hidden events with localStorage persistence
  */

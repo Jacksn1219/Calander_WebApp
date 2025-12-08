@@ -1,0 +1,45 @@
+.view-attendees-container {
+  display: flex;
+  flex-direction: row;
+  align-items: flex-start;
+  gap: 2rem;
+  padding: 2rem;
+}
+
+.dialog-body {
+    padding-top: 15px;
+}
+
+.view-attendees-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.view-attendees-buttons button {
+  align-self: flex-end;
+  border: 1px solid #a3e4b1;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+  border: none;
+}
+
+.view-attendees-cancel {
+  background: #e21818;
+}
+
+.view-attendees-cancel:hover {
+  background: #b10000;
+}
+
+@media only screen and (max-width: 920px) {
+  .view-attendees-container {
+    flex-wrap: wrap;
+  }
+}

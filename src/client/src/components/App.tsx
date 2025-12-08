@@ -4,7 +4,9 @@ import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
 import CreateEmployee from './CreateEmployee';
 import Home from './Home';
+import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
+import AdministrativeDashboard from './AdministrativeDashboard';
 
 export default function App() {
   return (
@@ -28,6 +30,23 @@ export default function App() {
             }
           />
           <Route
+            path="/roombooking"
+            element={
+              <ProtectedRoute>
+                <RoomBooking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/administrative-dashboard"
+            element={
+              <ProtectedRoute>
+                <AdministrativeDashboard />
+              </ProtectedRoute>
+                }
+            />
+            <Route
+            
             path="/calendar"
             element={
               <ProtectedRoute>
@@ -56,7 +75,6 @@ export default function App() {
     </AuthProvider>
   );
 }
-
 
 // small component to redirect authenticated users away from login/register
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
