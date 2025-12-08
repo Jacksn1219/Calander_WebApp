@@ -57,58 +57,53 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && <span>Administrative Dashboard</span>}
         </Link>
       </li>
-      <li className={location.pathname === '/my-events' ? 'active' : ''}>
-        <Link to="/my-events" title="My Events">
+      <li className={location.pathname === '/calendar' ? 'active' : ''}>
+        <Link to="/calendar" title="Calendar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <rect x="3" y="4" width="18" height="18" rx="2" ry="2"/>
             <line x1="16" y1="2" x2="16" y2="6"/>
             <line x1="8" y1="2" x2="8" y2="6"/>
             <line x1="3" y1="10" x2="21" y2="10"/>
           </svg>
-          {!isCollapsed && <span>My Events</span>}
+          {!isCollapsed && <span>Calendar</span>}
         </Link>
       </li>
+      {user?.role === 'Admin' && (
+        <li className={location.pathname === '/add-emp' ? 'active' : ''}>
+          <Link to="/add-emp" title="Add Employee">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
+              <circle cx="8.5" cy="7" r="4"/>
+              <line x1="20" y1="8" x2="20" y2="14"/>
+              <line x1="23" y1="11" x2="17" y2="11"/>
+            </svg>
+            {!isCollapsed && <span>Add Employee</span>}
+          </Link>
+        </li>
+      )}
     </>
   );
 
   const renderUnauthenticatedSidebar = () => {
     const isLoginPage = location.pathname === '/login';
-    const isRegisterPage = location.pathname === '/register';
 
     return (
-      <>
-        {!isRegisterPage && (
-          <li className={isLoginPage ? 'active' : ''}>
-            <Link to="/login" title="Login">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
-                <polyline points="10,17 15,12 10,7"/>
-                <line x1="15" y1="12" x2="3" y2="12"/>
-              </svg>
-              {!isCollapsed && <span>Login</span>}
-            </Link>
-          </li>
-        )}
-        
-        {!isLoginPage && (
-          <li className={isRegisterPage ? 'active' : ''}>
-            <Link to="/register" title="Register">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-                <circle cx="8.5" cy="7" r="4"/>
-                <line x1="20" y1="8" x2="20" y2="14"/>
-                <line x1="23" y1="11" x2="17" y2="11"/>
-              </svg>
-              {!isCollapsed && <span>Register</span>}
-            </Link>
-          </li>
-        )}
-      </>
+      <li className={isLoginPage ? 'active' : ''}>
+        <Link to="/login" title="Login">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+            <polyline points="10,17 15,12 10,7"/>
+            <line x1="15" y1="12" x2="3" y2="12"/>
+          </svg>
+          {!isCollapsed && <span>Login</span>}
+        </Link>
+      </li>
     );
   };
 
   const renderUserSection = () => {
     if (!isAuthenticated) return null;
+    const roleLabel = user?.isSuperAdmin ? 'Super Admin' : (user?.role || 'User');
 
     return (
       <div className="sidebar-user-section">
@@ -119,7 +114,7 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && (
             <div className="user-details">
               <span className="user-name">{user?.name || 'User'}</span>
-              <span className="user-role">{user?.role || 'User'}</span>
+              <span className="user-role">{roleLabel}</span>
             </div>
           )}
         </div>

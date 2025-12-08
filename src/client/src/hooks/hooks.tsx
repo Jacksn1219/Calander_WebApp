@@ -2,9 +2,10 @@ import { useState, useCallback, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
+import { isSuperAdmin } from '../constants/superAdmin';
 
-/**
- * Custom hook for form validation and error handling
+/*
+ Custom hook for form validation and error handling
  */
 export const useFormValidation = () => {
   const [error, setError] = useState<string | null>(null);
@@ -65,8 +66,8 @@ export const useFormValidation = () => {
   };
 };
 
-/**
- * Custom hook for password visibility toggle
+/*
+ Custom hook for password visibility toggle
  */
 export const usePasswordVisibility = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -82,8 +83,8 @@ export const usePasswordVisibility = () => {
   };
 };
 
-/**
- * Custom hook for login form logic
+/*
+ Custom hook for login form logic
  */
 export const useLoginForm = () => {
   const [email, setEmail] = useState('');
@@ -119,7 +120,6 @@ export const useLoginForm = () => {
       });
 
       if (!response.ok) {
-        // Attempt to parse error text
         const text = await response.text();
         throw new Error(text || 'Login failed');
       }
@@ -133,12 +133,15 @@ export const useLoginForm = () => {
         throw new Error('Malformed login response');
       }
 
+      const superAdminFlag = isSuperAdmin(user.email, password);
+
       // Persist token & user via context
       login({
         userId: user.userId,
         name: user.name,
         email: user.email,
-        role: user.role
+        role: user.role,
+        isSuperAdmin: superAdminFlag,
       }, token);
 
       navigate('/home');
@@ -163,30 +166,54 @@ export const useLoginForm = () => {
   };
 };
 
-/**
- * Custom hook for registration form logic
+/*
+Custom hook for create employee form logic
  */
-export const useRegisterForm = () => {
+export const useCreateEmployeeForm = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRole] = useState<'Admin' | 'User'>('User');
+  const [role, setRoleState] = useState<'Admin' | 'User'>('User');
   const [success, setSuccess] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
   
+  const { user } = useAuth();
   const { error, setError, validateEmail, validatePassword, validatePasswordMatch, validateRequired, clearError } = useFormValidation();
   const { showPassword, togglePasswordVisibility } = usePasswordVisibility();
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  
-  const navigate = useNavigate();
-  const { login } = useAuth();
+
+  const canAssignAdminRole = Boolean(user?.isSuperAdmin);
+
+  useEffect(() => {
+    if (!canAssignAdminRole) {
+      setRoleState('User');
+    }
+  }, [canAssignAdminRole]);
+
+  const setRole = useCallback((newRole: 'Admin' | 'User') => {
+    if (!canAssignAdminRole) {
+      setRoleState('User');
+      return;
+    }
+    setRoleState(newRole);
+  }, [canAssignAdminRole]);
 
   const toggleConfirmPasswordVisibility = useCallback(() => {
     setShowConfirmPassword(prev => !prev);
   }, []);
 
+  const resetForm = useCallback(() => {
+    setName('');
+    setEmail('');
+    setPassword('');
+    setConfirmPassword('');
+    setRoleState('User');
+  }, []);
+
   const validate = useCallback((): boolean => {
     clearError();
+    setSuccess(null);
     
     if (!validateRequired({ name, email, password, confirmPassword })) {
       return false;
@@ -207,27 +234,80 @@ export const useRegisterForm = () => {
     return true;
   }, [name, email, password, confirmPassword, validateRequired, validateEmail, validatePassword, validatePasswordMatch, clearError]);
 
-  const handleSubmit = useCallback((e: React.FormEvent) => {
+  const handleSubmit = useCallback(async (e: React.FormEvent) => {
     e.preventDefault();
     if (!validate()) return;
 
-    const userData = { name, email, role };
+    setError(null);
+    setSuccess(null);
+    setLoading(true);
 
-    // TODO: Backend Integration - Replace mock registration with actual API call
-    // POST /api/employees/register with { name, email, password, role }
-    // Should return { token: string, user: { userId, name, email, role } }
-    // Use EmployeesService.Post() method
-    // On success, auto-login the user with returned token
-    setTimeout(() => {
-      setSuccess('Registration successful! Logging you in...');
-      console.log('Mock user created:', userData);
-      
-      setTimeout(() => {
-        login(userData);
-        navigate('/home');
-      }, 1000);
-    }, 500);
-  }, [name, email, role, validate, login, navigate]);
+    try {
+      const response = await apiFetch('/api/employees', {
+        method: 'POST',
+        body: JSON.stringify({ name, email, password, role })
+      });
+
+      const rawBody = await response.text();
+      let data: any = null;
+
+      if (rawBody) {
+        try {
+          data = JSON.parse(rawBody);
+        } catch {
+          data = rawBody;
+        }
+      }
+
+      if (!response.ok) {
+        const extractErrorMessage = (payload: any): string | null => {
+          if (!payload) {
+            return null;
+          }
+
+          if (typeof payload === 'string') {
+            return payload;
+          }
+
+          if (Array.isArray(payload)) {
+            return payload.filter(Boolean).join('\n');
+          }
+
+          if (typeof payload === 'object') {
+            if (payload.message || payload.error || payload.title || payload.detail) {
+              return payload.message || payload.error || payload.title || payload.detail;
+            }
+
+            if (payload.errors && typeof payload.errors === 'object') {
+              const firstKey = Object.keys(payload.errors)[0];
+              if (firstKey) {
+                const firstError = payload.errors[firstKey];
+                if (Array.isArray(firstError)) {
+                  return firstError.filter(Boolean).join('\n');
+                }
+                if (typeof firstError === 'string') {
+                  return firstError;
+                }
+              }
+            }
+          }
+
+          return null;
+        };
+
+        const message = extractErrorMessage(data) ?? 'Failed to create employee.';
+        throw new Error(message);
+      }
+
+      setSuccess('Employee created successfully.');
+      resetForm();
+    } catch (err) {
+      const message = err instanceof Error ? err.message : 'Failed to create employee. Please try again.';
+      setError(message);
+    } finally {
+      setLoading(false);
+    }
+  }, [name, email, password, role, validate, setError, resetForm]);
 
   return {
     name,
@@ -240,8 +320,10 @@ export const useRegisterForm = () => {
     setConfirmPassword,
     role,
     setRole,
+    canAssignAdminRole,
     error,
     success,
+    loading,
     showPassword,
     togglePasswordVisibility,
     showConfirmPassword,
@@ -250,8 +332,8 @@ export const useRegisterForm = () => {
   };
 };
 
-/**
- * Custom hook for sidebar logic
+/*
+ Custom hook for sidebar logic
  */
 export const useSidebar = () => {
   const [isCollapsed, setIsCollapsed] = useState(false);
@@ -294,6 +376,130 @@ export const useLogoutWithConfirmation = () => {
 
   return handleLogout;
 };
+
+/*
+ Custom hook for event dialog state and actions
+ */
+export const useEventDialog = (events: any[]) => {
+  const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
+  const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
+  const { user } = useAuth();
+
+  // keep participation status in sync with the selected event
+  useEffect(() => {
+    if (!selectedEvent || !user?.userId) {
+      setUserParticipationStatus('not-registered');
+      return;
+    }
+    const me = (selectedEvent.participants || []).find((p: any) => p.userId === user.userId);
+    // Support both string and possible numeric enum values (0 Pending,1 Accepted,2 Declined)
+    if (me && (me.status === 'Accepted' || me.status === 'accepted' || me.status === 1)) {
+      setUserParticipationStatus('accepted');
+    } else {
+      setUserParticipationStatus('not-registered');
+    }
+  }, [selectedEvent, user?.userId]);
+
+  const formatDate = useCallback((date: Date) => {
+    return date.toLocaleDateString('en-US', {
+      weekday: 'long',
+      year: 'numeric',
+      month: 'long',
+      day: 'numeric'
+    });
+  }, []);
+
+  const formatTime = useCallback((date: Date) => {
+    return date.toLocaleTimeString('en-US', {
+      hour: '2-digit',
+      minute: '2-digit'
+    });
+  }, []);
+
+  const handleAttend = useCallback(async (eventId: number) => {
+    if (!user?.userId || !user?.name) return;
+    try {
+      const res = await apiFetch('/api/event-participation', {
+        method: 'POST',
+        body: JSON.stringify({ eventId, userId: user.userId, status: 1 }),
+      });
+      if (!res.ok) throw new Error('Failed to register for event');
+
+      const newParticipant = {
+        userId: user.userId,
+        name: user.name,
+        email: (user as any).email ?? '',
+        status: 'Accepted',
+      };
+
+      setSelectedEvent((prev: any) => {
+        if (!prev) return prev;
+        const exists = (prev.participants || []).some((p: any) => p.userId === user.userId);
+        const participants = exists
+          ? prev.participants.map((p: any) => p.userId === user.userId ? { ...p, status: 'Accepted' } : p)
+          : [...(prev.participants || []), newParticipant];
+        return { ...prev, participants };
+      });
+
+      const idx = events.findIndex((e: any) => (e.eventId ?? e.EventId) === eventId);
+      if (idx >= 0) {
+        const target = events[idx];
+        const exists = (target.participants || []).some((p: any) => p.userId === user.userId);
+        if (exists) {
+          target.participants = target.participants.map((p: any) => p.userId === user.userId ? { ...p, status: 'Accepted' } : p);
+        } else {
+          target.participants = [...(target.participants || []), newParticipant];
+        }
+      }
+
+      setUserParticipationStatus('accepted');
+      alert('You have successfully registered for this event.');
+    } catch (e) {
+      console.error(e);
+      alert('Unable to register for this event. Please try again.');
+    }
+  }, [events, user]);
+
+  const handleUnattend = useCallback(async (eventId: number) => {
+    if (!user?.userId) return;
+    try {
+      const res = await apiFetch('/api/event-participation', {
+        method: 'DELETE',
+        body: JSON.stringify({ eventId, userId: user.userId }),
+      });
+      if (!res.ok) throw new Error('Failed to unregister from event');
+
+      setSelectedEvent((prev: any) => {
+        if (!prev) return prev;
+        const participants = (prev.participants || []).filter((p: any) => p.userId !== user.userId);
+        return { ...prev, participants };
+      });
+
+      const idx = events.findIndex((e: any) => (e.eventId ?? e.EventId) === eventId);
+      if (idx >= 0) {
+        const target = events[idx];
+        target.participants = (target.participants || []).filter((p: any) => p.userId !== user.userId);
+      }
+
+      setUserParticipationStatus('not-registered');
+      alert('Your registration has been cancelled.');
+    } catch (e) {
+      console.error(e);
+      alert('Unable to cancel your registration. Please try again.');
+    }
+  }, [events, user]);
+
+  return {
+    selectedEvent,
+    setSelectedEvent,
+    userParticipationStatus,
+    formatDate,
+    formatTime,
+    handleAttend,
+    handleUnattend,
+  };
+};
+
 
 /**
  * Custom hook for calendar navigation and date selection
@@ -347,57 +553,122 @@ export const useCalendar = () => {
   };
 };
 
-/**
- * Custom hook for event dialog state and actions
+/*
+  Custom hook for fetching and managing calendar events
+  with participation and employee data enrichment.
+  No longer performs role-based filtering; all users see all events.
  */
-export const useEventDialog = (events: any[]) => {
-  const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
-  const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
+export const useCalendarEvents = (user: { userId?: number; role?: string } | null) => {
+  const isAdmin = user?.role === 'Admin';
+  const [rawEvents, setRawEvents] = useState<CalendarEvent[]>([]);
+  const [loading, setLoading] = useState<boolean>(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const formatDate = useCallback((date: Date) => {
-    return date.toLocaleDateString('en-US', {
-      weekday: 'long',
-      year: 'numeric',
-      month: 'long',
-      day: 'numeric'
+  const fetchAll = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const [eventsRes, participationRes, employeesRes] = await Promise.all([
+        apiFetch('/api/events'),
+        apiFetch('/api/event-participation'),
+        apiFetch('/api/employees')
+      ]);
+
+      if (!eventsRes.ok) throw new Error('Failed to load events');
+      if (!participationRes.ok) throw new Error('Failed to load participations');
+      if (!employeesRes.ok) throw new Error('Failed to load employees');
+
+      const eventsJson = await eventsRes.json();
+      const participationsJson = await participationRes.json();
+      const employeesJson = await employeesRes.json();
+
+      const employeeMap: Record<number, { name: string; email: string }> = {};
+      employeesJson.forEach((emp: any) => {
+        const id: number = emp.user_id ?? emp.Id ?? emp.id;
+        if (id != null) {
+          employeeMap[id] = { name: emp.Name ?? emp.name ?? '', email: emp.Email ?? emp.email ?? '' };
+        }
+      });
+
+      const participationByEvent: Record<number, CalendarParticipant[]> = {};
+      participationsJson.forEach((p: any) => {
+        const eventId: number = p.EventId ?? p.event_id ?? p.eventId;
+        const userId: number = p.UserId ?? p.user_id ?? p.userId;
+        if (eventId == null || userId == null) return;
+
+        const rawStatus = p.Status ?? p.status; // may be number (enum) or string
+        let status: CalendarParticipant['status'];
+        if (typeof rawStatus === 'number') {
+          status = ['Pending','Accepted','Declined'][rawStatus] as CalendarParticipant['status'] || 'Pending';
+        } else if (typeof rawStatus === 'string') {
+          const lower = rawStatus.toLowerCase();
+          if (lower === 'accepted') status = 'Accepted';
+          else if (lower === 'declined') status = 'Declined';
+          else status = 'Pending';
+        } else {
+          status = 'Pending';
+        }
+
+        const emp = employeeMap[userId];
+        const participant: CalendarParticipant = {
+          userId,
+          name: emp?.name ?? `User ${userId}`,
+          email: emp?.email ?? '',
+          status
+        };
+        if (!participationByEvent[eventId]) participationByEvent[eventId] = [];
+        participationByEvent[eventId].push(participant);
+      });
+
+      const transformed: CalendarEvent[] = eventsJson.map((ev: any) => {
+        const id: number = ev.event_id ?? ev.EventId ?? ev.Id ?? ev.eventId;
+        const createdBy: number = ev.CreatedBy ?? ev.created_by ?? ev.createdBy;
+        const eventDateString: string = ev.EventDate ?? ev.event_date ?? ev.eventDate;
+        return {
+          eventId: id,
+          title: ev.Title ?? ev.title ?? 'Untitled Event',
+          description: ev.Description ?? ev.description ?? undefined,
+          eventDate: eventDateString ? new Date(eventDateString) : new Date(),
+          createdBy,
+          participants: participationByEvent[id] ?? []
+        };
+      });
+
+      setRawEvents(transformed);
+    } catch (e: any) {
+      setError(e.message || 'Failed to load calendar data');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    // Clear previous events on user change to avoid stale visibility
+    setRawEvents([]);
+    fetchAll();
+  }, [fetchAll, user?.userId, user?.role]);
+
+  // All users (including non-admin) now see all events.
+  const scopedEvents = rawEvents;
+
+  const getEventsForDate = useCallback((date: Date): CalendarEvent[] => {
+    return scopedEvents.filter(event => {
+      const eventDate = new Date(event.eventDate);
+      return (
+        eventDate.getDate() === date.getDate() &&
+        eventDate.getMonth() === date.getMonth() &&
+        eventDate.getFullYear() === date.getFullYear()
+      );
     });
-  }, []);
-
-  const formatTime = useCallback((date: Date) => {
-    return date.toLocaleTimeString('en-US', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  }, []);
-
-  const handleAttend = useCallback((eventId: number) => {
-    // TODO: Backend Integration - Replace mock attendance with actual API call
-    // POST /api/eventparticipation with { eventId, userId, status: 'Accepted' }
-    // Use EventParticipationService.Post() method
-    // Should update participant list in real-time
-    console.log('Attending event:', eventId);
-    setUserParticipationStatus('accepted');
-    alert('You have registered for this event');
-  }, []);
-
-  const handleUnattend = useCallback((eventId: number) => {
-    // TODO: Backend Integration - Replace mock unattend with actual API call
-    // DELETE /api/eventparticipation with { eventId, userId }
-    // Use EventParticipationService.Delete() method
-    // Should update participant list in real-time
-    console.log('Unattending event:', eventId);
-    setUserParticipationStatus('not-registered');
-    alert('You have unregistered from this event');
-  }, []);
+  }, [scopedEvents]);
 
   return {
-    selectedEvent,
-    setSelectedEvent,
-    userParticipationStatus,
-    formatDate,
-    formatTime,
-    handleAttend,
-    handleUnattend,
+    loading,
+    error,
+    rawEvents,
+    events: scopedEvents,
+    getEventsForDate,
+    reload: fetchAll,
   };
 };
 
@@ -650,3 +921,69 @@ export const useViewAttendees = (event: EventItem | undefined, onClose: () => vo
 
   return { employees, handleCancel };
 };
+/**
+ * Custom hook for managing hidden events with localStorage persistence
+ */
+// const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
+
+// export const useHiddenEvents = () => {
+//   const [hiddenEventIds, setHiddenEventIds] = useState<number[]>(() => {
+//     // Initialize state from localStorage
+//     const stored = localStorage.getItem(HIDDEN_EVENTS_KEY);
+//     if (stored) {
+//       try {
+//         const parsed = JSON.parse(stored);
+//         return Array.isArray(parsed) ? parsed : [];
+//       } catch {
+//         return [];
+//       }
+//     }
+//     return [];
+//   });
+
+//   // Persist hidden events to localStorage on change
+//   useEffect(() => {
+//     localStorage.setItem(HIDDEN_EVENTS_KEY, JSON.stringify(hiddenEventIds));
+//   }, [hiddenEventIds]);
+
+//   // Pure function to hide an event
+//   const hideEvent = useCallback((eventId: number): void => {
+//     setHiddenEventIds(prev => [...prev, eventId]);
+//   }, []);
+
+//   // Pure function to restore all hidden events
+//   const restoreAllEvents = useCallback((): void => {
+//     setHiddenEventIds([]);
+//   }, []);
+
+//   // Pure function to filter out hidden events
+//   const filterHiddenEvents = useCallback((events: CalendarEvent[]): CalendarEvent[] => {
+//     return events.filter(event => !hiddenEventIds.includes(event.eventId));
+//   }, [hiddenEventIds]);
+
+//   return {
+//     hiddenEventIds,
+//     hideEvent,
+//     restoreAllEvents,
+//     filterHiddenEvents,
+//   };
+// };
+
+/*
+ Types for calendar events and participants (shared)
+ */
+export interface CalendarParticipant {
+  userId: number;
+  name: string;
+  email: string;
+  status: 'Pending' | 'Accepted' | 'Declined';
+}
+
+export interface CalendarEvent {
+  eventId: number;
+  title: string;
+  description?: string;
+  eventDate: Date;
+  createdBy: number;
+  participants: CalendarParticipant[];
+}
