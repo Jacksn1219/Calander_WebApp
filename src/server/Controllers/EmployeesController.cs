@@ -10,10 +10,12 @@ namespace Calender_WebApp.Controllers;
 public class EmployeesController : ControllerBase
 {
 	private readonly IEmployeesService _employeesService;
+	private readonly IReminderPreferencesService _reminderPreferencesService;
 
-	public EmployeesController(IEmployeesService employeesService)
+	public EmployeesController(IEmployeesService employeesService, IReminderPreferencesService reminderPreferencesService)
 	{
 		_employeesService = employeesService ?? throw new ArgumentNullException(nameof(employeesService));
+		_reminderPreferencesService = reminderPreferencesService ?? throw new ArgumentNullException(nameof(reminderPreferencesService));
 	}
 
 	[HttpGet]
@@ -72,6 +74,12 @@ public class EmployeesController : ControllerBase
 		try
 		{
 			var createdEmployee = await _employeesService.Post(employee).ConfigureAwait(false);
+			await _reminderPreferencesService.Post(new ReminderPreferencesModel
+			{
+				Id = createdEmployee.Id,
+				EventReminder = true,
+				BookingReminder = true
+			}).ConfigureAwait(false);
 			return CreatedAtAction(nameof(GetById), new { id = createdEmployee.Id }, createdEmployee);
 		}
 		catch (ArgumentException ex)
@@ -118,6 +126,7 @@ public class EmployeesController : ControllerBase
 		try
 		{
 			await _employeesService.Delete(id).ConfigureAwait(false);
+			await _reminderPreferencesService.Delete(id).ConfigureAwait(false);
 			return NoContent();
 		}
 		catch (InvalidOperationException)
