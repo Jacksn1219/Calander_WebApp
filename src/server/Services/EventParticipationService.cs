@@ -13,11 +13,13 @@ public class EventParticipationService : IEventParticipationService
 {
     private readonly AppDbContext _context;
     private readonly DbSet<EventParticipationModel> _dbSet;
+    private readonly IRemindersService _remindersService;
 
-    public EventParticipationService(AppDbContext ctx)
+    public EventParticipationService(AppDbContext ctx, IRemindersService remindersService)
     {
         _context = ctx ?? throw new ArgumentNullException(nameof(ctx));
         _dbSet = _context.Set<EventParticipationModel>();
+        _remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
     }
 
     /// <summary>
@@ -42,6 +44,9 @@ public class EventParticipationService : IEventParticipationService
 
         if (participation == null)
             throw new InvalidOperationException("Participation record not found.");
+    
+        // Delete related reminders
+        await _remindersService.DeleteEventParticipationRemindersAsync(participation.UserId, participation.EventId);
 
         _dbSet.Remove(participation);
         await _context.SaveChangesAsync();
@@ -101,6 +106,19 @@ public class EventParticipationService : IEventParticipationService
         }
 
         var entry = await _dbSet.AddAsync(participation).ConfigureAwait(false);
+        
+        // Create reminder for the event participation
+        DateTime eventDetails = await GetEventStartTimeAsync(participation.EventId).ConfigureAwait(false);
+        await _remindersService.Post(new RemindersModel
+        {
+            UserId = participation.UserId,
+            ReminderType = reminderType.EventParticipation,
+            RelatedEventId = participation.EventId,
+            ReminderTime = eventDetails,
+            Title = "Event Participation Reminder",
+            Message = $"Reminder: You are participating in an event (Event ID: {participation.EventId}) starting at {eventDetails}.",
+        }).ConfigureAwait(false);
+        
         await _context.SaveChangesAsync().ConfigureAwait(false);
         return entry.Entity;
     }
@@ -155,11 +173,11 @@ public class EventParticipationService : IEventParticipationService
     /// </summary>
     /// <param name="eventId"></param>
     /// <returns>The list of participants for the specified event.</returns>
-    public async Task<List<EventParticipationModel>> GetParticipantsByEventIdAsync(int eventId)
+    public async Task<EventParticipationModel[]> GetParticipantsByEventIdAsync(int eventId)
     {
         return await _dbSet
             .Where(ep => ep.EventId == eventId)
-            .ToListAsync();
+            .ToArrayAsync();
     }
 
     /// <summary>
@@ -180,10 +198,63 @@ public class EventParticipationService : IEventParticipationService
     /// </summary>
     /// <param name="userId"></param>
     /// <returns>The list of participants for the specified event.</returns>
-    public async Task<List<EventParticipationModel>> GetParticipantsByUserIdAsync(int userId)
+    public async Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId)
     {
         return await _dbSet
             .Where(ep => ep.UserId == userId)
-            .ToListAsync();
+            .ToArrayAsync();
+    }
+
+    /// <summary>
+    /// Retrieves the start time of an event based on its ID.
+    /// </summary>
+    /// <param name="eventId">The ID of the event.</param>
+    /// <returns>The start time of the event.</returns>
+    public async Task<DateTime> GetEventStartTimeAsync(int eventId)
+    {
+        var eventModel = await _context.Set<EventsModel>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == eventId)
+            .ConfigureAwait(false);
+
+        if (eventModel == null)
+            throw new InvalidOperationException("Event not found.");
+
+        return eventModel.EventDate;
+    }
+
+    /// <summary>
+    /// Updates reminders for all participants of a specific event.
+    /// </summary>
+    /// <param name="eventId">The ID of the event.</param>
+    /// <returns>An array of updated event participation records.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when no participants are found for the event.</exception>
+    public async Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId)
+    {
+        var participants = await _dbSet
+            .Where(ep => ep.EventId == eventId)
+            .ToArrayAsync();
+
+        if (participants.Length == 0)
+            throw new InvalidOperationException("No participants found for the specified event.");
+
+        var eventStartTime = await GetEventStartTimeAsync(eventId);
+
+        foreach (var participant in participants)
+        {
+            var existingReminders = await _remindersService.GetRemindersByRelatedEventAsync(participant.UserId, eventId).ConfigureAwait(false);
+            
+            foreach (var reminder in existingReminders.Where(r => r.Id.HasValue))
+            {
+            if (!reminder.Id.HasValue) continue;
+            
+            reminder.ReminderTime = eventStartTime;
+            reminder.Message = $"Reminder: You are participating in an event (Event ID: {eventId}) starting at {eventStartTime}.";
+            await _remindersService.Put(reminder.Id.Value, reminder).ConfigureAwait(false);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return participants;
     }
 }

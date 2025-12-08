@@ -8,7 +8,7 @@ namespace Calender_WebApp.Models
 {
     public enum reminderType
     {
-        Event,
+        EventParticipation,
         RoomBooking
     }
 
@@ -41,38 +41,46 @@ namespace Calender_WebApp.Models
         public reminderType ReminderType { get; set; }
 
         /// <summary>
-        /// ID of the related entity (Event or RoomBooking).
+        /// ID of the related entity's room (if applicable).
         /// </summary>
         [Required]
-        [Column("related_entity_id", Order = 3)]
-        public int RelatedEntityId { get; set; }
+        [Column("related_room_id", Order = 4)]
+        public int RelatedRoomId { get; set; }
 
         /// <summary>
-        /// Time when the reminder should be sent.
+        /// ID of the related entity's event id (if applicable).
         /// </summary>
         [Required]
-        [Column("reminder_time", Order = 4)]
+        [Column("related_event_id", Order = 5)]
+        public int RelatedEventId { get; set; }
+        
+
+        /// <summary>
+        /// Time when the reminder should be sent. Excluding the reminder preference time.
+        /// </summary>
+        [Required]
+        [Column("reminder_time", Order = 6)]
         public DateTime ReminderTime { get; set; }
 
         /// <summary>
         /// Indicates whether the reminder has been sent.
         /// </summary>
         [Required]
-        [Column("is_sent", Order = 5)]
+        [Column("is_sent", Order = 7)]
         public bool IsSent { get; set; } = false;
 
         /// <summary>
         /// Title of the reminder.
         /// </summary>
         [Required]
-        [Column("title", Order = 6)]
+        [Column("title", Order = 8)]
         public string Title { get; set; } = string.Empty;
 
         /// <summary>
         /// Message of the reminder.
         /// </summary>
         [Required]
-        [Column("message", Order = 7)]
+        [Column("message", Order = 9)]
         public string Message { get; set; } = string.Empty;
 
         /// <summary>

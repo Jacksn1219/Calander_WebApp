@@ -9,7 +9,12 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class EventsService : CrudService<EventsModel>, IEventsService
 {
-    public EventsService(AppDbContext ctx) : base(ctx) { }
+    private readonly IEventParticipationService _eventparticipationService;
+
+    public EventsService(AppDbContext ctx, IEventParticipationService eventparticipationService) : base(ctx)
+    {
+        _eventparticipationService = eventparticipationService ?? throw new ArgumentNullException(nameof(eventparticipationService));
+    }
 
     /// <summary>
     /// Get all events created by a specific user
@@ -34,6 +39,17 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             .Where(e => e.EventDate >= fromDate)
             .OrderBy(e => e.EventDate)
             .ToListAsync();
+    }
+
+    // Put
+    public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
+    {
+        var updatedEvent =  await base.Put(id, updatedEntity);
+
+        // Update related reminders
+        await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
+
+        return updatedEvent;
     }
 
     // Add additional services that are not related to CRUD here
