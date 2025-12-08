@@ -6,10 +6,11 @@ import { EventItem, useEditEvent } from "../hooks/hooks";
 interface EditEventDialogProps {
   currentEvent: EventItem | undefined;
   onClose: () => void;
+  reloadEvents: () => void
 }
 
-const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose }) => {
-  const { formData, handleChange, handleSave, handleCancel } = useEditEvent(currentEvent, onClose);
+const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose, reloadEvents }) => {
+  const { formData, handleChange, handleSave, handleCancel } = useEditEvent(currentEvent, onClose, reloadEvents);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {

@@ -471,10 +471,10 @@ export const useAdministrativeDashboard = () => {
     }
   };
 
-  return { events, currentEvent, setEvent, usernames, handleDelete };
+  return { events, currentEvent, setEvent, usernames, handleDelete, fetchEvents };
 };
 
-export const useEditEvent = (event: EventItem | undefined, onClose?: () => void) => {
+export const useEditEvent = (event: EventItem | undefined, onClose: () => void, reloadEvents: () => void) => {
   const navigate = useNavigate();
   const currentEvent = event;
   const [formData, setFormData] = useState({
@@ -495,7 +495,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose?: () => void)
     } else {
       alert("Event not found");
       setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
-      if (onClose) onClose();
+      onClose();
     }
   }, [navigate]);
 
@@ -524,7 +524,8 @@ export const useEditEvent = (event: EventItem | undefined, onClose?: () => void)
       });
       if (!response.ok) throw new Error("Failed to update event");
       setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
-      if (onClose) onClose();
+      reloadEvents();
+      onClose();
     } catch (err: any) {
       console.error("Error updating event:", err);
       alert("Failed to update event");
@@ -533,13 +534,13 @@ export const useEditEvent = (event: EventItem | undefined, onClose?: () => void)
 
   const handleCancel = () => {
     setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
-    if (onClose) onClose();
+    onClose();
   };
 
   return { formData, handleChange, handleSave, handleCancel };
 };
 
-export const useCreateEvent = (onClose?: () => void) => {
+export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) => {
   const { user } = useAuth();
 
   const [formData, setFormData] = useState({
@@ -598,7 +599,8 @@ export const useCreateEvent = (onClose?: () => void) => {
       console.log("Event created:", result);
 
       setFormData({ title: "", description: "", date: "", createdBy: user.userId });
-      if (onClose) onClose();
+      reloadEvents();
+      onClose();
     } catch (err: any) {
       console.error("Events error:", err);
       alert("Error creating an event");
@@ -607,7 +609,7 @@ export const useCreateEvent = (onClose?: () => void) => {
 
   const handleCancel = () => {
     setFormData({ title: "", description: "", date: "", createdBy: user?.userId });
-    if (onClose) onClose();
+    onClose();
   };
 
   return { formData, handleChange, handleSubmit, handleCancel };
@@ -615,7 +617,7 @@ export const useCreateEvent = (onClose?: () => void) => {
 
 
 
-export const useViewAttendees = (event: EventItem | undefined, onClose?: () => void) => {
+export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
   useEffect(() => {
@@ -645,7 +647,7 @@ export const useViewAttendees = (event: EventItem | undefined, onClose?: () => v
   };
 
   const handleCancel = () => {
-    if (onClose) onClose();
+    onClose();
   }
 
   return { employees, handleCancel };

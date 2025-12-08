@@ -7,7 +7,7 @@ import EditEventDialog from "./EditEventDialog";
 import ViewAttendeesDialog from "./ViewAttendeesDialog";
 
 const AdministrativeDashboard: React.FC = () => {
-  const { events, currentEvent, setEvent, usernames, handleDelete } = useAdministrativeDashboard();
+  const { events, currentEvent, setEvent, usernames, handleDelete, fetchEvents } = useAdministrativeDashboard();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
@@ -77,12 +77,16 @@ const AdministrativeDashboard: React.FC = () => {
         </div>
       </div>
       {showCreateDialog && (
-        <CreateEventDialog onClose={() => setShowCreateDialog(false)} />
+        <CreateEventDialog 
+          onClose={() => setShowCreateDialog(false)}
+          reloadEvents={fetchEvents}
+        />
       )}
       {showEditDialog && (
         <EditEventDialog 
           currentEvent={currentEvent} 
           onClose={() => setShowEditDialog(false)} 
+          reloadEvents={fetchEvents}
         />
       )}
       {showViewDialog && (

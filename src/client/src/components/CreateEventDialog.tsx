@@ -5,10 +5,11 @@ import { useCreateEvent } from "../hooks/hooks";
 
 interface CreateEventDialogProps {
   onClose: () => void;
+  reloadEvents: () => void
 }
 
-const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose }) => {
-  const { formData, handleChange, handleSubmit, handleCancel } = useCreateEvent(onClose);
+const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEvents }) => {
+  const { formData, handleChange, handleSubmit, handleCancel } = useCreateEvent(onClose, reloadEvents);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
