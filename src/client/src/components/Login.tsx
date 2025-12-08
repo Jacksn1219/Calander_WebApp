@@ -73,9 +73,7 @@ const Login: React.FC = () => {
             </div>
           </form>
           <div className="login-footer muted">
-            Demo: bart@test.com / 1234<br />
-            <br />
-            Don't have an account? <Link to="/register" style={{ color: '#1f6feb' }}>Register here</Link>
+            Demo (Super Admin): bart@test.com / 1234
           </div>
         </section>
       </main>
