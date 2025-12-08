@@ -5,8 +5,7 @@ import Sidebar from './Sidebar';
 import '../styles/login-page.css';
 
 const Login: React.FC = () => {
-  // TODO: Backend Integration - useLoginForm hook uses mock authentication
-  // Replace localStorage token with actual JWT from backend API
+
   const {
     email,
     setEmail,
@@ -25,6 +24,7 @@ const Login: React.FC = () => {
         <section className="login-card" aria-labelledby="login-title">
           <h2 id="login-title">Sign in to Office Calendar</h2>
           <p className="muted">Enter your email and password to continue.</p>
+          {error && <div role="alert" className="banner banner-error">{error}</div>}
           <form onSubmit={handleSubmit} className="login-form" noValidate>
             <label htmlFor="email">Email</label>
             <input
@@ -68,16 +68,12 @@ const Login: React.FC = () => {
               </button>
             </div>
 
-            {error && <div role="alert" className="form-error">{error}</div>}
-
             <div className="form-actions">
-              <button type="submit" className="primary">Sign in</button>
+              <button type="submit" className="primary-btn">Sign in</button>
             </div>
           </form>
           <div className="login-footer muted">
-            Demo: admin@example.com / Password123<br />
-            <br />
-            Don't have an account? <Link to="/register" style={{ color: '#1f6feb' }}>Register here</Link>
+            Demo (Super Admin): bart@test.com / 1234
           </div>
         </section>
       </main>

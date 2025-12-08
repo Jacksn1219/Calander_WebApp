@@ -18,12 +18,28 @@ namespace Calender_WebApp.Controllers
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
+            if (string.IsNullOrWhiteSpace(request.Email) || string.IsNullOrWhiteSpace(request.Password))
+            {
+                return BadRequest("Email and password are required.");
+            }
+
             var user = _authService.ValidateUser(request.Email, request.Password);
             if (user == null)
                 return Unauthorized("Invalid email or password");
 
             var token = _authService.GenerateToken(user);
-            return Ok(new { Token = token });
+
+            return Ok(new
+            {
+                token,
+                user = new
+                {
+                    userId = user.Id,
+                    name = user.Name,
+                    email = user.Email,
+                    role = user.Role.ToString()
+                }
+            });
         }
     }
 

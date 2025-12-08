@@ -2,9 +2,9 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
-import Register from './Register';
+import CreateEmployee from './CreateEmployee';
 import Home from './Home';
-import MyEvents from './MyEvents';
+import Calendar from './Calendar';
 
 export default function App() {
   return (
@@ -19,14 +19,6 @@ export default function App() {
               </AuthRedirectRoute>
             } 
           />
-          <Route 
-            path="/register" 
-            element={
-              <AuthRedirectRoute>
-                <Register />
-              </AuthRedirectRoute>
-            } 
-          />
           <Route
             path="/home"
             element={
@@ -36,10 +28,20 @@ export default function App() {
             }
           />
           <Route
-            path="/my-events"
+            path="/calendar"
             element={
               <ProtectedRoute>
-                <MyEvents />
+                <Calendar />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/add-emp"
+            element={
+              <ProtectedRoute>
+                <AdminRoute>
+                  <CreateEmployee />
+                </AdminRoute>
               </ProtectedRoute>
             }
           />
@@ -60,6 +62,11 @@ export default function App() {
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
   const token = localStorage.getItem('token');
   return token ? <>{children}</> : <Navigate to="/login" replace />;
+};
+
+const AdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  return user?.role === 'Admin' ? <>{children}</> : <Navigate to="/home" replace />;
 };
 
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {

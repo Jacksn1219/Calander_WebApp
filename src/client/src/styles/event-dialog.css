@@ -50,6 +50,33 @@
   flex: 1;
 }
 
+.dialog-header-actions {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-delete {
+  background: #ff4444;
+  border: none;
+  font-size: 1.25rem;
+  line-height: 1;
+  cursor: pointer;
+  color: white;
+  width: 32px;
+  height: 32px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 6px;
+  transition: background 0.2s;
+  flex-shrink: 0;
+}
+
+.btn-delete:hover {
+  background: #cc0000;
+}
+
 .btn-close {
   background: none;
   border: none;
@@ -247,6 +274,16 @@
   transition: all 0.2s;
 }
 
+.event-item.selectable {
+  border: 1px solid transparent;
+}
+
+.event-item.selectable:focus-visible {
+  outline: none;
+  border-color: #1f6feb;
+  box-shadow: 0 0 0 2px rgba(31,111,235,0.25);
+}
+
 .event-item:hover {
   background: #e3f2fd;
   transform: translateX(4px);
@@ -267,6 +304,45 @@
 .event-item-arrow {
   color: #666;
   font-size: 1.25rem;
+}
+    
+.event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.75rem;
+  color: #555;
+}
+
+.event-badge {
+  background: #e9eef5;
+  padding: 4px 8px;
+  border-radius: 12px;
+  font-weight: 600;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.event-badge.joined {
+  background: #d4edda;
+  color: #155724;
+}
+
+.btn-back {
+  align-self: flex-start;
+  background: #f0f4f9;
+  border: none;
+  padding: 8px 12px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  margin-bottom: 8px;
+  transition: background 0.15s;
+}
+
+.btn-back:hover {
+  background: #e2e8f0;
 }
 
 /* Mobile-specific optimizations */
