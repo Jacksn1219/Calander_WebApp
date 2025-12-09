@@ -37,6 +37,10 @@
   box-sizing: border-box;
 }
 .form-error { color: #8b1c1c; background: #fff1f1; padding: 8px; border-radius: 6px }
+.banner { display:flex; align-items:center; gap:8px; padding:10px 12px; border-radius:6px; font-size:0.9rem; line-height:1.3; font-weight:500; }
+.banner-success { background:#d1e7dd; color:#0f5132; border:1px solid #0f513233; }
+.banner-error { background:#fff1f1; color:#8b1c1c; border:1px solid #8b1c1c22; }
+.banner svg { flex-shrink:0 }
 .login-footer { margin-top: 12px; font-size: 0.9rem }
 
 .primary-btn {

@@ -1,26 +1,11 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { useCalendar } from '../hooks/hooks';
-import '../styles/my-events.css';
+import { useCalendar, useCalendarEvents } from '../hooks/hooks';
+import { useAuth } from '../states/AuthContext';
+import '../styles/calendar.css';
 
-interface Event {
-  eventId: number;
-  title: string;
-  description?: string;
-  eventDate: Date;
-  createdBy: number;
-  participants: Participant[];
-}
-
-interface Participant {
-  userId: number;
-  name: string;
-  email: string;
-  status: 'Pending' | 'Accepted' | 'Declined';
-}
-
-const MyEvents: React.FC = () => {
+const Calendar: React.FC = () => {
   const {
     selectedDate,
     currentMonth,
@@ -32,33 +17,15 @@ const MyEvents: React.FC = () => {
     getDaysInMonth,
   } = useCalendar();
 
-  // TODO: Backend Integration - Replace mock data with actual API call
-  // GET /api/events or GET /api/events/user/:userId
-  // Should fetch events from EventsService.GetEventsByUserAsync()
-  const mockEvents: Event[] = [
-    {
-      eventId: 1,
-      title: 'Team Meeting',
-      description: 'Weekly sync with the development team',
-      eventDate: new Date(2025, 9, 25, 14, 0),
-      createdBy: 1,
-      participants: [
-        { userId: 1, name: 'Admin User', email: 'admin@example.com', status: 'Accepted' },
-        { userId: 2, name: 'John Doe', email: 'john@example.com', status: 'Accepted' },
-      ],
-    },
-  ];
+  const { user } = useAuth();
+  const { loading, error, events: roleScopedEvents, getEventsForDate: fetchEventsForDate, reload } = useCalendarEvents(user);
+  // const { hiddenEventIds, hideEvent, restoreAllEvents, filterHiddenEvents } = useHiddenEvents();
 
-  const getEventsForDate = (date: Date): Event[] => {
-    return mockEvents.filter(event => {
-      const eventDate = new Date(event.eventDate);
-      return (
-        eventDate.getDate() === date.getDate() &&
-        eventDate.getMonth() === date.getMonth() &&
-        eventDate.getFullYear() === date.getFullYear()
-      );
-    });
-  };
+  // Filter out hidden events using functional approach
+  // const getEventsForDate = (date: Date) => {
+  //   return filterHiddenEvents(fetchEventsForDate(date));
+  // };
+  const getEventsForDate = fetchEventsForDate;
 
   const renderCalendar = () => {
     const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
@@ -106,8 +73,27 @@ const MyEvents: React.FC = () => {
       <Sidebar />
       <main className="main-content">
         <div className="events-header">
-          <h1>My Events</h1>
-          <p className="muted">View and manage your events</p>
+          <div className="events-header-left">
+            <h1>Calendar</h1>
+            <p className="muted">Viewing all events</p>
+            {loading && <p className="muted">Loading events...</p>}
+            {error && (
+              <div className="calendar-status error">
+                <span>{error}</span>
+                <button type="button" onClick={reload}>Retry</button>
+              </div>
+            )}
+          </div>
+          {/* {hiddenEventIds.length > 0 && (
+            <button
+              type="button"
+              className="btn-restore"
+              onClick={restoreAllEvents}
+              aria-label={`Restore ${hiddenEventIds.length} hidden event${hiddenEventIds.length > 1 ? 's' : ''}`}
+            >
+              🔄 Restore Hidden ({hiddenEventIds.length})
+            </button>
+          )} */}
         </div>
 
         <div className="calendar-container">
@@ -145,6 +131,7 @@ const MyEvents: React.FC = () => {
             date={selectedDate}
             events={getEventsForDate(selectedDate)}
             onClose={handleCloseDialog}
+            // onHideEvent={hideEvent}
           />
         )}
       </main>
@@ -152,4 +139,4 @@ const MyEvents: React.FC = () => {
   );
 };
 
-export default MyEvents;
+export default Calendar;

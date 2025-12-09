@@ -246,3 +246,37 @@ code {
   border-right-color: #2d3748;
   z-index: 1000;
 }
+
+@media only screen and (max-width: 600px) {
+  .sidebar {
+    width: 60px;
+  }
+
+  .sidebar .sidebar-brand,
+  .sidebar .sidebar-nav a span,
+  .sidebar .user-details,
+  .sidebar .logout-button span {
+    display: none;
+  }
+
+  .sidebar .sidebar-nav a {
+    justify-content: center;
+    padding: 12px 8px;
+  }
+
+  .sidebar .user-info {
+    justify-content: center;
+    gap: 0;
+  }
+
+  .sidebar.collapsed {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    z-index: 9999;
+    background: rgba(11, 18, 32, 0.98);
+    transition: all 0.3s ease;
+  }
+}

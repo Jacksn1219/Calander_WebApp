@@ -48,6 +48,7 @@ namespace Calender_WebApp.Models
         /// </summary>
         [Required]
         [Column("role", Order = 3)]
+        [JsonConverter(typeof(JsonStringEnumConverter))]
         public UserRole Role { get; set; }
 
         /// <summary>
