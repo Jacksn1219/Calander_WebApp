@@ -7,6 +7,9 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
+import Error from './error';
+import Unauthorized from './Unauthorized';
+
 
 export default function App() {
   return (
@@ -69,6 +72,14 @@ export default function App() {
             element={
               <RootRedirect />
             } 
+          />
+          <Route 
+            path="/unauthorized" 
+            element={<Unauthorized/>} 
+          />
+          <Route 
+            path="*" 
+            element={<Error />} 
           />
         </Routes>
       </BrowserRouter>
