@@ -7,9 +7,8 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
-import Error from './error';
+import Error from './Error';
 import Unauthorized from './Unauthorized';
-
 
 export default function App() {
   return (
@@ -89,14 +88,33 @@ export default function App() {
 
 // small component to redirect authenticated users away from login/register
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token');
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null; // or spinner
+
+  if (!isAuthenticated) return <Navigate to="/unauthorized" replace />;
+
+  return <>{children}</>;
 };
 
+
+
+
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  return user?.role === 'Admin' ? <>{children}</> : <Navigate to="/home" replace />;
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) return null;
+
+  if (!isAuthenticated) return <Navigate to="/unauthorized" replace />;
+
+  if (user?.role !== 'Admin') return <Navigate to="/unauthorized" replace />;
+
+  return <>{children}</>;
 };
+
+
+
+
 
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, logout } = useAuth();

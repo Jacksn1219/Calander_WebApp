@@ -40,6 +40,36 @@ namespace Calender_WebApp.Controllers
                     role = user.Role.ToString()
                 }
             });
+            
+        }
+
+
+
+
+
+        [HttpGet("me")]
+        public IActionResult Me()
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return Unauthorized();
+
+            var token = authHeader.Substring("Bearer ".Length).Trim();
+            var principal = _authService.ValidateToken(token);
+
+            if (principal == null)
+                return Unauthorized();
+
+            var userId = principal.FindFirst("userId")?.Value;
+            var name = principal.FindFirst("name")?.Value;
+            var email = principal.FindFirst("email")?.Value;
+            var role = principal.FindFirst("role")?.Value;
+
+            return Ok(new
+            {
+                user = new { userId, name, email, role }
+            });
         }
     }
 

@@ -1,6 +1,7 @@
+import { Link } from 'react-router-dom';
 import '../styles/error-unauthorized.css';
 
-export default function ErrorPage() {
+export default function Error() {
   return (
     <div className="app-layout">
       <main className="main-content">

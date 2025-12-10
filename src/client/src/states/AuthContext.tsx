@@ -11,6 +11,7 @@ export interface User {
 interface AuthContextType {
   user: User | null;
   isAuthenticated: boolean;
+  loading: boolean;
   login: (user: User, token?: string) => void;
   logout: () => void;
 }
@@ -31,28 +32,56 @@ interface AuthProviderProps {
 
 export const AuthProvider = ({ children }: AuthProviderProps) => {
   const [user, setUser] = useState<User | null>(null);
+  const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    // TODO: Backend Integration - Validate token with backend on app load
-    // Should verify JWT token is still valid with backend API
-    // GET /api/auth/verify or GET /api/auth/me to fetch current user
-    const token = localStorage.getItem('token');
-    const storedUser = localStorage.getItem('user');
-    
-    if (token && storedUser) {
+    const validateAuth = async () => {
+      const token = localStorage.getItem('token');
+      if (!token) {
+        setLoading(false);
+        return;
+      }
+
       try {
-        const userData = JSON.parse(storedUser);
-        setUser(userData);
-      } catch (error) {
+        const response = await fetch('/api/auth/me', {
+          headers: {
+            'Authorization': `Bearer ${token}`
+          }
+        });
+
+        if (!response.ok) {
+          throw new Error('Invalid token');
+        }
+
+        const data = await response.json();
+        const apiUser = data.user;
+
+        const normalizedUser: User = {
+          userId: apiUser.userId,
+          name: apiUser.name,
+          email: apiUser.email,
+          role: apiUser.role
+        };
+
+        setUser(normalizedUser);
+        localStorage.setItem('user', JSON.stringify(normalizedUser));
+      } catch (err) {
         localStorage.removeItem('token');
         localStorage.removeItem('user');
+        setUser(null);
+      } finally {
+        setLoading(false);
       }
-    }
+    };
+
+    validateAuth();
   }, []);
 
   const login = (userData: User, token?: string) => {
     setUser(userData);
-    localStorage.setItem('token', token ?? 'demo-token');
+    if (token) {
+      localStorage.setItem('token', token);
+    }
     localStorage.setItem('user', JSON.stringify(userData));
   };
 
@@ -63,12 +92,15 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   };
 
   return (
-    <AuthContext.Provider value={{
-    user,
-      isAuthenticated: !!user,
-      login,
-      logout
-    }}>
+    <AuthContext.Provider
+      value={{
+        user,
+        isAuthenticated: !!user,
+        loading,
+        login,
+        logout,
+      }}
+    >
       {children}
     </AuthContext.Provider>
   );
