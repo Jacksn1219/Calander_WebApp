@@ -74,12 +74,20 @@ public class EmployeesController : ControllerBase
 		try
 		{
 			var createdEmployee = await _employeesService.Post(employee).ConfigureAwait(false);
-			await _reminderPreferencesService.Post(new ReminderPreferencesModel
+			
+			if (!createdEmployee.Id.HasValue)
 			{
-				Id = createdEmployee.Id,
-				EventReminder = true,
-				BookingReminder = true
-			}).ConfigureAwait(false);
+				return StatusCode(500, "Failed to create employee: ID was not generated.");
+			}
+
+			var reminderPreferences = new ReminderPreferencesModel
+			{
+				Id = createdEmployee.Id.Value
+			};
+			Console.WriteLine("Creating default reminder preferences for new user.");
+			Console.WriteLine($"User ID: {createdEmployee.Id}");
+			await _reminderPreferencesService.Post(reminderPreferences).ConfigureAwait(false);
+
 			return CreatedAtAction(nameof(GetById), new { id = createdEmployee.Id }, createdEmployee);
 		}
 		catch (ArgumentException ex)

@@ -45,6 +45,7 @@ namespace Calender_WebApp.Models
         /// </summary>
         [Required]
         [Column("related_room_id", Order = 4)]
+        [ForeignKey(nameof(RelatedRoom))]
         public int RelatedRoomId { get; set; }
 
         /// <summary>
@@ -52,6 +53,7 @@ namespace Calender_WebApp.Models
         /// </summary>
         [Required]
         [Column("related_event_id", Order = 5)]
+        [ForeignKey(nameof(RelatedEvent))]
         public int RelatedEventId { get; set; }
         
 
@@ -88,6 +90,20 @@ namespace Calender_WebApp.Models
         /// </summary>
         [JsonIgnore]
         [NotMapped]
-        public virtual EmployeesModel User { get; set; } = null!;
+        public virtual EmployeesModel? User { get; set; }
+
+        /// <summary>
+        /// Navigation property for the related room.
+        /// </summary>
+        [JsonIgnore]
+        [NotMapped]
+        public virtual RoomsModel? RelatedRoom { get; set; }
+
+        /// <summary>
+        /// Navigation property for the related event.
+        /// </summary>
+        [JsonIgnore]
+        [NotMapped]
+        public virtual EventsModel? RelatedEvent { get; set; }
     }
 }

@@ -81,6 +81,27 @@ public static class ModelWhitelistUtil
         { "Location", v => v is string s && !string.IsNullOrWhiteSpace(s) }
     };
 
+    // Validators for RemindersModel
+    public static readonly Dictionary<string, Func<object, bool>> RemindersModelValidators = new()
+    {
+        { "UserId", v => v is int && (int)v > 0 },
+        { "ReminderType", v => Enum.IsDefined(typeof(reminderType), v) },
+        { "RelatedRoomId", v => v is int && (int)v >= 0 },
+        { "RelatedEventId", v => v is int && (int)v >= 0 },
+        { "ReminderTime", v => v is DateTime dt && dt.Year >= 2000 },
+        { "IsSent", v => v is bool },
+        { "Title", v => v is string s && !string.IsNullOrWhiteSpace(s) }
+    };
+
+    // Validators for ReminderPreferencesModel
+    public static readonly Dictionary<string, Func<object, bool>> ReminderPreferencesModelValidators = new()
+    {
+        { "UserId", v => v is int && (int)v > 0 },
+        { "PreferenceType", v => v is string s && !string.IsNullOrWhiteSpace(s) },
+        { "TimeBeforeEvent", v => v is TimeSpan ts && ts >= TimeSpan.Zero },
+        { "IsEnabled", v => v is bool }
+    };
+
     // Add similar validators for other models as needed
 
     // Generic: get validator dictionary by model name
@@ -97,6 +118,8 @@ public static class ModelWhitelistUtil
             nameof(GroupMembershipsModel) => GroupMembershipsModelValidators,
             nameof(GroupsModel) => GroupsModelValidators,
             nameof(EventParticipationModel) => EventParticipationModelValidators,
+            nameof(RemindersModel) => RemindersModelValidators,
+            nameof(ReminderPreferencesModel) => ReminderPreferencesModelValidators,
             _ => null
         };
     }
