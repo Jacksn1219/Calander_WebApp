@@ -6,6 +6,8 @@ namespace Calender_WebApp.Services.Interfaces
     {
         public Task<RoomsModel> GetRoomByNameAsync(string name);
         public Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end);
+        public Task<List<RoomsModel>> GetAvailableRoomsByCapacityAsync(DateTime start, DateTime end, int capacity);
+
 
         // Add any additional methods specific to Rooms here if needed
     }
