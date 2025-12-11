@@ -166,6 +166,75 @@ export const useLoginForm = () => {
   };
 };
 
+// --- Room bookings ---
+
+export type RoomBookingSummary = {
+  id: number;
+  roomName: string;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+};
+
+export const useUserRoomBookings = (userId?: number) => {
+  const [bookings, setBookings] = useState<RoomBookingSummary[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!userId) {
+      setBookings([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch(`/api/room-bookings/user/${userId}`);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Failed to load room bookings');
+      }
+
+      const data = await response.json();
+      // Expect an array of bookings with room and time info.
+      // Backend sends BookingDate (DateTime) and StartTime/EndTime (TimeSpan),
+      // so we compose full ISO strings for the frontend Date constructor.
+      const mapped: RoomBookingSummary[] = (data || []).map((b: any) => {
+        const bookingDateRaw: string | undefined = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
+        const startTimeRaw: string | undefined = b.startTime;
+        const endTimeRaw: string | undefined = b.endTime;
+
+        const buildDateTime = (date: string | undefined, time: string | undefined): string => {
+          if (!date || !time) return '';
+          const datePart = date.split('T')[0];
+          return `${datePart}T${time}`;
+        };
+
+        return {
+          id: b.id ?? b.roomBookingId ?? 0,
+          roomName: b.room?.name ?? b.roomName ?? 'Room',
+          startTime: buildDateTime(bookingDateRaw, startTimeRaw),
+          endTime: buildDateTime(bookingDateRaw, endTimeRaw),
+        };
+      });
+
+      setBookings(mapped);
+    } catch (err: any) {
+      console.error('Error loading room bookings', err);
+      setError(err.message ?? 'Failed to load room bookings');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { bookings, loading, error, reload: load };
+};
+
 /*
 Custom hook for create employee form logic
  */
