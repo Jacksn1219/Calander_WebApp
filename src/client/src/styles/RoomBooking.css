@@ -24,6 +24,10 @@
   gap: 0.5rem;
 }
 
+.message {
+  color:rgb(226, 0, 0);
+}
+
 .booking-card input,
 .booking-card select {
   padding: 0.7rem;
