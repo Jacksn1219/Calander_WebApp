@@ -44,6 +44,15 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && <span>Roombooking</span>}
         </Link>
       </li>
+      <li className={location.pathname === '/rooms' ? 'active' : ''}>
+        <Link to="/rooms" title="Rooms">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <path d="M3 9l9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/>
+            <polyline points="9,22 9,12 15,12 15,22"/>
+          </svg>
+          {!isCollapsed && <span>Rooms</span>}
+        </Link>
+      </li>
       <li className={location.pathname === '/administrative-dashboard' ? 'active' : ''}>
         <Link to="/administrative-dashboard" title="administrative-dashboard">
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">

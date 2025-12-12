@@ -1013,6 +1013,7 @@ export const useRoomBooking = () => {
   const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
+  const [capacity, setCapacity] = useState<number>(1);
   const [purpose, setPurpose] = useState("");
 
   const [message, setMessage] = useState("");
@@ -1020,18 +1021,24 @@ export const useRoomBooking = () => {
   const testUser = { user_id: 1 };
 
   useEffect(() => {
-    loadRooms();
-  }, []);
+    if (bookingDate && startTime && endTime && capacity > 0) {
+      loadAvailableRooms();
+    } else {
+      setRooms([]);
+    }
+  }, [bookingDate, startTime, endTime, capacity]);
 
-  const loadRooms = async () => {
+  const loadAvailableRooms = async () => {
     try {
-      const res = await apiFetch("/api/Rooms");
-      if (!res.ok) throw new Error("Failed to fetch rooms");
-      const data = await res.json();
-      console.log(data);
+      const start = bookingDate + "T" + startTime + ":00";
+      const end = bookingDate + "T" + endTime + ":00";
+      const result = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${start}&endtime=${end}&capacity=${capacity}`);
+      if (!result.ok) throw new Error("Failed to fetch available rooms");
+
+      const data = await result.json();
       setRooms(data);
     } catch (err) {
-      console.error("Error loading rooms:", err);
+      console.error("Error loading available rooms:", err);
       setRooms([]);
     }
   };
@@ -1041,7 +1048,7 @@ export const useRoomBooking = () => {
   }, [roomId, bookingDate]);
 
   const loadBookings = async (roomId: number, date: string) => {
-    if (!roomId || !date) return;
+    if (!roomId) return;
 
     const res = await apiFetch(`/api/room-bookings/room/${roomId}`);
     if (!res.ok) return setBookings([]);
@@ -1056,7 +1063,6 @@ export const useRoomBooking = () => {
       return a.startTime.localeCompare(b.startTime);
     });
 
-    console.log(sorted);
     setBookings(sorted);
   };
 
@@ -1070,9 +1076,7 @@ export const useRoomBooking = () => {
     const newEnd = toMinutes(end);
 
     return bookings.some(
-      (b) =>
-        toMinutes(b.startTime) < newEnd &&
-        toMinutes(b.endTime) > newStart
+      (b) => toMinutes(b.startTime) < newEnd && toMinutes(b.endTime) > newStart
     );
   };
 
@@ -1080,8 +1084,8 @@ export const useRoomBooking = () => {
     e.preventDefault();
     setMessage("");
 
-    if (!roomId || !bookingDate || !startTime || !endTime || !purpose) {
-      setMessage("Please fill in all the fields.");
+    if (!roomId || !bookingDate || !startTime || !endTime) {
+      setMessage("Please fill all required fields.");
       return;
     }
 
@@ -1091,12 +1095,12 @@ export const useRoomBooking = () => {
     }
 
     const payload = {
-      roomId: roomId,
+      roomId,
       userId: testUser.user_id,
       bookingDate: bookingDate + "T00:00:00",
-      startTime: startTime + ":00",
-      endTime: endTime + ":00",
-      purpose: purpose
+      startTime: startTime,
+      endTime: endTime,
+      purpose: purpose || "Meeting",
     };
 
     try {
@@ -1115,8 +1119,8 @@ export const useRoomBooking = () => {
       setBookingDate("");
       setStartTime("");
       setEndTime("");
+      setCapacity(1);
       setPurpose("");
-
     } catch (err) {
       console.error("Error creating booking:", err);
       setMessage("Error adding booking.");
@@ -1124,8 +1128,22 @@ export const useRoomBooking = () => {
   };
 
   return {
-    rooms, bookings,
-    roomId, bookingDate, startTime, endTime, purpose,
-    message, setRoomId, setBookingDate, setStartTime, setEndTime, setPurpose, handleSubmit
+    rooms,
+    bookings,
+    roomId,
+    bookingDate,
+    startTime,
+    endTime,
+    capacity,
+    purpose,
+    message,
+
+    setRoomId,
+    setBookingDate,
+    setStartTime,
+    setEndTime,
+    setCapacity,
+    setPurpose,
+    handleSubmit,
   };
 };

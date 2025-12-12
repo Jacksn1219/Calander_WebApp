@@ -7,6 +7,7 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
+import Rooms from './Rooms';
 
 export default function App() {
   return (
@@ -34,6 +35,14 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <RoomBooking />
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/rooms"
+            element={
+              <ProtectedRoute>
+                <Rooms />
               </ProtectedRoute>
             }
           />
