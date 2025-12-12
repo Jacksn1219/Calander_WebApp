@@ -115,13 +115,13 @@
 
 .calendar-grid {
   width: 100%;
+  padding: 0;
 }
-
 .calendar-header {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
-  margin-bottom: 4px;
+  gap: 0;           /* remove gaps between weekday labels */
+  margin: 0 0 2px;  /* minimal space just above the boxes */
 }
 
 .weekday {
@@ -129,21 +129,21 @@
   font-weight: 600;
   font-size: 0.75rem;
   color: #666;
-  padding: 2px 1px;
+  padding: 0;
 }
 
 /* 5-column layout for Mon–Fri mini week */
 .calendar-container .calendar-grid .calendar-days {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
-  gap: 2px;
+  gap: 0;           /* no extra horizontal gap vs header */
 }
 
 .calendar-day {
-  aspect-ratio: 5 / 3;
+  aspect-ratio: 4 / 3;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  padding: 3px;
+  padding: 4px 3px;
   cursor: pointer;
   position: relative;
   display: flex;
@@ -152,6 +152,12 @@
   justify-content: flex-start;
   transition: all 0.2s;
   background: white;
+}
+
+.weekday-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
 }
 
 .calendar-day.empty {
@@ -178,6 +184,18 @@
 
 .calendar-day.has-event:hover {
   background: #ffe69c;
+}
+
+/* Make Upcoming Events tiles more compact on Home */
+.home-upcoming-events .calendar-day.has-event {
+  aspect-ratio: auto;
+  padding: 6px 10px;
+  align-items: flex-start;
+}
+
+.home-upcoming-events .calendar-days {
+  max-height: 260px;
+  overflow-y: auto;
 }
 
 .day-number {
