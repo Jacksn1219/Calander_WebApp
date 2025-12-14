@@ -1,0 +1,67 @@
+/* Copied from admin-dashboard.css, update selectors to .admin-panel-* */
+.admin-panel-page {
+  display: flex;
+  min-height: 100vh;
+  background: #f7f8fa;
+}
+
+.admin-panel-header {
+  margin-bottom: 2rem;
+}
+
+.admin-panel-header h1 {
+  font-size: 2.2rem;
+  margin-bottom: 0.5rem;
+}
+
+.admin-panel-header .muted {
+  color: #888;
+  font-size: 1.1rem;
+}
+
+
+.admin-panel-panels {
+  display: flex;
+  flex-direction: row;
+  gap: 2rem;
+  flex-wrap: wrap;
+}
+
+.admin-panel-card {
+  background: #fff;
+  border-radius: 10px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  padding: 2rem 1.5rem;
+  min-width: 320px;
+  max-width: 1200px;
+  width: 100%;
+  flex: 1 1 350px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.admin-panel-card h2 {
+  margin-top: 0;
+  font-size: 1.3rem;
+}
+
+.admin-panel-card p {
+  color: #666;
+  margin-bottom: 1.2rem;
+}
+
+.btn-today {
+  background: #007bff;
+  color: #fff;
+  border: none;
+  border-radius: 5px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.btn-today:hover {
+  background: #0056b3;
+}

@@ -1,5 +1,6 @@
 import React from 'react';
 import Sidebar from './Sidebar';
+import { Link } from 'react-router-dom';
 import { useCreateEmployeeForm } from '../hooks/hooks';
 import '../styles/login-page.css';
 
@@ -77,6 +78,11 @@ const CreateEmployee: React.FC = () => {
     <div className="app-layout">
       <Sidebar />
       <main className="main-content">
+        <div style={{ margin: '1rem 0 2rem 0' }}>
+          <Link to="/admin-panel" style={{
+            background: '#007bff', color: '#fff', border: 'none', borderRadius: 5, padding: '0.5rem 1.2rem', fontSize: '1rem', textDecoration: 'none', fontWeight: 500, boxShadow: '0 2px 8px rgba(0,0,0,0.07)'
+          }}>Go back to Admin Panel</Link>
+        </div>
         <section className="login-card" aria-labelledby="create-employee-title">
           <h2 id="create-employee-title">Add Employee</h2>
 

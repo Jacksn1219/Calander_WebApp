@@ -8,7 +8,7 @@ import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
 import RoomAdmin from './RoomAdmin';
-import AdminDashboard from './AdminDashboard';
+import AdminPanel from './AdminPanel';
 
 export default function App() {
   return (
@@ -57,7 +57,7 @@ export default function App() {
             }
           />
           <Route
-            path="/add-emp"
+            path="/admin-panel/add-emp"
             element={
               <ProtectedRoute> 
                 <AdminRoute>
@@ -67,7 +67,7 @@ export default function App() {
             }
           />
           <Route
-            path="/admin-dashboard/Room-Panel"
+            path="/admin-panel/Room-Panel"
             element={
               <ProtectedRoute>
                 <SuperAdminRoute>
@@ -77,12 +77,12 @@ export default function App() {
             }
           />
           <Route
-            path="/admin-dashboard"
+            path="/admin-panel"
             element={
               <ProtectedRoute>
-                <SuperAdminRoute>
-                  <AdminDashboard />
-                </SuperAdminRoute>
+                <AdminRoute>
+                  <AdminPanel />
+                </AdminRoute>
               </ProtectedRoute>
             }
           />
