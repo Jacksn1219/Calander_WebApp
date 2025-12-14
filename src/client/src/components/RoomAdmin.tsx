@@ -17,6 +17,7 @@ const RoomAdmin: React.FC = () => {
     saveRoom,
     startEdit,
     resetEditForm,
+    deleteRoom,
   } = useRoomsAdmin();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -108,16 +109,6 @@ const RoomAdmin: React.FC = () => {
                   }}
                   placeholder="Optional capacity"
                 />
-
-                <label htmlFor="room-description">Description</label>
-                <textarea
-                  id="room-description"
-                  value={createForm.description}
-                  onChange={e => updateCreateField('description', e.target.value)}
-                  placeholder="Optional description"
-                  rows={3}
-                />
-
                 <div className="form-actions">
                   <button type="submit" className="btn-green" disabled={loading}>
                     {loading ? 'Creating room...' : 'Create room'}
@@ -138,21 +129,35 @@ const RoomAdmin: React.FC = () => {
                   {rooms.map(room => (
                     <div key={room.id} className="room-booking-row">
                       <div className="room-booking-details">
-                        <div className="room-booking-room">{room.name}</div>
+                        <div className="room-booking-room">
+                          {room.name} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
+                        </div>
+                        {room.location && (
+                          <div className="room-booking-time">Location: {room.location}</div>
+                        )}
                         {room.capacity != null && (
                           <div className="room-booking-time">Capacity: {room.capacity}</div>
                         )}
-                        {room.description && (
-                          <div className="room-booking-time">{room.description}</div>
-                        )}
+
                       </div>
-                      <button
-                                            type="button"
-                      className="btn-today room-edit-button"
-                      onClick={() => openEditModal(room)}
-                      >
-                      Edit
-                    </button>
+                      <div style={{ display: 'flex', gap: 8, marginLeft: 'auto' }}>
+                        <button
+                          type="button"
+                          className="btn-today room-edit-button"
+                          style={{ minWidth: 60, padding: '0.4rem 0.8rem' }}
+                          onClick={() => openEditModal(room)}
+                        >
+                          Edit
+                        </button>
+                        <button
+                          type="button"
+                          className="btn-red room-delete-button"
+                          style={{ minWidth: 60, padding: '0.4rem 0.8rem' }}
+                          onClick={() => deleteRoom(room.id)}
+                        >
+                          Delete
+                        </button>
+                      </div>
                     </div>
                   ))}
                 </div>
@@ -226,15 +231,6 @@ const RoomAdmin: React.FC = () => {
                     }
                   }}
                   placeholder="Optional capacity"
-                />
-
-                <label htmlFor="modal-room-description">Description</label>
-                <textarea
-                  id="modal-room-description"
-                  value={editForm.description}
-                  onChange={e => updateEditField('description', e.target.value)}
-                  placeholder="Optional description"
-                  rows={3}
                 />
 
                 <div className="form-actions">

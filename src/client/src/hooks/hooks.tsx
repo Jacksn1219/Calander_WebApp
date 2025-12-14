@@ -1193,7 +1193,7 @@ export interface RoomDto {
   id: number;
   name: string;
   capacity?: number | null;
-  description?: string | null;
+  location: string;
 }
 
 export interface RoomFormState {
@@ -1201,7 +1201,6 @@ export interface RoomFormState {
   name: string;
   location: string;
   capacity: string;
-  description: string;
 }
 
 export const useRoomsAdmin = () => {
@@ -1211,16 +1210,14 @@ export const useRoomsAdmin = () => {
   const [createForm, setCreateForm] = useState<Omit<RoomFormState, 'id'>>({
     name: '',
     location: '',
-    capacity: '',
-    description: '',
+    capacity: ''
   });
 
   const [editForm, setEditForm] = useState<RoomFormState>({
     id: null,
     name: '',
     location: '',
-    capacity: '',
-    description: '',
+    capacity: ''
   });
 
 
@@ -1235,10 +1232,10 @@ export const useRoomsAdmin = () => {
       }
       const data = await res.json();
       const mapped: RoomDto[] = (data || []).map((r: any) => ({
-        id: r.id ?? r.roomId ?? r.RoomId ?? 0,
-        name: r.name ?? r.roomName ?? r.RoomName ?? 'Room',
+        id: r.room_id ?? r.id ?? r.roomId ?? r.RoomId ?? 0,
+        name: r.room_name ?? r.roomName ?? r.RoomName ?? 'Room',
         capacity: r.capacity ?? r.Capacity ?? null,
-        description: r.description ?? r.Description ?? null,
+        location: r.location ?? r.Location ?? '',
       }));
       setRooms(mapped);
     } catch (e: any) {
@@ -1256,11 +1253,11 @@ export const useRoomsAdmin = () => {
   const isEditing = editForm.id != null;
 
   const resetCreateForm = () => {
-    setCreateForm({ name: '', location: '', capacity: '', description: '' });
+    setCreateForm({ name: '', location: '', capacity: '' });
   };
 
   const resetEditForm = () => {
-    setEditForm({ id: null, name: '', location: '', capacity: '', description: '' });
+    setEditForm({ id: null, name: '', location: '', capacity: '' });
   };
 
   const startEdit = (room: RoomDto) => {
@@ -1269,7 +1266,6 @@ export const useRoomsAdmin = () => {
       name: room.name,
       location: (room as any).location ?? (room as any).Location ?? '',
       capacity: room.capacity != null ? String(room.capacity) : '',
-      description: room.description ?? '',
     });
   };
 
@@ -1317,7 +1313,6 @@ export const useRoomsAdmin = () => {
       roomName: form.name.trim(),
       location: form.location.trim(),
       capacity: capacityNumber,
-      description: form.description.trim() || null,
     };
 
     try {
@@ -1358,6 +1353,25 @@ export const useRoomsAdmin = () => {
     }
   };
 
+  const deleteRoom = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/rooms/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to delete room');
+      }
+      await loadRooms();
+    } catch (e: any) {
+      console.error('Error deleting room', e);
+      setError(e.message ?? 'Failed to delete room');
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     rooms,
     loading,
@@ -1372,6 +1386,7 @@ export const useRoomsAdmin = () => {
     updateCreateField,
     updateEditField,
     saveRoom,
+    deleteRoom,
   };
 };
 
