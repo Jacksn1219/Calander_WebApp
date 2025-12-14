@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
 import { CalendarEvent, useHomeDashboard } from '../hooks/hooks';
-import '../styles/calendar-home.css';
+import '../styles/home.css';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
