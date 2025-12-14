@@ -40,10 +40,12 @@ export default function App() {
             }
           />
           <Route
-            path="/administrative-dashboard"
+            path="/admin-panel/administrative-dashboard"
             element={
               <ProtectedRoute>
+                <AdminRoute>
                 <AdministrativeDashboard />
+                </AdminRoute>
               </ProtectedRoute>
                 }
             />

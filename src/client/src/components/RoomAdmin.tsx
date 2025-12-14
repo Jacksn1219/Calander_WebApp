@@ -21,6 +21,11 @@ const RoomAdmin: React.FC = () => {
   } = useRoomsAdmin();
 
   const [isModalOpen, setIsModalOpen] = useState(false);
+  // Pagination state
+  const [page, setPage] = useState(1);
+  const ROOMS_PER_PAGE = 5;
+  const totalPages = Math.ceil(rooms.length / ROOMS_PER_PAGE);
+  const pagedRooms = rooms.slice((page - 1) * ROOMS_PER_PAGE, page * ROOMS_PER_PAGE);
 
   const openEditModal = (room: any) => {
     startEdit(room);
@@ -125,9 +130,10 @@ const RoomAdmin: React.FC = () => {
                 <p className="muted">No rooms have been created yet.</p>
               )}
               {rooms.length > 0 && (
-                <div className="room-booking-list">
-                  {rooms.map(room => (
-                    <div key={room.id} className="room-booking-row">
+                <>
+                  <div className="room-booking-list">
+                    {pagedRooms.map(room => (
+                      <div key={room.id} className="room-booking-row">
                       <div className="room-booking-details">
                         <div className="room-booking-room">
                           {room.name} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
@@ -158,9 +164,33 @@ const RoomAdmin: React.FC = () => {
                           Delete
                         </button>
                       </div>
-                    </div>
-                  ))}
-                </div>
+                      </div>
+                    ))}
+                  </div>
+                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
+                    <button
+                      type="button"
+                      className="btn-today"
+                      onClick={() => setPage(p => Math.max(1, p - 1))}
+                      disabled={page === 1}
+                      style={{ minWidth: 80 }}
+                    >
+                      Previous
+                    </button>
+                    <span style={{ alignSelf: 'center', color: '#333', fontWeight: 500 }}>
+                      Page {page} of {totalPages}
+                    </span>
+                    <button
+                      type="button"
+                      className="btn-today"
+                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
+                      disabled={page === totalPages}
+                      style={{ minWidth: 80 }}
+                    >
+                      Next
+                    </button>
+                  </div>
+                </>
               )}
             </section>
           </div>

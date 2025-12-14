@@ -22,6 +22,13 @@ const AdminPanel: React.FC = () => {
               <button className="btn-today">Go to Add Employee</button>
             </Link>
           </div>
+          <div className="admin-panel-card">
+            <h2>Event Dashboard</h2>
+            <p>View events.</p>
+            <Link to="/admin-panel/administrative-dashboard">
+              <button className="btn-today">Go to Dashboard</button>
+            </Link>
+          </div>
           {user?.role === 'SuperAdmin' && (
             <div className="admin-panel-card">
               <h2>Room Panel</h2>
@@ -31,6 +38,7 @@ const AdminPanel: React.FC = () => {
               </Link>
             </div>
           )}
+          
         </div>
       </main>
     </div>
