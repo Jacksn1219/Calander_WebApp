@@ -141,12 +141,12 @@ const RoomAdmin: React.FC = () => {
                         )}
                       </div>
                       <button
-                        type="button"
-                        className="secondary-btn room-edit-button"
-                        onClick={() => openEditModal(room)}
+                      type="button"
+                      className="btn-today room-edit-button"
+                      onClick={() => openEditModal(room)}
                       >
-                        Edit
-                      </button>
+                      Edit
+                    </button>
                     </div>
                   ))}
                 </div>
@@ -237,7 +237,7 @@ const RoomAdmin: React.FC = () => {
                   </button>
                   <button
                     type="button"
-                    className="secondary-btn"
+                    className="btn-today"
                     onClick={closeModal}
                     disabled={loading}
                   >
