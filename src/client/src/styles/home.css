@@ -93,12 +93,10 @@
   margin: 0;
 }
 
-.calendar-container {
-  background: white;
+.home-row .calendar-container {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 12px;
-  max-width: 480px;
 }
 
 /* Generic row wrapper for putting cards next to each other */
@@ -113,18 +111,18 @@
   min-width: 260px;
 }
 
-.calendar-grid {
+.home-row .calendar-grid {
   width: 100%;
   padding: 0;
 }
-.calendar-header {
+.home-row .calendar-header {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0;           /* remove gaps between weekday labels */
   margin: 0 0 2px;  /* minimal space just above the boxes */
 }
 
-.weekday {
+.home-row .weekday {
   text-align: center;
   font-weight: 600;
   font-size: 0.75rem;
@@ -132,14 +130,14 @@
   padding: 0;
 }
 
-/* 5-column layout for Mon–Fri mini week */
-.calendar-container .calendar-grid .calendar-days {
+/* 5-column layout for Mon–Fri mini week - scoped to home page only */
+.home-row .calendar-container .calendar-grid .calendar-days {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0;           /* no extra horizontal gap vs header */
 }
 
-.calendar-day {
+.home-row .calendar-day {
   aspect-ratio: 4 / 3;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
@@ -154,35 +152,35 @@
   background: white;
 }
 
-.weekday-label {
+.home-row .weekday-label {
   font-size: 0.7rem;
   font-weight: 600;
   color: #666;
 }
 
-.calendar-day.empty {
+.home-row .calendar-day.empty {
   cursor: default;
   background: transparent;
   border-color: transparent;
 }
 
-.calendar-day:not(.empty):hover {
+.home-row .calendar-day:not(.empty):hover {
   background: #f7f9fc;
   border-color: #1f6feb;
 }
 
-.calendar-day.today {
+.home-row .calendar-day.today {
   background: #e3f2fd;
   border-color: #1f6feb;
   font-weight: 600;
 }
 
-.calendar-day.has-event {
+.home-row .calendar-day.has-event {
   background: #fff3cd;
   border-color: #ffc107;
 }
 
-.calendar-day.has-event:hover {
+.home-row .calendar-day.has-event:hover {
   background: #ffe69c;
 }
 
@@ -198,12 +196,12 @@
   overflow-y: auto;
 }
 
-.day-number {
+.home-row .day-number {
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-.event-indicator {
+.home-row .event-indicator {
   margin-top: auto;
   background: #1f6feb;
   color: white;
@@ -213,12 +211,12 @@
   font-weight: 600;
 }
 
-.event-count {
+.home-row .event-count {
   display: block;
 }
 
 /* Past events/day styling for dashboard mini calendar */
-.calendar-day.past-event-day {
+.home-row .calendar-day.past-event-day {
   opacity: 0.4;
 }
 
