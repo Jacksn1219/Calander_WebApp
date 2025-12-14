@@ -1185,3 +1185,196 @@ export const useHomeDashboard = () => {
 // end functions home
 // _________________________________________
 
+// _________________________________________
+// functions rooms
+// _________________________________________
+
+export interface RoomDto {
+  id: number;
+  name: string;
+  capacity?: number | null;
+  description?: string | null;
+}
+
+export interface RoomFormState {
+  id?: number | null;
+  name: string;
+  location: string;
+  capacity: string;
+  description: string;
+}
+
+export const useRoomsAdmin = () => {
+  const [rooms, setRooms] = useState<RoomDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState<Omit<RoomFormState, 'id'>>({
+    name: '',
+    location: '',
+    capacity: '',
+    description: '',
+  });
+
+  const [editForm, setEditForm] = useState<RoomFormState>({
+    id: null,
+    name: '',
+    location: '',
+    capacity: '',
+    description: '',
+  });
+
+
+  const loadRooms = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/api/rooms');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to load rooms');
+      }
+      const data = await res.json();
+      const mapped: RoomDto[] = (data || []).map((r: any) => ({
+        id: r.id ?? r.roomId ?? r.RoomId ?? 0,
+        name: r.name ?? r.roomName ?? r.RoomName ?? 'Room',
+        capacity: r.capacity ?? r.Capacity ?? null,
+        description: r.description ?? r.Description ?? null,
+      }));
+      setRooms(mapped);
+    } catch (e: any) {
+      console.error('Error loading rooms', e);
+      setError(e.message ?? 'Failed to load rooms');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRooms();
+  }, [loadRooms]);
+
+  const isEditing = editForm.id != null;
+
+  const resetCreateForm = () => {
+    setCreateForm({ name: '', location: '', capacity: '', description: '' });
+  };
+
+  const resetEditForm = () => {
+    setEditForm({ id: null, name: '', location: '', capacity: '', description: '' });
+  };
+
+  const startEdit = (room: RoomDto) => {
+    setEditForm({
+      id: room.id,
+      name: room.name,
+      location: (room as any).location ?? (room as any).Location ?? '',
+      capacity: room.capacity != null ? String(room.capacity) : '',
+      description: room.description ?? '',
+    });
+  };
+
+  const updateCreateField = (field: keyof Omit<RoomFormState, 'id'>, value: string) => {
+    setCreateForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateEditField = (field: keyof RoomFormState, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveRoom = async (
+    mode: 'create' | 'edit',
+    e?: React.FormEvent
+  ) => {
+    if (e) e.preventDefault();
+
+    const form = mode === 'create'
+      ? { ...createForm, id: null }
+      : editForm;
+
+    if (!form.name.trim()) {
+      setError('Room name is required');
+      return;
+    }
+
+    if (!form.location.trim()) {
+      setError('Room location is required');
+      return;
+    }
+
+    if (!form.capacity.trim()) {
+      setError('Room capacity is required');
+      return;
+    }
+
+    const capacityNumber = form.capacity.trim() ? Number(form.capacity) : null;
+
+    if (capacityNumber != null && (Number.isNaN(capacityNumber) || capacityNumber < 0)) {
+      setError('Room capacity must be a non-negative number');
+      return;
+    }
+
+    const payload: any = {
+      roomName: form.name.trim(),
+      location: form.location.trim(),
+      capacity: capacityNumber,
+      description: form.description.trim() || null,
+    };
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let res: Response;
+      if (mode === 'edit' && form.id != null) {
+        res = await apiFetch(`/api/rooms/${form.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: form.id, ...payload }),
+        });
+      } else {
+        res = await apiFetch('/api/rooms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to save room');
+      }
+
+      await loadRooms();
+      if (mode === 'create') {
+        resetCreateForm();
+      } else {
+        resetEditForm();
+      }
+    } catch (e: any) {
+      console.error('Error saving room', e);
+      setError(e.message ?? 'Failed to save room');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    rooms,
+    loading,
+    error,
+    createForm,
+    editForm,
+    isEditing,
+    loadRooms,
+    resetCreateForm,
+    resetEditForm,
+    startEdit,
+    updateCreateField,
+    updateEditField,
+    saveRoom,
+  };
+};
+
+// _________________________________________
+// end functions rooms
+// _________________________________________

@@ -1,0 +1,223 @@
+/* Minimal RoomAdmin styles, all scoped under .rooms-page */
+
+.rooms-page .events-header {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.rooms-page .events-header-left {
+  flex: 1;
+}
+
+.rooms-page .muted {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.rooms-page .calendar-status.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+.rooms-page .home-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.rooms-page .blurred-background {
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.rooms-page .calendar-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  max-width: 600px;
+}
+
+.rooms-page .calendar-grid {
+  width: 100%;
+  padding: 0;
+}
+
+.rooms-page .section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.rooms-page .banner.banner-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.rooms-page .login-form label {
+  font-weight: 500;
+  margin-top: 0.5rem;
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.rooms-page .login-form input,
+.rooms-page .login-form textarea {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+}
+
+.rooms-page .form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.rooms-page .primary-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rooms-page .primary-btn:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.rooms-page .btn-today {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rooms-page .btn-today:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.rooms-page .room-booking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.rooms-page .room-booking-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 16px;
+  padding: 8px 4px;
+}
+
+.rooms-page .room-booking-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.rooms-page .room-booking-room {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.rooms-page .room-booking-time {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.rooms-page .room-edit-button {
+  margin-left: auto;
+}
+
+.rooms-page .room-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.rooms-page .room-modal {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.rooms-page .btn-green {
+  background: #22c55e;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rooms-page .btn-green:disabled {
+  background: #bbf7d0;
+  cursor: not-allowed;
+}
+
+.rooms-page .btn-blue {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rooms-page .btn-blue:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.rooms-page .btn-red {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.rooms-page .btn-red:disabled {
+  background: #fecaca;
+  cursor: not-allowed;
+}

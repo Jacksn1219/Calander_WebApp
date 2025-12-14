@@ -7,6 +7,8 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
+import RoomAdmin from './RoomAdmin';
+import AdminDashboard from './AdminDashboard';
 
 export default function App() {
   return (
@@ -57,10 +59,30 @@ export default function App() {
           <Route
             path="/add-emp"
             element={
-              <ProtectedRoute>
+              <ProtectedRoute> 
                 <AdminRoute>
                   <CreateEmployee />
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard/Room-Panel"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <RoomAdmin />
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-dashboard"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <AdminDashboard />
+                </SuperAdminRoute>
               </ProtectedRoute>
             }
           />
@@ -84,7 +106,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  return user?.role === 'Admin' ? <>{children}</> : <Navigate to="/home" replace />;
+  console.log('AdminRoute user:', user);
+  return (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? <>{children}</> : <Navigate to="/home" replace />;
+};
+
+const SuperAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  return user?.role === 'SuperAdmin' ? <>{children}</> : <Navigate to="/home" replace />;
 };
 
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {

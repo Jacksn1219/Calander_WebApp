@@ -68,7 +68,7 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && <span>Calendar</span>}
         </Link>
       </li>
-      {user?.role === 'Admin' && (
+      {(user?.role === 'Admin' || user?.role === 'SuperAdmin') && (
         <li className={location.pathname === '/add-emp' ? 'active' : ''}>
           <Link to="/add-emp" title="Add Employee">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -78,6 +78,18 @@ const Sidebar: React.FC = () => {
               <line x1="23" y1="11" x2="17" y2="11"/>
             </svg>
             {!isCollapsed && <span>Add Employee</span>}
+          </Link>
+        </li>
+      )}
+      {user?.role === 'SuperAdmin' && (
+        <li className={location.pathname === '/admin-dashboard' ? 'active' : ''}>
+          <Link to="/admin-dashboard" title="Super Admin Dashboard">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <line x1="9" y1="4" x2="9" y2="20"/>
+            </svg>
+            {!isCollapsed && <span>Super Admin Dashboard</span>}
           </Link>
         </li>
       )}
