@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useReminders, formatDateOnly, formatTimeOnly } from '../hooks/hooks';
+import '../styles/reminder-notification.css';
 
 const ReminderNotification: React.FC = () => {
   const [showReminders, setShowReminders] = useState(false);
@@ -37,57 +38,17 @@ const ReminderNotification: React.FC = () => {
   };
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="reminder-notification-container">
       <button
         onClick={() => setShowReminders(!showReminders)}
-        style={{
-          padding: '0',
-          width: '40px',
-          height: '40px',
-          backgroundColor: 'transparent',
-          color: '#666',
-          border: '1px solid #e0e0e0',
-          borderRadius: '8px',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          position: 'relative',
-          transition: 'all 0.2s ease'
-        }}
-        onMouseEnter={(e) => {
-          e.currentTarget.style.backgroundColor = '#f5f5f5';
-          e.currentTarget.style.borderColor = '#d0d0d0';
-          e.currentTarget.style.color = '#333';
-        }}
-        onMouseLeave={(e) => {
-          e.currentTarget.style.backgroundColor = 'transparent';
-          e.currentTarget.style.borderColor = '#e0e0e0';
-          e.currentTarget.style.color = '#666';
-        }}
+        className="reminder-notification-button"
       >
         <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
           <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
           <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
         </svg>
         {unsentReminders.length > 0 && (
-          <span style={{
-            position: 'absolute',
-            top: '-4px',
-            right: '-4px',
-            backgroundColor: '#dc3545',
-            color: 'white',
-            borderRadius: '50%',
-            minWidth: '18px',
-            height: '18px',
-            fontSize: '10px',
-            fontWeight: '600',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: '0 4px',
-            boxShadow: '0 2px 4px rgba(0,0,0,0.1)'
-          }}>
+          <span className="reminder-notification-badge">
             {unsentReminders.length}
           </span>
         )}
@@ -95,125 +56,47 @@ const ReminderNotification: React.FC = () => {
 
       {/* Dropdown */}
       {showReminders && (
-        <div
-          ref={dropdownRef}
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: '8px',
-            backgroundColor: 'white',
-            border: '1px solid #ddd',
-            borderRadius: '8px',
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            minWidth: '350px',
-            maxWidth: '400px',
-            maxHeight: '400px',
-            overflowY: 'auto',
-            zIndex: 1000
-          }}
-        >
-          <div style={{
-            padding: '15px',
-            borderBottom: '1px solid #eee',
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'center'
-          }}>
-            <h3 style={{ margin: 0, fontSize: '16px', fontWeight: '600' }}>Notifications</h3>
+        <div ref={dropdownRef} className="reminder-dropdown">
+          <div className="reminder-dropdown-header">
+            <h3 className="reminder-dropdown-title">Notifications</h3>
             {unsentReminders.length > 0 && (
-              <button
-                onClick={markAllAsRead}
-                style={{
-                  backgroundColor: '#007bff',
-                  color: 'white',
-                  border: 'none',
-                  borderRadius: '5px',
-                  padding: '8px 16px',
-                  cursor: 'pointer',
-                  fontSize: '14px',
-                  fontWeight: '500',
-                  transition: 'background-color 0.2s'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
-              >
+              <button onClick={markAllAsRead} className="reminder-mark-all-btn">
                 Mark all as read
               </button>
             )}
           </div>
 
           {loading ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+            <div className="reminder-dropdown-loading">
               Loading...
             </div>
           ) : error ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#dc3545' }}>
+            <div className="reminder-dropdown-error">
               {error}
             </div>
           ) : unsentReminders.length === 0 ? (
-            <div style={{ padding: '20px', textAlign: 'center', color: '#666' }}>
+            <div className="reminder-dropdown-empty">
               No new notifications
             </div>
           ) : (
             <div>
               {unsentReminders.slice(0, 5).map((reminder) => (
-                <div
-                  key={reminder.reminder_id}
-                  style={{
-                    padding: '8px',
-                    borderBottom: '1px solid #e0e0e0'
-                  }}
-                >
-                  <div style={{ 
-                    padding: '0',
-                    backgroundColor: '#e8e8e8',
-                    borderRadius: '6px',
-                    overflow: 'hidden'
-                  }}>
+                <div key={reminder.reminder_id} className="reminder-item-wrapper">
+                  <div className="reminder-item">
                     {/* Header Bar with Cross */}
-                    <div style={{ 
-                      display: 'flex', 
-                      justifyContent: 'space-between', 
-                      alignItems: 'center',
-                      padding: '10px 15px',
-                      backgroundColor: '#e8e8e8',
-                      marginBottom: '-10px'
-                    }}>
-                      <div style={{ display: 'flex', alignItems: 'center', gap: '8px' }}>
-                        <span style={{ fontSize: '16px' }}>
+                    <div className="reminder-item-header">
+                      <div className="reminder-item-header-left">
+                        <span className="reminder-item-icon">
                           {reminder.reminderType === 0 ? '📅' : '🔔'}
                         </span>
-                        <span style={{ 
-                          fontSize: '13px', 
-                          fontWeight: '600',
-                          color: '#333'
-                        }}>
+                        <span className="reminder-item-title">
                           {reminder.title}
                         </span>
                       </div>
                       {!reminder.isRead && (
                         <button
                           onClick={(e) => handleMarkAsRead(reminder.reminder_id, e)}
-                          style={{
-                            background: 'none',
-                            border: 'none',
-                            cursor: 'pointer',
-                            color: '#666',
-                            padding: '4px',
-                            display: 'flex',
-                            alignItems: 'center',
-                            justifyContent: 'center',
-                            borderRadius: '3px'
-                          }}
-                          onMouseEnter={(e) => {
-                            e.currentTarget.style.backgroundColor = '#d0d0d0';
-                            e.currentTarget.style.color = '#333';
-                          }}
-                          onMouseLeave={(e) => {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = '#666';
-                          }}
+                          className="reminder-mark-read-btn"
                           title="Mark as read"
                         >
                           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
@@ -225,46 +108,30 @@ const ReminderNotification: React.FC = () => {
                     </div>
 
                     {/* Separator line under header */}
-                    <div style={{ padding: '0 15px' }}>
-                      <div style={{
-                        borderTop: '1px solid #c0c0c0',
-                        margin: '8px 0'
-                      }} />
+                    <div className="reminder-item-separator">
+                      <div className="reminder-item-separator-line" />
                     </div>
 
                     {/* Date and Time Row with IDs */}
-                    <div style={{ 
-                      fontSize: '12px',
-                      color: '#666',
-                      fontWeight: '500',
-                      marginBottom: '8px',
-                      padding: '0 15px',
-                      display: 'flex',
-                      gap: '10px',
-                      alignItems: 'center'
-                    }}>
+                    <div className="reminder-item-meta">
                       <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
                       {reminder.relatedEventId !== 0 && (
                         <>
-                          <span style={{ color: '#999' }}>|</span>
-                          <span style={{ fontSize: '11px' }}>Event ID: {reminder.relatedEventId}</span>
+                          <span className="reminder-item-meta-divider">|</span>
+                          <span className="reminder-item-meta-id">Event ID: {reminder.relatedEventId}</span>
                         </>
                       )}
                       {reminder.relatedRoomId !== 0 && (
                         <>
-                          <span style={{ color: '#999' }}>|</span>
-                          <span style={{ fontSize: '11px' }}>Room ID: {reminder.relatedRoomId}</span>
+                          <span className="reminder-item-meta-divider">|</span>
+                          <span className="reminder-item-meta-id">Room ID: {reminder.relatedRoomId}</span>
                         </>
                       )}
                     </div>
 
                     {/* Content Row */}
-                    <div style={{ padding: '0 15px 12px 15px' }}>
-                      <div style={{ 
-                        fontSize: '12px', 
-                        color: '#666',
-                        lineHeight: '1.4'
-                      }}>
+                    <div className="reminder-item-content">
+                      <div className="reminder-item-message">
                         {reminder.message}
                       </div>
                     </div>
@@ -274,29 +141,13 @@ const ReminderNotification: React.FC = () => {
             </div>
           )}
 
-          <div style={{
-            padding: '12px',
-            textAlign: 'center',
-            borderTop: '1px solid #eee'
-          }}>
+          <div className="reminder-dropdown-footer">
             <button
               onClick={() => {
                 setShowReminders(false);
                 navigate('/notifications');
               }}
-              style={{
-                backgroundColor: '#007bff',
-                color: 'white',
-                border: 'none',
-                borderRadius: '5px',
-                padding: '10px 20px',
-                cursor: 'pointer',
-                fontSize: '14px',
-                fontWeight: '500',
-                transition: 'background-color 0.2s'
-              }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
+              className="reminder-view-all-btn"
             >
               View all notifications
             </button>
