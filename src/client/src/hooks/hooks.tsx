@@ -746,6 +746,8 @@ export interface EventItem {
   title: string;
   description: string;
   eventDate: string;
+  durationMinutes: number;
+  roomId?: number;
   createdBy: number;
 }
 
@@ -820,6 +822,9 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     title: "",
     description: "",
     date: "",
+    time: "",
+    durationMinutes: 60,
+    roomId: undefined as number | undefined,
     createdBy: "",
   });
 
@@ -829,17 +834,24 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       onClose();
       return;
     }
+    const eventDateTime = new Date(currentEvent.eventDate);
     setFormData({
       title: currentEvent.title,
       description: currentEvent.description,
-      date: new Date(currentEvent.eventDate).toLocaleDateString('en-CA'),
+      date: eventDateTime.toLocaleDateString('en-CA'),
+      time: eventDateTime.toTimeString().slice(0, 5), // HH:MM format
+      durationMinutes: currentEvent.durationMinutes || 60,
+      roomId: currentEvent.roomId,
       createdBy: currentEvent.createdBy.toString()
     });
   }, [currentEvent]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((events) => ({ ...events, [name]: value }));
+    const processedValue = (name === 'durationMinutes' || name === 'roomId') 
+      ? (value === '' ? undefined : Number(value))
+      : value;
+    setFormData((events) => ({ ...events, [name]: processedValue }));
   };
 
   const handleSave = async () => {
@@ -855,6 +867,14 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       alert("Date cannot be empty");
       return;
     }
+    if (!formData.time.trim()) {
+      alert("Time cannot be empty");
+      return;
+    }
+    if (!formData.durationMinutes || formData.durationMinutes <= 0) {
+      alert("Duration must be greater than 0");
+      return;
+    }
     const selectedDate = new Date(formData.date);
     const today = new Date();
 
@@ -867,6 +887,9 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     }
 
     try {
+      // Combine date and time into a single DateTime
+      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      
       const response = await apiFetch(`/api/events/${currentEvent?.event_id}`, { 
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -874,12 +897,14 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
           event_id: currentEvent?.event_id,
           title: formData.title,
           description: formData.description,
-          eventDate: new Date(formData.date).toISOString(),
+          eventDate: eventDateTime.toISOString(),
+          durationMinutes: formData.durationMinutes,
+          roomId: formData.roomId || null,
           createdBy: currentEvent?.createdBy
         })
       });
       if (!response.ok) throw new Error("Failed to update event");
-      setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: formData.createdBy });
       reloadEvents();
       onClose();
     } catch (err: any) {
@@ -889,7 +914,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: formData.createdBy });
     onClose();
   };
 
@@ -903,12 +928,18 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     title: "",
     description: "",
     date: "",
+    time: "",
+    durationMinutes: 60,
+    roomId: undefined as number | undefined,
     createdBy: user?.userId,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((events) => ({ ...events, [name]: value }));
+    const processedValue = (name === 'durationMinutes' || name === 'roomId') 
+      ? (value === '' ? undefined : Number(value))
+      : value;
+    setFormData((events) => ({ ...events, [name]: processedValue }));
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -931,6 +962,14 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
       alert("Date cannot be empty");
       return;
     }
+    if (!formData.time.trim()) {
+      alert("Time cannot be empty");
+      return;
+    }
+    if (!formData.durationMinutes || formData.durationMinutes <= 0) {
+      alert("Duration must be greater than 0");
+      return;
+    }
     const selectedDate = new Date(formData.date);
     const today = new Date();
 
@@ -943,6 +982,9 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     }
 
     try {
+      // Combine date and time into a single DateTime
+      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      
       const response = await apiFetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
@@ -950,7 +992,9 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
           event_id: null,
           title: formData.title,
           description: formData.description,
-          eventDate: new Date(formData.date).toISOString(),
+          eventDate: eventDateTime.toISOString(),
+          durationMinutes: formData.durationMinutes,
+          roomId: formData.roomId || null,
           createdBy: user.userId,
         }),
       });
@@ -964,7 +1008,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
       const result = await response.json();
       console.log("Event created:", result);
 
-      setFormData({ title: "", description: "", date: "", createdBy: user.userId });
+      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: user.userId });
       reloadEvents();
       onClose();
     } catch (err: any) {
@@ -974,7 +1018,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", createdBy: user?.userId });
+    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: user?.userId });
     onClose();
   };
 
