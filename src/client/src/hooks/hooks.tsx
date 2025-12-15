@@ -832,7 +832,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     setFormData({
       title: currentEvent.title,
       description: currentEvent.description,
-      date: new Date(currentEvent.eventDate).toISOString().split("T")[0],
+      date: new Date(currentEvent.eventDate).toLocaleDateString('en-CA'),
       createdBy: currentEvent.createdBy.toString()
     });
   }, [currentEvent]);
@@ -843,8 +843,26 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   };
 
   const handleSave = async () => {
-    if (!formData.title || !formData.date) {
-      alert("Please fill in all required fields");
+    if (!formData.title.trim()) {
+      alert("Title cannot be empty");
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert("Description cannot be empty");
+      return;
+    }
+    if (!formData.date.trim()) {
+      alert("Date cannot be empty");
+      return;
+    }
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert("Date must be today or later");
       return;
     }
 
@@ -911,6 +929,16 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     }
     if (!formData.date.trim()) {
       alert("Date cannot be empty");
+      return;
+    }
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert("Date must be today or later");
       return;
     }
 
