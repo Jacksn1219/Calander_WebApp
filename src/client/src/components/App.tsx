@@ -2,7 +2,7 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
-import CreateEmployee from './CreateEmployee';
+import EmployeeAdmin from './EmployeeAdmin';
 import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
@@ -63,7 +63,7 @@ export default function App() {
             element={
               <ProtectedRoute> 
                 <AdminRoute>
-                  <CreateEmployee />
+                  <EmployeeAdmin />
                 </AdminRoute>
               </ProtectedRoute>
             }

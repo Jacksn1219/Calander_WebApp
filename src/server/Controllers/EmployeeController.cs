@@ -38,7 +38,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpGet("by-email/{email}")]
-	public async Task<ActionResult<EmployeesModel>> GetByEmail(string email)
+	public async Task<ActionResult<IEnumerable<EmployeesModel>>> GetByEmail(string email)
 	{
 		if (string.IsNullOrWhiteSpace(email))
 		{
@@ -47,8 +47,8 @@ public class EmployeesController : ControllerBase
 
 		try
 		{
-			var employee = await _employeesService.GetEmployeeByEmailAsync(email).ConfigureAwait(false);
-			return Ok(employee);
+			var employees = await _employeesService.GetEmployeeByEmailAsync(email).ConfigureAwait(false);
+			return Ok(employees);
 		}
 		catch (InvalidOperationException)
 		{
