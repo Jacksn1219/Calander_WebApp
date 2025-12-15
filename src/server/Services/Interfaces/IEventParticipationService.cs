@@ -10,7 +10,7 @@ namespace Calender_WebApp.Services.Interfaces
         Task<bool> IsUserParticipatingAsync(int eventId, int userId);
         Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId);
         Task<DateTime> GetEventStartTimeAsync(int eventId);
-        Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId);
+        Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId, EventsModel? oldEvent = null, EventsModel? newEvent = null);
 
         // Add any additional methods specific to EventParticipation here if needed
     }

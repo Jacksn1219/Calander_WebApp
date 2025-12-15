@@ -230,9 +230,11 @@ public class EventParticipationService : IEventParticipationService
     /// Updates reminders for all participants of a specific event.
     /// </summary>
     /// <param name="eventId">The ID of the event.</param>
+    /// <param name="oldEvent">The old event data before changes.</param>
+    /// <param name="newEvent">The new event data after changes.</param>
     /// <returns>An array of updated event participation records.</returns>
     /// <exception cref="InvalidOperationException">Thrown when no participants are found for the event.</exception>
-    public async Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId)
+    public async Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId, EventsModel? oldEvent = null, EventsModel? newEvent = null)
     {
         var participants = await _dbSet
             .Where(ep => ep.EventId == eventId)
@@ -241,19 +243,67 @@ public class EventParticipationService : IEventParticipationService
         if (participants.Length == 0)
             return Array.Empty<EventParticipationModel>();
 
-        var eventStartTime = await GetEventStartTimeAsync(eventId);
+        // Get current event if not provided
+        if (newEvent == null)
+        {
+            newEvent = await _context.Set<EventsModel>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == eventId)
+                .ConfigureAwait(false);
+                
+            if (newEvent == null)
+                throw new InvalidOperationException("Event not found.");
+        }
+
+        // Build change message
+        var changes = new List<string>();
+        
+        if (oldEvent != null)
+        {
+            // Compare date/time
+            if (oldEvent.EventDate != newEvent.EventDate)
+            {
+                changes.Add($"\nTime: {oldEvent.EventDate:yyyy-MM-dd HH:mm} → {newEvent.EventDate:yyyy-MM-dd HH:mm}");
+            }
+            
+            // Compare duration
+            if (oldEvent.DurationMinutes != newEvent.DurationMinutes)
+            {
+                changes.Add($"\nDuration: {oldEvent.DurationMinutes} min → {newEvent.DurationMinutes} min");
+            }
+            
+            // Compare room
+            if (oldEvent.RoomId != newEvent.RoomId)
+            {
+                var oldRoom = oldEvent.RoomId.HasValue ? $"Room {oldEvent.RoomId}" : "No room";
+                var newRoom = newEvent.RoomId.HasValue ? $"Room {newEvent.RoomId}" : "No room";
+                changes.Add($"\nLocation: {oldRoom} → {newRoom}");
+            }
+            
+            // Compare title
+            if (oldEvent.Title != newEvent.Title)
+            {
+                changes.Add($"\nTitle: '{oldEvent.Title}' → '{newEvent.Title}'");
+            }
+        }
+
+        // Build message with event time info
+        var eventTimeInfo = $"Event starts: {newEvent.EventDate:yyyy-MM-dd HH:mm}";
+        var message = changes.Count > 0
+            ? $"\nThe event you are participating in has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
+            : $"\nThe event you are participating in has been updated.\n{eventTimeInfo}";
 
         foreach (var participant in participants)
         {
-            // Create a new "changed" reminder for each participant instead of updating
+            // Create a new "changed" reminder for each participant
             await _remindersService.Post(new RemindersModel
             {
                 UserId = participant.UserId,
                 ReminderType = reminderType.EventParticipationChanged,
                 RelatedEventId = eventId,
-                ReminderTime = eventStartTime,
-                Title = $"Event (ID: {eventId}) Time Changed",
-                Message = $"The event you are participating in has been rescheduled. New start time: {eventStartTime:yyyy-MM-dd HH:mm}.",
+                ReminderTime = newEvent.EventDate,
+                Title = $"Event Updated: {newEvent.Title}",
+                Message = message,
             }).ConfigureAwait(false);
         }
 

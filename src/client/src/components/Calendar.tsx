@@ -1,4 +1,5 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
 import { useCalendar, useCalendarEvents } from '../hooks/hooks';
@@ -6,8 +7,10 @@ import { useAuth } from '../states/AuthContext';
 import '../styles/calendar.css';
 
 const Calendar: React.FC = () => {
+  const location = useLocation();
   const {
     selectedDate,
+    setSelectedDate,
     currentMonth,
     handleDateClick,
     handleCloseDialog,
@@ -19,6 +22,19 @@ const Calendar: React.FC = () => {
 
   const { user } = useAuth();
   const { loading, error, events: roleScopedEvents, getEventsForDate: fetchEventsForDate, reload } = useCalendarEvents(user);
+  
+  // Handle navigation from reminder notification - wait for events to load
+  useEffect(() => {
+    const state = location.state as { eventId?: number; eventDate?: string } | null;
+    if (state?.eventId && state?.eventDate && !loading && roleScopedEvents.length > 0) {
+      const targetDate = new Date(state.eventDate);
+      // Normalize to midnight to match calendar date logic
+      const normalizedDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      setSelectedDate(normalizedDate);
+      // Clear the state after using it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location, setSelectedDate, loading, roleScopedEvents]);
   // const { hiddenEventIds, hideEvent, restoreAllEvents, filterHiddenEvents } = useHiddenEvents();
 
   // Filter out hidden events using functional approach

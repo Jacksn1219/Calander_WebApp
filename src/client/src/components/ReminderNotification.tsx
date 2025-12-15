@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useReminders, formatDateOnly, formatTimeOnly } from '../hooks/hooks';
+import { useReminders, formatDateOnly, formatTimeOnly, useCalendarEvents } from '../hooks/hooks';
+import { useAuth } from '../states/AuthContext';
 import '../styles/reminder-notification.css';
 
 const ReminderNotification: React.FC = () => {
@@ -8,6 +9,8 @@ const ReminderNotification: React.FC = () => {
   const { reminders, loading, error, markAsRead, markAllAsRead } = useReminders();
   const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
+  const { user } = useAuth();
+  const { events } = useCalendarEvents(user);
 
   const unsentReminders = reminders.filter(r => !r.isRead);
 
@@ -86,9 +89,31 @@ const ReminderNotification: React.FC = () => {
                 const icon = reminder.reminderType === 0 || reminder.reminderType === 2 ? '📅' : '🔔';
                 const itemClass = `reminder-item ${isChanged ? 'reminder-item-changed' : ''}`;
                 
+                // Handle navigation to related event or room booking
+                const handleNavigate = () => {
+                  setShowReminders(false);
+                  if (reminder.relatedEventId !== 0) {
+                    // Find the actual event to get its real date
+                    const event = events.find(e => e.eventId === reminder.relatedEventId);
+                    const eventDate = event ? new Date(event.eventDate) : new Date(reminder.reminderTime);
+                    navigate('/calendar', { 
+                      state: { 
+                        eventId: reminder.relatedEventId,
+                        eventDate: eventDate.toISOString()
+                      } 
+                    });
+                  } else if (reminder.relatedRoomId !== 0) {
+                    navigate('/roombooking', { 
+                      state: { 
+                        roomId: reminder.relatedRoomId 
+                      } 
+                    });
+                  }
+                };
+                
                 return (
                 <div key={reminder.reminder_id} className="reminder-item-wrapper">
-                  <div className={itemClass}>
+                  <div className={itemClass} onClick={handleNavigate} style={{ cursor: 'pointer' }}>
                     {/* Header Bar with Cross */}
                     <div className="reminder-item-header">
                       <div className="reminder-item-header-left">
@@ -141,6 +166,11 @@ const ReminderNotification: React.FC = () => {
                       <div className="reminder-item-message">
                         {reminder.message}
                       </div>
+                      {(reminder.relatedEventId !== 0 || reminder.relatedRoomId !== 0) && (
+                        <div className="reminder-item-link">
+                          {reminder.relatedEventId !== 0 ? '→ View Event' : '→ View Booking'}
+                        </div>
+                      )}
                     </div>
                   </div>
                 </div>

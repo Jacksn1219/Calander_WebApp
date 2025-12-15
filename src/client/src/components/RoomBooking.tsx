@@ -1,4 +1,5 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
+import { useLocation } from 'react-router-dom';
 import '../styles/RoomBooking.css';
 import '../styles/login-page.css';
 import Sidebar from './Sidebar';
@@ -49,6 +50,7 @@ const testBookings: RoomBooking[] = [
 ];
 
 const RoomBooking: React.FC = () => {
+  const location = useLocation();
   const [roomId, setRoomId] = useState<number | null>(null);
   const [bookingDate, setBookingDate] = useState('');
   const [startTime, setStartTime] = useState('');
@@ -56,6 +58,27 @@ const RoomBooking: React.FC = () => {
   const [purpose, setPurpose] = useState('');
   const [bookings, setBookings] = useState<RoomBooking[]>(testBookings);
   const [message, setMessage] = useState('');
+  const roomSelectRef = useRef<HTMLSelectElement>(null);
+
+  // Handle navigation from reminder notification
+  useEffect(() => {
+    const state = location.state as { roomId?: number } | null;
+    if (state?.roomId) {
+      setRoomId(state.roomId);
+      // Scroll to and highlight the room select
+      if (roomSelectRef.current) {
+        roomSelectRef.current.focus();
+        roomSelectRef.current.style.backgroundColor = '#fff3cd';
+        setTimeout(() => {
+          if (roomSelectRef.current) {
+            roomSelectRef.current.style.backgroundColor = '';
+          }
+        }, 2000);
+      }
+      // Clear the state after using it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location]);
 
   const checkConflict = (roomId: number, bookingDate: string, start: string, end: string): boolean => {
     const toMinutes = (t: string) => {
@@ -115,7 +138,11 @@ const RoomBooking: React.FC = () => {
           <p>Vul de gegevens in om een ruimte te reserveren.</p>
 
           <label>Ruimte</label>
-          <select value={roomId ?? ''} onChange={(e) => setRoomId(Number(e.target.value))}>
+          <select 
+            ref={roomSelectRef}
+            value={roomId ?? ''} 
+            onChange={(e) => setRoomId(Number(e.target.value))}
+          >
             <option value="">Kies een ruimte</option>
             {testRooms.map((room) => (
               <option key={room.room_id} value={room.room_id}>

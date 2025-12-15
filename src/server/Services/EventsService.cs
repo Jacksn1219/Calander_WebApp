@@ -46,10 +46,13 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
+        // Get the old event before updating
+        var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+        
         var updatedEvent =  await base.Put(id, updatedEntity);
 
-        // Update related reminders
-        await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
+        // Update related reminders with old and new event data
+        await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
 
         // Update related roombookings
         if (updatedEntity.RoomId.HasValue)

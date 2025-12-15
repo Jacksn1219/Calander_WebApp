@@ -250,7 +250,10 @@ const Notifications: React.FC = () => {
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
                         <span style={{ fontSize: '20px' }}>
-                          {reminder.reminderType === 0 ? '📅' : '🔔'}
+                          {reminder.reminderType === 0 || reminder.reminderType === 2 ? '📅' : '🔔'}
+                          {(reminder.reminderType === 2 || reminder.reminderType === 3) && (
+                            <span style={{ marginLeft: '6px', fontSize: '14px' }}>📝</span>
+                          )}
                         </span>
                         <span style={{ 
                           fontSize: '15px', 
