@@ -1122,9 +1122,17 @@ export const useReminders = () => {
     setError(null);
 
     try {
-      const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
-        method: 'GET',
-      });
+      // Fetch only reminders that are due (ReminderTime <= now)
+      const now = new Date();
+      const fromTime = new Date(0); // Start from epoch
+      const toTime = now; // Up to current time
+      
+      const response = await apiFetch(
+        `/api/reminders/user/${user.userId}/bydate?fromTime=${fromTime.toISOString()}&toTime=${toTime.toISOString()}`,
+        {
+          method: 'GET',
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch reminders: ${response.statusText}`);
@@ -1142,6 +1150,13 @@ export const useReminders = () => {
 
   useEffect(() => {
     fetchReminders();
+    
+    // Poll for new reminders every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchReminders();
+    }, 30000);
+
+    return () => clearInterval(intervalId);
   }, [fetchReminders]);
 
   const markAsRead = useCallback(async (reminderId: number) => {
