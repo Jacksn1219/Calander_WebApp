@@ -5,7 +5,7 @@ namespace Calender_WebApp.Services.Interfaces
     public interface IEventParticipationService : ICrudService<EventParticipationModel>
     {
         Task<EventParticipationModel> Delete(EventParticipationModel entity);
-        Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus);
+        Task<EventParticipationModel> UpdateStatus(int userId, int eventId, int newStatus);
         Task<EventParticipationModel[]> GetParticipantsByEventIdAsync(int eventId);
         Task<bool> IsUserParticipatingAsync(int eventId, int userId);
         Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId);

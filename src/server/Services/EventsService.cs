@@ -98,6 +98,18 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
+        // Validate that the room exists if a RoomId is provided
+        if (newEntity.RoomId.HasValue)
+        {
+            var roomExists = await _context.Set<RoomsModel>()
+                .AnyAsync(r => r.Id == newEntity.RoomId.Value);
+            
+            if (!roomExists)
+            {
+                throw new InvalidOperationException($"Room with ID {newEntity.RoomId.Value} does not exist.");
+            }
+        }
+
         var createdEvent = await base.Post(newEntity);
 
         // Create related roombookings

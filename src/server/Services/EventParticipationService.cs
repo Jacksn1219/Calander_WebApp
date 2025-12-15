@@ -81,9 +81,7 @@ public class EventParticipationService : IEventParticipationService
     /// <exception cref="ArgumentException">Thrown when the status is invalid.</exception>
     public async Task<EventParticipationModel> Post(EventParticipationModel participation)
     {
-        Console.WriteLine("Attempting to create participation record...");
         if (participation == null) throw new ArgumentNullException(nameof(participation));
-        Console.WriteLine($"Participation details: EventId={participation.EventId}, UserId={participation.UserId}, Status={participation.Status}");
 
         if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
             throw new InvalidOperationException("User is already participating in this event.");
@@ -156,11 +154,13 @@ public class EventParticipationService : IEventParticipationService
     /// <returns>The updated participation record.</returns>
     /// <exception cref="ArgumentException">Thrown when the new status is invalid.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
-    public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus)
+    public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, int newStatus)
     {
         // Validate newStatus
-        if (!Enum.TryParse<ParticipationStatus>(newStatus, true, out var status))
+        if (!Enum.IsDefined(typeof(ParticipationStatus), newStatus))
             throw new ArgumentException("Invalid status value", nameof(newStatus));
+        
+        var status = (ParticipationStatus)newStatus;
 
         // Find the participation record
         var participation = await _dbSet.FirstOrDefaultAsync(ep => ep.UserId == userId && ep.EventId == eventId).ConfigureAwait(false);
@@ -196,8 +196,7 @@ public class EventParticipationService : IEventParticipationService
             .AnyAsync(ep => ep.EventId == eventId && ep.UserId == userId);
     }
     
-    // Add additional services that are not related to CRUD here
-        /// <summary>
+    /// <summary>
     /// Get all participants for a specific event
     /// </summary>
     /// <param name="userId"></param>
@@ -246,19 +245,21 @@ public class EventParticipationService : IEventParticipationService
 
         foreach (var participant in participants)
         {
-            var existingReminders = await _remindersService.GetRemindersByRelatedEventAsync(participant.UserId, eventId).ConfigureAwait(false);
-            
-            foreach (var reminder in existingReminders.Where(r => r.Id.HasValue))
+            // Create a new "changed" reminder for each participant instead of updating
+            await _remindersService.Post(new RemindersModel
             {
-            if (!reminder.Id.HasValue) continue;
-            
-            reminder.ReminderTime = eventStartTime;
-            reminder.Message = $"Reminder: You are participating in an event (Event ID: {eventId}) starting at {eventStartTime}.";
-            await _remindersService.Put(reminder.Id.Value, reminder).ConfigureAwait(false);
-            }
+                UserId = participant.UserId,
+                ReminderType = reminderType.EventParticipationChanged,
+                RelatedEventId = eventId,
+                ReminderTime = eventStartTime,
+                Title = $"Event (ID: {eventId}) Time Changed",
+                Message = $"The event you are participating in has been rescheduled. New start time: {eventStartTime:yyyy-MM-dd HH:mm}.",
+            }).ConfigureAwait(false);
         }
 
         await _context.SaveChangesAsync();
         return participants;
     }
+    
+    // Add additional services that are not related to CRUD here
 }

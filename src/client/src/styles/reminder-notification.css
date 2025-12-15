@@ -112,6 +112,17 @@
   overflow: hidden;
 }
 
+.reminder-item-changed {
+  border-left: 4px solid #ff9800;
+  background-color: #fff8e1;
+}
+
+.reminder-changed-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 14px;
+}
+
 .reminder-item-header {
   display: flex;
   justify-content: space-between;

@@ -80,14 +80,21 @@ const ReminderNotification: React.FC = () => {
             </div>
           ) : (
             <div>
-              {unsentReminders.slice(0, 5).map((reminder) => (
+              {unsentReminders.slice(0, 5).map((reminder) => {
+                // Determine icon and color based on reminder type
+                const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
+                const icon = reminder.reminderType === 0 || reminder.reminderType === 2 ? '📅' : '🔔';
+                const itemClass = `reminder-item ${isChanged ? 'reminder-item-changed' : ''}`;
+                
+                return (
                 <div key={reminder.reminder_id} className="reminder-item-wrapper">
-                  <div className="reminder-item">
+                  <div className={itemClass}>
                     {/* Header Bar with Cross */}
                     <div className="reminder-item-header">
                       <div className="reminder-item-header-left">
                         <span className="reminder-item-icon">
-                          {reminder.reminderType === 0 ? '📅' : '🔔'}
+                          {icon}
+                          {isChanged && <span className="reminder-changed-badge">📝</span>}
                         </span>
                         <span className="reminder-item-title">
                           {reminder.title}
@@ -137,7 +144,8 @@ const ReminderNotification: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
 

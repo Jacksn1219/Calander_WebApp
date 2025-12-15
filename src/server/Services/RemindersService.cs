@@ -9,7 +9,12 @@ namespace Calender_WebApp.Services;
 /// </summary>
 public class RemindersService : CrudService<RemindersModel>, IRemindersService
 {
-    public RemindersService(AppDbContext ctx) : base(ctx) { }
+    private readonly IReminderPreferencesService _reminderPreferencesService;
+
+    public RemindersService(AppDbContext ctx, IReminderPreferencesService reminderPreferencesService) : base(ctx)
+    {
+        _reminderPreferencesService = reminderPreferencesService;
+    }
 
     /// <summary>
     /// Retrieves all reminders for a specific user.
@@ -94,6 +99,44 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         reminder.IsRead = true;
         await _context.SaveChangesAsync();
         return true;
+    }
+
+    /// <summary>
+    /// Creates a new reminder, adjusting the ReminderTime based on user preferences.
+    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// </summary>
+    public override async Task<RemindersModel> Post(RemindersModel model)
+    {
+        if (model == null) throw new ArgumentNullException(nameof(model));
+
+        // Get user's reminder preferences
+        var preferences = await _reminderPreferencesService.GetByUserId(model.UserId).ConfigureAwait(false);
+        var userPreference = preferences.FirstOrDefault();
+
+        if (userPreference != null)
+        {
+            // Subtract the advance time from the reminder time
+            model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
+
+            // Check if the preference for this reminder type is enabled
+            bool isPreferenceEnabled = model.ReminderType switch
+            {
+                reminderType.EventParticipation => userPreference.EventReminder,
+                reminderType.RoomBooking => userPreference.BookingReminder,
+                reminderType.EventParticipationChanged => userPreference.EventReminder,
+                reminderType.RoomBookingChanged => userPreference.BookingReminder,
+                _ => true
+            };
+
+            // If preference is disabled, mark the reminder as already read
+            if (!isPreferenceEnabled)
+            {
+                model.IsRead = true;
+            }
+        }
+
+        // Call base Post method to handle validation and database insertion
+        return await base.Post(model).ConfigureAwait(false);
     }
 
     // Add additional services that are not related to CRUD here

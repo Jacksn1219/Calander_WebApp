@@ -112,23 +112,17 @@ public class RoomBookingsService : IRoomBookingsService
 
         booking.StartTime = newStartTime;
 
-        var existingReminders = await _remindersService.GetRemindersByRelatedRoomAsync(entity.UserId, entity.RoomId, entity.BookingDate, entity.StartTime).ConfigureAwait(false);
-        foreach (var reminder in existingReminders)
+        // Create a new "changed" reminder instead of updating the existing one
+        await _remindersService.Post(new RemindersModel
         {
-            if (reminder.Id.HasValue)
-            {
-                await _remindersService.Put(reminder.Id.Value, new RemindersModel
-                {
-                    UserId = entity.UserId,
-                    ReminderType = reminderType.RoomBooking,
-                    RelatedRoomId = entity.RoomId,
-                    RelatedEventId = entity.EventId ?? 0,
-                    ReminderTime = booking.BookingDate.Add(newStartTime),
-                    Title = $"Room {entity.RoomId} Booking",
-                    Message = $"You have a room booking for Room {entity.RoomId} starting at {booking.BookingDate.Add(newStartTime):yyyy-MM-dd HH:mm}.",
-                }).ConfigureAwait(false);
-            }
-        }
+            UserId = entity.UserId,
+            ReminderType = reminderType.RoomBookingChanged,
+            RelatedRoomId = entity.RoomId,
+            RelatedEventId = entity.EventId ?? 0,
+            ReminderTime = booking.BookingDate.Add(newStartTime),
+            Title = $"Room {entity.RoomId} Booking Changed",
+            Message = $"Your room booking for Room {entity.RoomId} has been changed. New start time: {booking.BookingDate.Add(newStartTime):yyyy-MM-dd HH:mm}.",
+        }).ConfigureAwait(false);
 
         await _context.SaveChangesAsync();
         return booking;
