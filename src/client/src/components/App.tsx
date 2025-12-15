@@ -9,6 +9,7 @@ import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
 import RoomAdmin from './RoomAdmin';
 import AdminPanel from './AdminPanel';
+import Notifications from './Notifications';
 
 export default function App() {
   return (
@@ -85,6 +86,14 @@ export default function App() {
                 <AdminRoute>
                   <AdminPanel />
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />

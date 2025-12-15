@@ -3,6 +3,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata.Internal;
 
 namespace Calender_WebApp.Models
@@ -17,6 +18,7 @@ namespace Calender_WebApp.Models
         /// Primary key for the Reminder entity.
         /// </summary>
         [Key]
+        [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [JsonPropertyName("user_id")]
         [Column("user_id", Order = 0)]
         [ForeignKey(nameof(User))]
@@ -41,13 +43,13 @@ namespace Calender_WebApp.Models
         /// </summary>
         [Required]
         [Column("reminder_advance_minutes", Order = 3)]
-        public TimeSpan ReminderAdvanceMinutes { get; set; }
+        public TimeSpan ReminderAdvanceMinutes { get; set; } = TimeSpan.FromMinutes(15);
 
         /// <summary>
         /// Navigation property for the employee who created the event.
         /// </summary>
         [JsonIgnore]
         [NotMapped]
-        public virtual EmployeesModel User { get; set; } = null!;
+        public virtual EmployeesModel? User { get; set; }
     }
 }

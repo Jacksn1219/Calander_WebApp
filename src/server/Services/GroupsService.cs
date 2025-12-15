@@ -23,7 +23,7 @@ public class GroupsService : CrudService<GroupsModel>, IGroupsService
     public async Task<List<GroupsModel>> GetGroupsByUserAsync(int userId)
     {
         var memberships = await _groupMembershipsService.GetMembershipsByUserIdAsync(userId);
-        return memberships.Select(m => m.Group).ToList();
+        return memberships.Select(m => m.Group).Where(g => g != null).ToList()!;
     }
 
     // Add additional services that are not related to CRUD here

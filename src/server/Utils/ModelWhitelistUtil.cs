@@ -59,7 +59,8 @@ public static class ModelWhitelistUtil
         { "Title", v => v is string s && !string.IsNullOrWhiteSpace(s) },
         { "Description", v => v == null || v is string },
         { "EventDate", v => v is DateTime  dt && dt.Year >= 2000 },
-        { "CreatedBy", v => v is int && (int)v > 0 }
+        { "CreatedBy", v => v is int && (int)v > 0 },
+        { "DurationMinutes", v => v is int i && i > 0 }
     };
 
     // Validators for RoomBookingsModel
@@ -70,6 +71,7 @@ public static class ModelWhitelistUtil
         { "BookingDate", v => v is DateTime dt && dt.Year >= 2000 },
         { "StartTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
         { "EndTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
+        { "EventId", v => v == null || (v is int i && i > 0) },
         { "Purpose", v => v is string s && !string.IsNullOrWhiteSpace(s) }
     };
 
@@ -79,6 +81,27 @@ public static class ModelWhitelistUtil
         { "RoomName", v => v is string s && !string.IsNullOrWhiteSpace(s) },
         { "Capacity", v => v is int && (int)v > 0 },
         { "Location", v => v is string s && !string.IsNullOrWhiteSpace(s) }
+    };
+
+    // Validators for RemindersModel
+    public static readonly Dictionary<string, Func<object, bool>> RemindersModelValidators = new()
+    {
+        { "UserId", v => v is int && (int)v > 0 },
+        { "ReminderType", v => Enum.IsDefined(typeof(reminderType), v) },
+        { "RelatedRoomId", v => v is int && (int)v >= 0 },
+        { "RelatedEventId", v => v is int && (int)v >= 0 },
+        { "ReminderTime", v => v is DateTime dt && dt.Year >= 2000 },
+        { "IsSent", v => v is bool },
+        { "Title", v => v is string s && !string.IsNullOrWhiteSpace(s) }
+    };
+
+    // Validators for ReminderPreferencesModel
+    public static readonly Dictionary<string, Func<object, bool>> ReminderPreferencesModelValidators = new()
+    {
+        { "UserId", v => v is int && (int)v > 0 },
+        { "PreferenceType", v => v is string s && !string.IsNullOrWhiteSpace(s) },
+        { "TimeBeforeEvent", v => v is TimeSpan ts && ts >= TimeSpan.Zero },
+        { "IsEnabled", v => v is bool }
     };
 
     // Add similar validators for other models as needed
@@ -97,6 +120,8 @@ public static class ModelWhitelistUtil
             nameof(GroupMembershipsModel) => GroupMembershipsModelValidators,
             nameof(GroupsModel) => GroupsModelValidators,
             nameof(EventParticipationModel) => EventParticipationModelValidators,
+            nameof(RemindersModel) => RemindersModelValidators,
+            nameof(ReminderPreferencesModel) => ReminderPreferencesModelValidators,
             _ => null
         };
     }
