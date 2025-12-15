@@ -10,10 +10,12 @@ namespace Calender_WebApp.Controllers;
 public class EventParticipationController : ControllerBase
 {
 	private readonly IEventParticipationService _eventParticipationService;
+	private readonly IRemindersService _remindersService;
 
-	public EventParticipationController(IEventParticipationService eventParticipationService)
+	public EventParticipationController(IEventParticipationService eventParticipationService, IRemindersService remindersService)
 	{
 		_eventParticipationService = eventParticipationService ?? throw new ArgumentNullException(nameof(eventParticipationService));
+		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
 	// GET /api/event-participation

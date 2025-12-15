@@ -293,3 +293,64 @@
   font-size: 0.75rem;
   color: #6b7280;
 }
+
+/* Home layout styles */
+.home-row {
+  margin-top: 1.5rem;
+}
+
+.home-left-column {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 1.5rem;
+}
+
+.home-calendar-section {
+  margin-bottom: 1.5rem;
+}
+
+.home-see-more-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  margin-top: 0.75rem;
+}
+
+.home-right-column {
+  flex: 0.8;
+}
+
+.home-upcoming-section {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.home-upcoming-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.home-upcoming-header .section-title {
+  margin-bottom: 0;
+}
+
+.home-upcoming-header .btn-today {
+  padding-inline: 0.9rem;
+  padding-block: 0.35rem;
+}
+
+.home-upcoming-list {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 0.75rem;
+}
+
+.home-event-description {
+  margin-top: 0.35rem;
+}
+
+.room-booking-error {
+  color: #b91c1c;
+}
