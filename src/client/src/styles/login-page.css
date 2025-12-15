@@ -1,7 +1,6 @@
 /* Layout */
 .app-layout {
   display: flex;
-  min-height: 100vh;
 }
 
 .main-content {
@@ -10,6 +9,7 @@
   box-sizing: border-box;
   background: linear-gradient(180deg, #f7f9fc, #ffffff);
   transition: margin-left 0.3s ease;
+  overflow-y: auto; /* keep scrolling */
 }
 
 .login-card {
