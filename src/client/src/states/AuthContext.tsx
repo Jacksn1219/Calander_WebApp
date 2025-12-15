@@ -1,11 +1,13 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
+import { apiFetch } from '../config/api';
 
 export interface User {
   userId?: number;
-  name: string;
+  name?: string;
   email: string;
   role: 'Admin' | 'User';
   isSuperAdmin?: boolean;
+  token?: string;
 }
 
 interface AuthContextType {
@@ -43,7 +45,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
       }
 
       try {
-        const response = await fetch('/api/auth/me', {
+        const response = await apiFetch('/api/auth/me', {
           headers: {
             'Authorization': `Bearer ${token}`
           }
@@ -58,7 +60,6 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
 
         const normalizedUser: User = {
           userId: apiUser.userId,
-          name: apiUser.name,
           email: apiUser.email,
           role: apiUser.role
         };

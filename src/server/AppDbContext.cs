@@ -9,9 +9,8 @@ namespace Calender_WebApp
     {
         public AppDbContext(DbContextOptions<AppDbContext> options) : base(options) { }
 
-    public DbSet<AdminsModel> Admins => Set<AdminsModel>();
-    public DbSet<EmployeesModel> Employees => Set<EmployeesModel>();
-
+        public DbSet<AdminsModel> Admins => Set<AdminsModel>();
+        public DbSet<EmployeesModel> Employees => Set<EmployeesModel>();
         public DbSet<GroupsModel> Groups => Set<GroupsModel>();
         public DbSet<EventsModel> Events => Set<EventsModel>();
         public DbSet<EventParticipationModel> EventParticipations => Set<EventParticipationModel>();
@@ -19,5 +18,7 @@ namespace Calender_WebApp
         public DbSet<OfficeAttendanceModel> OfficeAttendances => Set<OfficeAttendanceModel>();
         public DbSet<RoomBookingsModel> RoomBookings => Set<RoomBookingsModel>();
         public DbSet<RoomsModel> Rooms => Set<RoomsModel>();
+        public DbSet<RemindersModel> Reminders => Set<RemindersModel>();
+        public DbSet<ReminderPreferencesModel> ReminderPreferences => Set<ReminderPreferencesModel>();
     }
 }

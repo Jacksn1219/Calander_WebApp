@@ -1,4 +1,3 @@
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
@@ -41,12 +40,32 @@ namespace Calender_WebApp.Models
         public DateTime EventDate { get; set; }
 
         /// <summary>
+        /// Duration of the event in minutes.
+        /// </summary>
+        [Required]
+        [Column("duration_minutes", Order = 4)]
+        public int DurationMinutes { get; set; }
+
+        /// <summary>
+        /// ID of the room where the event takes place.
+        /// </summary>
+        [Column("room_id", Order = 5)]
+        [ForeignKey(nameof(Room))]
+        public int? RoomId { get; set; }
+
+        /// <summary>
         /// ID of the user who created the event.
         /// </summary>
         [Required]
-        [Column("created_by", Order = 4)]
+        [Column("created_by", Order = 6)]
         [ForeignKey(nameof(CreatedByUser))]
         public int CreatedBy { get; set; }
+
+        /// <summary>
+        /// Navigation property for the room where the event takes place.
+        /// </summary>
+        [JsonIgnore]
+        public virtual RoomsModel? Room { get; set; }
 
         /// <summary>
         /// Navigation property for the employee who created the event.

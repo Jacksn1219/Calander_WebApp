@@ -13,10 +13,12 @@ namespace Calender_WebApp.Controllers
     public class EventsController : ControllerBase
     {
         private readonly IEventsService _eventService;
+        private readonly IEventParticipationService _eventparticipationService;
 
-        public EventsController(IEventsService eventService)
+        public EventsController(IEventsService eventService, IEventParticipationService eventparticipationService)
         {
             _eventService = eventService;
+            _eventparticipationService = eventparticipationService;
         }
 
         // GET /api/events

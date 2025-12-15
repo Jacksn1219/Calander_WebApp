@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
@@ -164,6 +164,75 @@ export const useLoginForm = () => {
     togglePasswordVisibility,
     handleSubmit,
   };
+};
+
+// --- Room bookings ---
+
+export type RoomBookingSummary = {
+  id: number;
+  roomName: string;
+  startTime: string; // ISO string
+  endTime: string;   // ISO string
+};
+
+export const useUserRoomBookings = (userId?: number) => {
+  const [bookings, setBookings] = useState<RoomBookingSummary[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const load = useCallback(async () => {
+    if (!userId) {
+      setBookings([]);
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch(`/api/room-bookings/user/${userId}`);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(text || 'Failed to load room bookings');
+      }
+
+      const data = await response.json();
+      // Expect an array of bookings with room and time info.
+      // Backend sends BookingDate (DateTime) and StartTime/EndTime (TimeSpan),
+      // so we compose full ISO strings for the frontend Date constructor.
+      const mapped: RoomBookingSummary[] = (data || []).map((b: any) => {
+        const bookingDateRaw: string | undefined = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
+        const startTimeRaw: string | undefined = b.startTime;
+        const endTimeRaw: string | undefined = b.endTime;
+
+        const buildDateTime = (date: string | undefined, time: string | undefined): string => {
+          if (!date || !time) return '';
+          const datePart = date.split('T')[0];
+          return `${datePart}T${time}`;
+        };
+
+        return {
+          id: b.id ?? b.roomBookingId ?? 0,
+          roomName: b.room?.name ?? b.roomName ?? 'Room',
+          startTime: buildDateTime(bookingDateRaw, startTimeRaw),
+          endTime: buildDateTime(bookingDateRaw, endTimeRaw),
+        };
+      });
+
+      setBookings(mapped);
+    } catch (err: any) {
+      console.error('Error loading room bookings', err);
+      setError(err.message ?? 'Failed to load room bookings');
+    } finally {
+      setLoading(false);
+    }
+  }, [userId]);
+
+  useEffect(() => {
+    load();
+  }, [load]);
+
+  return { bookings, loading, error, reload: load };
 };
 
 /*
@@ -763,7 +832,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     setFormData({
       title: currentEvent.title,
       description: currentEvent.description,
-      date: new Date(currentEvent.eventDate).toISOString().split("T")[0],
+      date: new Date(currentEvent.eventDate).toLocaleDateString('en-CA'),
       createdBy: currentEvent.createdBy.toString()
     });
   }, [currentEvent]);
@@ -774,8 +843,26 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   };
 
   const handleSave = async () => {
-    if (!formData.title || !formData.date) {
-      alert("Please fill in all required fields");
+    if (!formData.title.trim()) {
+      alert("Title cannot be empty");
+      return;
+    }
+    if (!formData.description.trim()) {
+      alert("Description cannot be empty");
+      return;
+    }
+    if (!formData.date.trim()) {
+      alert("Date cannot be empty");
+      return;
+    }
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert("Date must be today or later");
       return;
     }
 
@@ -842,6 +929,16 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     }
     if (!formData.date.trim()) {
       alert("Date cannot be empty");
+      return;
+    }
+    const selectedDate = new Date(formData.date);
+    const today = new Date();
+
+    today.setHours(0, 0, 0, 0);
+    selectedDate.setHours(0, 0, 0, 0);
+
+    if (selectedDate < today) {
+      alert("Date must be today or later");
       return;
     }
 
@@ -987,3 +1084,261 @@ export interface CalendarEvent {
   createdBy: number;
   participants: CalendarParticipant[];
 }
+
+/*
+ ====================================
+ REMINDERS SECTION
+ ====================================
+ */
+
+export interface Reminder {
+  reminder_id: number;
+  userId: number;
+  reminderType: number;
+  relatedRoomId: number;
+  relatedEventId: number;
+  reminderTime: string;
+  isRead: boolean;
+  title: string;
+  message: string;
+}
+
+/*
+ Custom hook to fetch reminders for the logged-in user
+ */
+export const useReminders = () => {
+  const { user } = useAuth();
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchReminders = useCallback(async () => {
+    if (!user?.userId) {
+      setError('No user logged in');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reminders: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setReminders(data);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while fetching reminders');
+      console.error('Error fetching reminders:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.userId]);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
+
+  const markAsRead = useCallback(async (reminderId: number) => {
+    try {
+      const response = await apiFetch(`/api/reminders/mark-as-read/${reminderId}`, {
+        method: 'PUT',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark reminder as read: ${response.statusText}`);
+      }
+
+      // Update local state
+      setReminders(prev => 
+        prev.map(r => r.reminder_id === reminderId ? { ...r, isRead: true } : r)
+      );
+    } catch (err: any) {
+      console.error('Error marking reminder as read:', err);
+      throw err;
+    }
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    try {
+      const unsentReminders = reminders.filter(r => !r.isRead);
+      await Promise.all(
+        unsentReminders.map(r => markAsRead(r.reminder_id))
+      );
+    } catch (err: any) {
+      console.error('Error marking all reminders as read:', err);
+    }
+  }, [reminders, markAsRead]);
+
+  return {
+    reminders,
+    loading,
+    error,
+    refetch: fetchReminders,
+    markAsRead,
+    markAllAsRead,
+  };
+};
+// _________________________________________
+// functions home
+// _________________________________________
+
+export const useHomeDashboard = () => {
+  const { user } = useAuth();
+
+  const { loading, error, events, reload, getEventsForDate } = useCalendarEvents(user);
+
+  const {
+    bookings: roomBookings,
+    loading: roomBookingsLoading,
+    error: roomBookingsError,
+  } = useUserRoomBookings(user?.userId);
+
+  const { upcomingEvents, totalEvents, acceptedEventsForUser } = useMemo(() => {
+    const now = new Date();
+    const sorted = [...events].sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
+    let acceptedForUser = 0;
+
+    sorted.forEach(ev => {
+      if (user?.userId) {
+        const me = ev.participants.find(p => p.userId === user.userId);
+        if (me && me.status === 'Accepted') {
+          acceptedForUser += 1;
+        }
+      }
+    });
+
+    const upcoming = sorted.filter(ev => ev.eventDate >= now);
+
+    return {
+      upcomingEvents: upcoming,
+      totalEvents: events.length,
+      acceptedEventsForUser: acceptedForUser,
+    };
+  }, [events, user?.userId]);
+
+  const attendanceRate = totalEvents > 0
+    ? Math.round((acceptedEventsForUser / totalEvents) * 100)
+    : 0;
+
+  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
+    const base = new Date();
+    base.setHours(0, 0, 0, 0);
+    const dayOfWeek = base.getDay();
+    const diffToMonday = (dayOfWeek + 6) % 7;
+    base.setDate(base.getDate() - diffToMonday);
+    return base;
+  });
+
+  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
+  const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
+  const [selectedDateForDialog, setSelectedDateForDialog] = useState<Date | null>(null);
+
+  const handleEventClick = (event: CalendarEvent) => {
+    setSelectedDayEvents([event]);
+    setSelectedDateForDialog(event.eventDate);
+    setSelectedEvent(event);
+  };
+
+  const handleDayClick = (date: Date) => {
+    const dayEvents = getEventsForDate(date);
+    if (dayEvents.length === 0) return;
+    setSelectedDayEvents(dayEvents);
+    setSelectedDateForDialog(date);
+    setSelectedEvent(dayEvents[0]);
+  };
+
+  const goToPreviousWeek = () => {
+    setCurrentWeekStart(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() - 7);
+      return d;
+    });
+  };
+
+  const goToNextWeek = () => {
+    setCurrentWeekStart(prev => {
+      const d = new Date(prev);
+      d.setDate(d.getDate() + 7);
+      return d;
+    });
+  };
+
+  const goToCurrentWeek = () => {
+    const today = new Date();
+    today.setHours(0, 0, 0, 0);
+    const dayOfWeek = today.getDay();
+    const diffToMonday = (dayOfWeek + 6) % 7;
+    today.setDate(today.getDate() - diffToMonday);
+    setCurrentWeekStart(today);
+  };
+
+  const closeDialog = () => {
+    setSelectedEvent(null);
+    setSelectedDayEvents(null);
+    setSelectedDateForDialog(null);
+  };
+
+  return {
+    user,
+    loading,
+    error,
+    events,
+    reload,
+    upcomingEvents,
+    attendanceRate,
+    currentWeekStart,
+    goToPreviousWeek,
+    goToNextWeek,
+    goToCurrentWeek,
+    handleEventClick,
+    handleDayClick,
+    selectedEvent,
+    selectedDayEvents,
+    selectedDateForDialog,
+    closeDialog,
+    roomBookings,
+    roomBookingsLoading,
+    roomBookingsError,
+  };
+};
+
+// NOTIFICATIONS
+// Add these helper functions at the end of the file or in a utilities section
+
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString('nl-NL', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+export const formatDateOnly = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('nl-NL', {
+    day: '2-digit',
+    month: 'short'
+  });
+};
+
+export const formatTimeOnly = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('nl-NL', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+// _________________________________________
+// end functions home
+// _________________________________________
+
