@@ -65,11 +65,11 @@ namespace Calender_WebApp.Models
         public DateTime ReminderTime { get; set; }
 
         /// <summary>
-        /// Indicates whether the reminder has been sent.
+        /// Indicates whether the reminder has been read.
         /// </summary>
         [Required]
-        [Column("is_sent", Order = 7)]
-        public bool IsSent { get; set; } = false;
+        [Column("is_read", Order = 7)]
+        public bool IsRead { get; set; } = false;
 
         /// <summary>
         /// Title of the reminder.

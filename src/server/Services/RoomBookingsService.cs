@@ -118,11 +118,11 @@ public class RoomBookingsService : IRoomBookingsService
                 await _remindersService.Put(reminder.Id.Value, new RemindersModel
                 {
                     UserId = entity.UserId,
-                    RelatedRoomId = entity.RoomId,
                     ReminderType = reminderType.RoomBooking,
-                    ReminderTime = booking.BookingDate.Add(booking.StartTime),
-                    Title = "Room Booking Reminder",
-                    Message = $"Reminder: You have a room booking (Room ID: {entity.RoomId}) at {booking.StartTime} on {entity.BookingDate:yyyy-MM-dd}."
+                    RelatedRoomId = entity.RoomId,
+                    ReminderTime = booking.BookingDate.Add(newStartTime),
+                    Title = $"Room {entity.RoomId} Booking",
+                    Message = $"You have a room booking for Room {entity.RoomId} starting at {booking.BookingDate.Add(newStartTime):yyyy-MM-dd HH:mm}.",
                 }).ConfigureAwait(false);
             }
         }
@@ -205,11 +205,11 @@ public class RoomBookingsService : IRoomBookingsService
         await _remindersService.Post(new RemindersModel
         {
             UserId = model.UserId,
-            RelatedRoomId = model.RoomId,
             ReminderType = reminderType.RoomBooking,
+            RelatedRoomId = model.RoomId,
             ReminderTime = model.BookingDate.Add(model.StartTime),
-            Title = "Room Booking Reminder",
-            Message = $"Reminder: You have a room booking (Room ID: {model.RoomId}) at {model.StartTime} on {model.BookingDate:yyyy-MM-dd}."
+            Title = $"Room {model.RoomId} Booking",
+            Message = $"You have a room booking for Room {model.RoomId} starting at {model.BookingDate.Add(model.StartTime):yyyy-MM-dd HH:mm}.",
         }).ConfigureAwait(false);
 
         await _context.SaveChangesAsync().ConfigureAwait(false);

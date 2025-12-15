@@ -109,14 +109,18 @@ public class EventParticipationService : IEventParticipationService
         
         // Create reminder for the event participation
         DateTime eventDetails = await GetEventStartTimeAsync(participation.EventId).ConfigureAwait(false);
+        EventsModel? eventModel = await _context.Set<EventsModel>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == participation.EventId)
+            .ConfigureAwait(false);
         await _remindersService.Post(new RemindersModel
         {
             UserId = participation.UserId,
             ReminderType = reminderType.EventParticipation,
             RelatedEventId = participation.EventId,
             ReminderTime = eventDetails,
-            Title = "Event Participation Reminder",
-            Message = $"Reminder: You are participating in an event (Event ID: {participation.EventId}) starting at {eventDetails}.",
+            Title = $"Event {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"} participation",
+            Message = $"You are participating in {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"} starting at {eventDetails}." + (eventModel != null && eventModel.RoomId.HasValue ? $" in room {eventModel.RoomId}" : string.Empty),
         }).ConfigureAwait(false);
         
         await _context.SaveChangesAsync().ConfigureAwait(false);

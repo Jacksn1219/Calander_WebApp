@@ -32,7 +32,7 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     public Task<RemindersModel[]> GetNextRemindersAsync(int userId, DateTime fromTime, DateTime toTime)
     {
         return _dbSet
-            .Where(r => r.UserId == userId && r.ReminderTime >= fromTime && r.ReminderTime <= toTime && !r.IsSent)
+            .Where(r => r.UserId == userId && r.ReminderTime >= fromTime && r.ReminderTime <= toTime && !r.IsRead)
             .ToArrayAsync();
     }
 
@@ -83,6 +83,17 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         await _context.SaveChangesAsync();
 
         return reminders.First();
+    }
+
+    public async Task<bool> MarkReminderAsReadAsync(int reminderId)
+    {
+        var reminder = await _dbSet.FindAsync(reminderId);
+        if (reminder == null)
+            return false;
+
+        reminder.IsRead = true;
+        await _context.SaveChangesAsync();
+        return true;
     }
 
     // Add additional services that are not related to CRUD here
