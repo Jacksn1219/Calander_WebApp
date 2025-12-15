@@ -98,5 +98,25 @@ public class RemindersController : ControllerBase
 	// 		return NotFound();
 	// 	}
 	// }
+
+	// PUT /api/reminders/mark-as-read/{reminderId} — Mark reminder as read
+	[HttpPut("mark-as-read/{reminderId:int}")]
+	public async Task<IActionResult> MarkAsRead(int reminderId)
+	{
+		try
+		{
+			var result = await _remindersService.MarkReminderAsReadAsync(reminderId).ConfigureAwait(false);
+			if (!result)
+			{
+				return NotFound();
+			}
+
+			return NoContent();
+		}
+		catch (InvalidOperationException)
+		{
+			return NotFound();
+		}
+	}
 }
 
