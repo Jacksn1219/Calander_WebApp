@@ -987,3 +987,103 @@ export interface CalendarEvent {
   createdBy: number;
   participants: CalendarParticipant[];
 }
+
+/*
+ ====================================
+ REMINDERS SECTION
+ ====================================
+ */
+
+export interface Reminder {
+  reminder_id: number;
+  userId: number;
+  reminderType: number;
+  relatedRoomId: number;
+  relatedEventId: number;
+  reminderTime: string;
+  isRead: boolean;
+  title: string;
+  message: string;
+}
+
+/*
+ Custom hook to fetch reminders for the logged-in user
+ */
+export const useReminders = () => {
+  const { user } = useAuth();
+  const [reminders, setReminders] = useState<Reminder[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  const fetchReminders = useCallback(async () => {
+    if (!user?.userId) {
+      setError('No user logged in');
+      return;
+    }
+
+    setLoading(true);
+    setError(null);
+
+    try {
+      const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
+        method: 'GET',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to fetch reminders: ${response.statusText}`);
+      }
+
+      const data = await response.json();
+      setReminders(data);
+    } catch (err: any) {
+      setError(err.message || 'An error occurred while fetching reminders');
+      console.error('Error fetching reminders:', err);
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.userId]);
+
+  useEffect(() => {
+    fetchReminders();
+  }, [fetchReminders]);
+
+  const markAsRead = useCallback(async (reminderId: number) => {
+    try {
+      const response = await apiFetch(`/api/reminders/mark-as-read/${reminderId}`, {
+        method: 'PUT',
+      });
+
+      if (!response.ok) {
+        throw new Error(`Failed to mark reminder as read: ${response.statusText}`);
+      }
+
+      // Update local state
+      setReminders(prev => 
+        prev.map(r => r.reminder_id === reminderId ? { ...r, isRead: true } : r)
+      );
+    } catch (err: any) {
+      console.error('Error marking reminder as read:', err);
+      throw err;
+    }
+  }, []);
+
+  const markAllAsRead = useCallback(async () => {
+    try {
+      const unsentReminders = reminders.filter(r => !r.isRead);
+      await Promise.all(
+        unsentReminders.map(r => markAsRead(r.reminder_id))
+      );
+    } catch (err: any) {
+      console.error('Error marking all reminders as read:', err);
+    }
+  }, [reminders, markAsRead]);
+
+  return {
+    reminders,
+    loading,
+    error,
+    refetch: fetchReminders,
+    markAsRead,
+    markAllAsRead,
+  };
+};
