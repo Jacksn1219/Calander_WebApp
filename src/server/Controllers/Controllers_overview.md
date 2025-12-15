@@ -104,7 +104,7 @@ Based on your **Services** folder, you need the following **10 controllers**:
 
 ---
 
-## 9. RoomBookingsController
+## 9. RoomBookingsController --- Done
 **Service:** `IRoomBookingsService`  
 **Endpoints:**
 - `GET /api/room-bookings` — Get all bookings
@@ -112,9 +112,10 @@ Based on your **Services** folder, you need the following **10 controllers**:
 - `GET /api/room-bookings/user/{userId}` — Get bookings by user
 - `GET /api/room-bookings/available?start={start}&end={end}` — Get available rooms for date range
 - `POST /api/room-bookings` — Create new booking
-- `PATCH /api/room-bookings/update-start-time` — Update booking start time (body: booking details + newStartTime)
-- `PATCH /api/room-bookings/update-end-time` — Update booking end time (body: booking details + newEndTime)
-- `DELETE /api/room-bookings` — Delete booking (body: booking details)
+- `PUT /api/room-bookings/{booking_id}` - Update Roombooking
+- `PATCH /api/room-bookings/update-start-time` — Update booking start time (body: { roomId, userId, bookingDate, startTime, endTime, newStartTime })
+- `PATCH /api/room-bookings/update-end-time` — Update booking end time (body: { roomId, userId, bookingDate, startTime, endTime, newEndTime })
+- `DELETE /api/room-bookings` — Delete booking (body: { roomId, userId, bookingDate, startTime, endTime })
 
 ---
 
