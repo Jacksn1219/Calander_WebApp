@@ -49,7 +49,15 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         var updatedEvent =  await base.Put(id, updatedEntity);
 
         // Update related reminders
-        await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
+        try
+        {
+            await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception or handle it as needed
+            Console.WriteLine($"Failed to update event reminders: {ex.Message}");
+        }
 
         // Update related roombookings
         if (updatedEntity.RoomId.HasValue)
