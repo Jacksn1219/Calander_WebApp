@@ -88,6 +88,30 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewStartTime { get; set; }
 	}
 
+	// PUT /api/room-bookings/{booking_id} — Update booking (entire booking)
+	[HttpPut("{bookingid}")]
+	public async Task<ActionResult<RoomBookingsModel>> Update(int bookingid, [FromBody] RoomBookingsModel booking)
+	{
+		if (booking == null)
+			return BadRequest("Booking payload must be provided.");
+
+		if (!ModelState.IsValid)
+			return ValidationProblem(ModelState);
+
+		try
+		{
+			var updated = await _roomBookingsService.Put(bookingid, booking).ConfigureAwait(false);
+			return Ok(updated);
+		}
+		catch (InvalidOperationException)
+		{
+			return NotFound();
+		}
+		catch (ArgumentException ex)
+		{
+			return BadRequest(ex.Message);
+		}
+	}
 	// PATCH /api/room-bookings/update-start-time — Update booking start time
 	[HttpPatch("update-start-time")]
 	public async Task<ActionResult<RoomBookingsModel>> UpdateStartTime([FromBody] UpdateStartTimeRequest request)
