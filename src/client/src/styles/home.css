@@ -1,0 +1,295 @@
+/* Home dashboard calendar styles: derived from calendar.css but scoped for compact use */
+
+.events-header {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.events-header-left {
+  flex: 1;
+}
+
+.home-header-right {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+
+.home-header-user {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.home-header-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+}
+
+.home-header-user-text {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.home-header-user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+}
+
+.home-header-user-role {
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.home-notification-button {
+  position: relative;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  background: #020617;
+  border: 1px solid #1f2937;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  padding: 0;
+}
+
+.home-notification-icon {
+  width: 16px;
+  height: 16px;
+  border-radius: 4px;
+  border: 1px solid #e5e7eb;
+}
+
+.home-notification-dot {
+  position: absolute;
+  top: -2px;
+  right: -2px;
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #3b82f6;
+  border: 2px solid #020617;
+}
+
+.events-header h1 {
+  margin: 0 0 4px 0;
+  font-size: 1.75rem;
+}
+
+.events-header .muted {
+  margin: 0;
+}
+
+.home-row .calendar-container {
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+}
+
+/* Generic row wrapper for putting cards next to each other */
+.home-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.home-row > .calendar-container {
+  flex: 1 1 0;
+  min-width: 260px;
+}
+
+.home-row .calendar-grid {
+  width: 100%;
+  padding: 0;
+}
+.home-row .calendar-header {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;           /* remove gaps between weekday labels */
+  margin: 0 0 2px;  /* minimal space just above the boxes */
+}
+
+.home-row .weekday {
+  text-align: center;
+  font-weight: 600;
+  font-size: 0.75rem;
+  color: #666;
+  padding: 0;
+}
+
+/* 5-column layout for Mon–Fri mini week - scoped to home page only */
+.home-row .calendar-container .calendar-grid .calendar-days {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 0;           /* no extra horizontal gap vs header */
+}
+
+.home-row .calendar-day {
+  aspect-ratio: 4 / 3;
+  border: 1px solid #e0e0e0;
+  border-radius: 4px;
+  padding: 4px 3px;
+  cursor: pointer;
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+  transition: all 0.2s;
+  background: white;
+}
+
+.home-row .weekday-label {
+  font-size: 0.7rem;
+  font-weight: 600;
+  color: #666;
+}
+
+.home-row .calendar-day.empty {
+  cursor: default;
+  background: transparent;
+  border-color: transparent;
+}
+
+.home-row .calendar-day:not(.empty):hover {
+  background: #f7f9fc;
+  border-color: #1f6feb;
+}
+
+.home-row .calendar-day.today {
+  background: #e3f2fd;
+  border-color: #1f6feb;
+  font-weight: 600;
+}
+
+.home-row .calendar-day.has-event {
+  background: #fff3cd;
+  border-color: #ffc107;
+}
+
+.home-row .calendar-day.has-event:hover {
+  background: #ffe69c;
+}
+
+/* Make Upcoming Events tiles more compact on Home */
+.home-upcoming-events .calendar-day.has-event {
+  aspect-ratio: auto;
+  padding: 6px 10px;
+  align-items: flex-start;
+}
+
+.home-upcoming-events .calendar-days {
+  max-height: 260px;
+  overflow-y: auto;
+}
+
+.home-row .day-number {
+  font-size: 0.75rem;
+  font-weight: 500;
+}
+
+.home-row .event-indicator {
+  margin-top: auto;
+  background: #1f6feb;
+  color: white;
+  border-radius: 10px;
+  padding: 0 3px;
+  font-size: 0.6rem;
+  font-weight: 600;
+}
+
+.home-row .event-count {
+  display: block;
+}
+
+/* Past events/day styling for dashboard mini calendar */
+.home-row .calendar-day.past-event-day {
+  opacity: 0.4;
+}
+
+/* Room booking list styling on Home */
+.room-booking-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.room-booking-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 16px;
+  padding: 8px 4px;
+}
+
+.room-booking-date-label {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.room-booking-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.room-booking-room {
+  font-size: 0.85rem;
+  font-weight: 600;
+}
+
+.room-booking-time {
+  font-size: 0.8rem;
+  color: #666;
+}
+
+/* Notifications card styling */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.notification-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 0;
+}
+
+.notification-icon {
+  width: 24px;
+  height: 24px;
+  border-radius: 6px;
+  background: #eff6ff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 0.8rem;
+}
+
+.notification-content {
+  flex: 1;
+}
+
+.notification-title {
+  font-size: 0.85rem;
+}
+
+.notification-meta {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
