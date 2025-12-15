@@ -693,11 +693,15 @@ export const useCalendarEvents = (user: { userId?: number; role?: string } | nul
         const id: number = ev.event_id ?? ev.EventId ?? ev.Id ?? ev.eventId;
         const createdBy: number = ev.CreatedBy ?? ev.created_by ?? ev.createdBy;
         const eventDateString: string = ev.EventDate ?? ev.event_date ?? ev.eventDate;
+        const durationMinutes: number = ev.DurationMinutes ?? ev.duration_minutes ?? ev.durationMinutes ?? 60;
+        const roomId: number | undefined = ev.RoomId ?? ev.room_id ?? ev.roomId ?? undefined;
         return {
           eventId: id,
           title: ev.Title ?? ev.title ?? 'Untitled Event',
           description: ev.Description ?? ev.description ?? undefined,
           eventDate: eventDateString ? new Date(eventDateString) : new Date(),
+          durationMinutes,
+          roomId,
           createdBy,
           participants: participationByEvent[id] ?? []
         };
@@ -824,7 +828,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     date: "",
     time: "",
     durationMinutes: 60,
-    roomId: undefined as number | undefined,
+    roomId: null as number | null,
     createdBy: "",
   });
 
@@ -841,7 +845,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       date: eventDateTime.toLocaleDateString('en-CA'),
       time: eventDateTime.toTimeString().slice(0, 5), // HH:MM format
       durationMinutes: currentEvent.durationMinutes || 60,
-      roomId: currentEvent.roomId,
+      roomId: currentEvent.roomId ?? null,
       createdBy: currentEvent.createdBy.toString()
     });
   }, [currentEvent]);
@@ -890,21 +894,25 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       // Combine date and time into a single DateTime
       const eventDateTime = new Date(`${formData.date}T${formData.time}`);
       
+      const payload = {
+        event_id: currentEvent?.event_id,
+        title: formData.title,
+        description: formData.description || "",
+        eventDate: eventDateTime.toISOString(),
+        durationMinutes: formData.durationMinutes || 60,
+        roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
+        createdBy: currentEvent?.createdBy
+      };
+      
+      console.log('Sending PUT request with payload:', payload);
+      
       const response = await apiFetch(`/api/events/${currentEvent?.event_id}`, { 
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_id: currentEvent?.event_id,
-          title: formData.title,
-          description: formData.description,
-          eventDate: eventDateTime.toISOString(),
-          durationMinutes: formData.durationMinutes,
-          roomId: formData.roomId || null,
-          createdBy: currentEvent?.createdBy
-        })
+        body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error("Failed to update event");
-      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: formData.createdBy });
+      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: formData.createdBy });
       reloadEvents();
       onClose();
     } catch (err: any) {
@@ -914,7 +922,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: formData.createdBy });
+    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: formData.createdBy });
     onClose();
   };
 
@@ -930,15 +938,20 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     date: "",
     time: "",
     durationMinutes: 60,
-    roomId: undefined as number | undefined,
+    roomId: null as number | null,
     createdBy: user?.userId,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    const processedValue = (name === 'durationMinutes' || name === 'roomId') 
-      ? (value === '' ? undefined : Number(value))
-      : value;
+    let processedValue: any = value;
+    
+    if (name === 'durationMinutes') {
+      processedValue = value === '' ? 60 : Number(value);
+    } else if (name === 'roomId') {
+      processedValue = value === '' ? null : Number(value);
+    }
+    
     setFormData((events) => ({ ...events, [name]: processedValue }));
   };
 
@@ -991,10 +1004,10 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
         body: JSON.stringify({
           event_id: null,
           title: formData.title,
-          description: formData.description,
+          description: formData.description || "",
           eventDate: eventDateTime.toISOString(),
-          durationMinutes: formData.durationMinutes,
-          roomId: formData.roomId || null,
+          durationMinutes: formData.durationMinutes || 60,
+          roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
           createdBy: user.userId,
         }),
       });
@@ -1008,7 +1021,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
       const result = await response.json();
       console.log("Event created:", result);
 
-      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: user.userId });
+      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: user.userId });
       reloadEvents();
       onClose();
     } catch (err: any) {
@@ -1018,7 +1031,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: undefined, createdBy: user?.userId });
+    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: user?.userId });
     onClose();
   };
 
@@ -1125,6 +1138,8 @@ export interface CalendarEvent {
   title: string;
   description?: string;
   eventDate: Date;
+  durationMinutes: number;
+  roomId?: number;
   createdBy: number;
   participants: CalendarParticipant[];
 }
