@@ -48,52 +48,6 @@ namespace Calender_WebApp.Controllers
             });
         }
 
-        [HttpPost("/api/employees/register")]
-        public async Task<IActionResult> Register(
-            [FromBody] RegisterRequest request,
-            [FromServices] IEmployeesService employeesService)
-        {
-            if (string.IsNullOrWhiteSpace(request.Name) ||
-                string.IsNullOrWhiteSpace(request.Email) ||
-                string.IsNullOrWhiteSpace(request.Password))
-            {
-                return BadRequest("Name, email, and password are required.");
-            }
-
-            // Create employee entity
-            var employee = new EmployeesModel
-            {
-                Name = request.Name,
-                Email = request.Email,
-                Password = request.Password, // hashed in service
-                Role = request.Role
-            };
-
-            try
-            {
-                // Persist user (hash + unique email enforced here)
-                var createdUser = await employeesService.Post(employee);
-
-                // Auto-login: generate JWT
-                var token = _authService.GenerateToken(createdUser);
-
-                return Ok(new
-                {
-                    token,
-                    user = new
-                    {
-                        userId = createdUser.Id,
-                        name = createdUser.Name,
-                        email = createdUser.Email,
-                        role = createdUser.Role.ToString()
-                    }
-                });
-            }
-            catch (InvalidOperationException ex)
-            {
-                return Conflict(ex.Message);
-            }
-        }
 
 
         // GET /api/auth/me
