@@ -1,11 +1,16 @@
-import React from 'react';
+import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { CalendarEvent, useHomeDashboard } from '../hooks/hooks';
+import ReminderNotification from './ReminderNotification';
+import { useReminders, CalendarEvent, useHomeDashboard, formatDate, formatDateOnly, formatTimeOnly } from '../hooks/hooks';
 import '../styles/home.css';
+import '../styles/login-page.css';
 
 const Home: React.FC = () => {
+  const [showReminders, setShowReminders] = useState(false);
+  const { reminders, loading: remindersLoading, error: remindersError, refetch, markAsRead, markAllAsRead } = useReminders();
+  const dropdownRef = useRef<HTMLDivElement>(null);
   const navigate = useNavigate();
   const {
     user,
@@ -110,15 +115,7 @@ const Home: React.FC = () => {
             )}
           </div>
           <div className="home-header-right">
-            {/* <button
-              type="button"
-              className="home-notification-button"
-              aria-label="Open notifications"
-              onClick={() => navigate('/notifications')}
-            >
-              <span className="home-notification-icon" />
-              <span className="home-notification-dot" />
-            </button> */}
+            <ReminderNotification />
             {user && (
               <div className="home-header-user">
                 <div className="home-header-avatar">

@@ -1280,6 +1280,36 @@ export const useHomeDashboard = () => {
   };
 };
 
+// NOTIFICATIONS
+// Add these helper functions at the end of the file or in a utilities section
+
+export const formatDate = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleString('nl-NL', {
+    day: '2-digit',
+    month: 'short',
+    year: 'numeric',
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
+export const formatDateOnly = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleDateString('nl-NL', {
+    day: '2-digit',
+    month: 'short'
+  });
+};
+
+export const formatTimeOnly = (dateString: string) => {
+  const date = new Date(dateString);
+  return date.toLocaleTimeString('nl-NL', {
+    hour: '2-digit',
+    minute: '2-digit'
+  });
+};
+
 // _________________________________________
 // end functions home
 // _________________________________________
