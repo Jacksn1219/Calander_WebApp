@@ -2,8 +2,10 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { CalendarEvent, useHomeDashboard } from '../hooks/hooks';
+import ReminderNotification from './ReminderNotification';
+import { useHomeDashboard } from '../hooks/hooks';
 import '../styles/home.css';
+import '../styles/login-page.css';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
@@ -110,15 +112,7 @@ const Home: React.FC = () => {
             )}
           </div>
           <div className="home-header-right">
-            <button
-              type="button"
-              className="home-notification-button"
-              aria-label="Open notifications"
-              onClick={() => navigate('/notifications')}
-            >
-              <span className="home-notification-icon" />
-              <span className="home-notification-dot" />
-            </button>
+            <ReminderNotification />
             {user && (
               <div className="home-header-user">
                 <div className="home-header-avatar">
@@ -134,12 +128,12 @@ const Home: React.FC = () => {
         </div>
 
         {/* Main content layout: left column (mini calendar + room booking) and right column (upcoming events) */}
-        <div className="home-row" style={{ marginTop: '1.5rem' }}>
+        <div className="home-row">
           {/* Left column: mini calendar on top, Room Booking below */}
-          <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
+          <div className="home-left-column">
             <div className="calendar-container">
               {/* Embedded week calendar preview */}
-              <section className="calendar-grid" style={{ marginBottom: '1.5rem' }}>
+              <section className="calendar-grid home-calendar-section">
                 <div className="calendar-controls">
                   <button onClick={goToPreviousWeek} className="btn-nav" aria-label="Previous week">
                     ←
@@ -165,7 +159,7 @@ const Home: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+                <div className="home-see-more-wrapper">
                   <button
                     type="button"
                     className="btn-today"
@@ -184,7 +178,7 @@ const Home: React.FC = () => {
                   <p className="muted">Loading your room bookings...</p>
                 )}
                 {roomBookingsError && (
-                  <p className="muted" style={{ color: '#b91c1c' }}>
+                  <p className="muted room-booking-error">
                     {roomBookingsError}
                   </p>
                 )}
@@ -223,7 +217,7 @@ const Home: React.FC = () => {
                         );
                       })}
                     </div>
-                    <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '0.75rem' }}>
+                    <div className="home-see-more-wrapper">
                       <button
                         type="button"
                         className="btn-today"
@@ -239,21 +233,20 @@ const Home: React.FC = () => {
           </div>
 
           {/* Right column: Upcoming Events */}
-          <div className="calendar-container home-upcoming-events" style={{ flex: 0.8 }}>
-            <section className="calendar-grid" style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                <h2 className="section-title" style={{ marginBottom: 0 }}>Upcoming Events</h2>
+          <div className="calendar-container home-upcoming-events home-right-column">
+            <section className="calendar-grid home-upcoming-section">
+              <div className="home-upcoming-header">
+                <h2 className="section-title">Upcoming Events</h2>
                 <button
                   type="button"
                   className="btn-today"
                   onClick={() => navigate('/calendar')}
-                  style={{ paddingInline: '0.9rem', paddingBlock: '0.35rem' }}
                 >
                   See more
                 </button>
               </div>
 
-              <div className="calendar-days" style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.75rem' }}>
+              <div className="calendar-days home-upcoming-list">
                 {!loading && !error && events.length === 0 && (
                   <p className="muted">There are no events yet.</p>
                 )}
@@ -280,7 +273,7 @@ const Home: React.FC = () => {
                       <span className="event-count">{ev.title}</span>
                     </div>
                     {ev.description && (
-                      <p className="muted" style={{ marginTop: '0.35rem' }}>
+                      <p className="muted home-event-description">
                         {ev.description.length > 80
                           ? `${ev.description.slice(0, 77)}...`
                           : ev.description}

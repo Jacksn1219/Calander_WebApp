@@ -12,10 +12,12 @@ namespace Calender_WebApp.Controllers;
 public class RoomBookingsController : ControllerBase
 {
 	private readonly IRoomBookingsService _roomBookingsService;
+	private readonly IRemindersService _remindersService;
 
-	public RoomBookingsController(IRoomBookingsService roomBookingsService)
+	public RoomBookingsController(IRoomBookingsService roomBookingsService, IRemindersService remindersService)
 	{
 		_roomBookingsService = roomBookingsService ?? throw new ArgumentNullException(nameof(roomBookingsService));
+		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
 	// GET /api/room-bookings — Get all bookings
@@ -191,6 +193,8 @@ public class RoomBookingsController : ControllerBase
 				EndTime = request.EndTime,
 				Purpose = string.Empty
 			}).ConfigureAwait(false);
+
+			await _remindersService.DeleteRoomBookingRemindersAsync(request.UserId, request.RoomId, request.BookingDate, request.StartTime).ConfigureAwait(false);
 
 			return NoContent();
 		}
