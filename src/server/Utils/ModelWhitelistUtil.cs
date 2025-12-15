@@ -59,7 +59,8 @@ public static class ModelWhitelistUtil
         { "Title", v => v is string s && !string.IsNullOrWhiteSpace(s) },
         { "Description", v => v == null || v is string },
         { "EventDate", v => v is DateTime  dt && dt.Year >= 2000 },
-        { "CreatedBy", v => v is int && (int)v > 0 }
+        { "CreatedBy", v => v is int && (int)v > 0 },
+        { "DurationMinutes", v => v is int i && i > 0 }
     };
 
     // Validators for RoomBookingsModel
@@ -70,6 +71,7 @@ public static class ModelWhitelistUtil
         { "BookingDate", v => v is DateTime dt && dt.Year >= 2000 },
         { "StartTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
         { "EndTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
+        { "EventId", v => v == null || (v is int i && i > 0) },
         { "Purpose", v => v is string s && !string.IsNullOrWhiteSpace(s) }
     };
 

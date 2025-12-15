@@ -43,6 +43,7 @@ public class RoomBookingsService : IRoomBookingsService
         var booking = await _dbSet
             .FirstOrDefaultAsync(rb => rb.RoomId == model.RoomId &&
                                        rb.UserId == model.UserId &&
+                                       rb.EventId == model.EventId &&
                                        rb.BookingDate == normalizedDate &&
                                        rb.StartTime == model.StartTime &&
                                        rb.EndTime == model.EndTime
@@ -104,6 +105,7 @@ public class RoomBookingsService : IRoomBookingsService
         var day = entity.BookingDate.Date;
         var booking = await _dbSet.FirstOrDefaultAsync(b =>
             b.RoomId == entity.RoomId &&
+            b.EventId == entity.EventId &&
             b.BookingDate == day &&
             b.StartTime == entity.StartTime);
         if (booking == null) throw new InvalidOperationException("Booking not found.");
@@ -120,6 +122,7 @@ public class RoomBookingsService : IRoomBookingsService
                     UserId = entity.UserId,
                     ReminderType = reminderType.RoomBooking,
                     RelatedRoomId = entity.RoomId,
+                    RelatedEventId = entity.EventId ?? 0,
                     ReminderTime = booking.BookingDate.Add(newStartTime),
                     Title = $"Room {entity.RoomId} Booking",
                     Message = $"You have a room booking for Room {entity.RoomId} starting at {booking.BookingDate.Add(newStartTime):yyyy-MM-dd HH:mm}.",
@@ -143,6 +146,7 @@ public class RoomBookingsService : IRoomBookingsService
         var day = entity.BookingDate.Date;
         var booking = await _dbSet.FirstOrDefaultAsync(b =>
             b.RoomId == entity.RoomId &&
+            b.EventId == entity.EventId &&
             b.BookingDate == day &&
             b.StartTime == entity.StartTime);
         if (booking == null) throw new InvalidOperationException("Booking not found.");
@@ -177,8 +181,8 @@ public class RoomBookingsService : IRoomBookingsService
             .Where(rb => rb.RoomId == model.RoomId && rb.BookingDate == model.BookingDate)
             .ToListAsync();
 
-        // Check exact duplicate of slot
-        var exactExists = dayBookings.Any(rb => rb.StartTime == model.StartTime);
+        // Check exact duplicate of slot (including EventId)
+        var exactExists = dayBookings.Any(rb => rb.StartTime == model.StartTime && rb.EventId == model.EventId);
         if (exactExists)
             throw new InvalidOperationException("An identical booking slot already exists.");
 
@@ -193,7 +197,8 @@ public class RoomBookingsService : IRoomBookingsService
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id)
                         && p.Name != nameof(RoomBookingsModel.Room)
-                        && p.Name != nameof(RoomBookingsModel.Employee))
+                        && p.Name != nameof(RoomBookingsModel.Employee)
+                        && p.Name != nameof(RoomBookingsModel.Event))
             .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
@@ -207,6 +212,7 @@ public class RoomBookingsService : IRoomBookingsService
             UserId = model.UserId,
             ReminderType = reminderType.RoomBooking,
             RelatedRoomId = model.RoomId,
+            RelatedEventId = model.EventId ?? 0,
             ReminderTime = model.BookingDate.Add(model.StartTime),
             Title = $"Room {model.RoomId} Booking",
             Message = $"You have a room booking for Room {model.RoomId} starting at {model.BookingDate.Add(model.StartTime):yyyy-MM-dd HH:mm}.",
@@ -296,6 +302,7 @@ public class RoomBookingsService : IRoomBookingsService
         var hasOverlap = dayBookings.Any(rb => rb.StartTime < endTime && rb.EndTime > startTime);
         return !hasOverlap;
     }
+
 
     // Add additional services that are not related to CRUD here
 }
