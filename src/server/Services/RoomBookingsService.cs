@@ -213,7 +213,7 @@ public class RoomBookingsService : IRoomBookingsService
                         && p.Name != nameof(RoomBookingsModel.Room)
                         && p.Name != nameof(RoomBookingsModel.Employee)
                         && p.Name != nameof(RoomBookingsModel.Event))
-            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
+            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (p.PropertyType == typeof(int?) ? (object?)null : (object)string.Empty));
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
