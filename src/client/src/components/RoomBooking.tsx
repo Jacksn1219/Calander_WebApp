@@ -119,6 +119,7 @@ const RoomBooking: React.FC = () => {
                 <ViewRoomBookingDialog
                     onClose={() => setShowViewBookingDialog(false)}
                     roomBookingsOnDay={roomBookingsOnDay}
+                    reloadBookings={fetchRoomBookings}
                 />
             )}
         </div>

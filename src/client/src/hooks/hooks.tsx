@@ -1008,14 +1008,11 @@ export type RoomBooking = {
 export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Date, reloadBookings: () => void) => {
   const [rooms, setRooms] = useState<Room[]>([]);
   const [bookings, setBookings] = useState<RoomBooking[]>([]);
-
   const [roomId, setRoomId] = useState<number | null>(null);
-  // const [bookingDate, setBookingDate] = useState("");
   const [startTime, setStartTime] = useState("");
   const [endTime, setEndTime] = useState("");
   const [capacity, setCapacity] = useState<number>(1);
   const [purpose, setPurpose] = useState("");
-
   const [message, setMessage] = useState("");
 
   const testUser = { user_id: 1 };
@@ -1038,33 +1035,9 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
       const data = await result.json();
       setRooms(data);
     } catch (err) {
-      console.error("Error loading available rooms:", err);
       setRooms([]);
     }
   };
-
-  // useEffect(() => {
-  //   if (roomId && selectedDate) loadBookings(roomId, selectedDate.toISOString().split("T")[0]);
-  // }, [roomId, selectedDate]);
-
-  // const loadBookings = async (roomId: number, date: string) => {
-  //   if (!roomId) return;
-
-  //   const res = await apiFetch(`/api/room-bookings/room/${roomId}`);
-  //   if (!res.ok) return setBookings([]);
-
-  //   const data = await res.json();
-
-  //   const filtered = data.filter((b: { bookingDate: string; }) =>
-  //     b.bookingDate.startsWith(date)
-  //   );
-
-  //   const sorted = filtered.sort((a: { startTime: string }, b: { startTime: string }) => {
-  //     return a.startTime.localeCompare(b.startTime);
-  //   });
-
-  //   setBookings(sorted);
-  // };
 
   const checkConflict = (start: string, end: string) => {
     const toMinutes = (t: string) => {
@@ -1084,13 +1057,28 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
     e.preventDefault();
     setMessage("");
 
-    if (!roomId || !startTime || !endTime) {
+    if (!startTime || !endTime) {
       setMessage("Please fill all required fields.");
       return;
     }
 
     if (checkConflict(startTime, endTime)) {
       setMessage("Time slot already booked for this room.");
+      return;
+    }
+
+    if (endTime <= startTime) {
+      setMessage("End time must be after start time.");
+      return;
+    }
+
+    if (rooms.every(r => r.capacity < capacity)) {
+      setMessage("There are no rooms with enough capacity.")
+      return;
+    }
+
+    if (rooms.length < 1 || !roomId) {
+      setMessage("There are no rooms. Please create a room first.")
       return;
     }
 
@@ -1123,11 +1111,6 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
       reloadBookings()
       onClose()
 
-      // setMessage("Successfully booked a room!");
-
-      // loadBookings(roomId, selectedDate.toISOString().split("T")[0]);
-
-      // selectedDate.setDate(selectedDate.getDate() - 1);
       setRoomId(null);
       setStartTime("");
       setEndTime("");
@@ -1140,8 +1123,8 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
   };
 
   return {
-    rooms,
-    bookings,
+    rooms, 
+    bookings, 
     roomId,
     startTime,
     endTime,
@@ -1159,19 +1142,19 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
 };
 
 export const useRoomBooking = () => {
+  const { user } = useAuth()
   const [roomBookings, setRoomBookings] = useState<RoomBooking[]>([]);
   const [roomBookingsOnDay, setRoomBookingsOnDay] = useState<RoomBooking[]>([]);
   const [currentDate, setCurrentDate] = useState(new Date());
   const [selectedDate, setSelectedDate] = useState(new Date());
 
-  useEffect(() => {
-    fetchRoomBookings();
-  }, []);
-
   const fetchRoomBookings = async () => {
+    if (!user) return;
     try {
-      const response = await apiFetch("/api/room-bookings");
+      const response = await apiFetch(`/api/room-bookings/user/${user.userId}`);
+
       if (!response.ok) throw new Error("Failed to fetch roombookings");
+
       const data: RoomBooking[] = await response.json();
       setRoomBookings(data);
     } catch (err) {
@@ -1179,6 +1162,10 @@ export const useRoomBooking = () => {
       setRoomBookings([]);
     }
   };
+
+  useEffect(() => {
+    fetchRoomBookings();
+  }, [user]);
 
   const goToPreviousMonth = () => {
     setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
@@ -1195,17 +1182,10 @@ export const useRoomBooking = () => {
   return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
 }
 
-export const useViewRoomBookingsDialog = (
-  onClose: () => void,
-  roomBookings: RoomBooking[]
-) => {
+export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: RoomBooking[], reloadBookings: () => void) => {
   const [editingBooking, setEditingBooking] = useState<RoomBooking | null>(null);
 
-  const checkConflict = (
-    start: string,
-    end: string,
-    currentBookingId?: number
-  ) => {
+  const checkConflict = (start: string, end: string, currentBookingId?: number) => {
     const toMinutes = (t: string) => {
       const [h, m] = t.split(":").map(Number);
       return h * 60 + m;
@@ -1236,6 +1216,7 @@ export const useViewRoomBookingsDialog = (
       }),
     });
 
+    reloadBookings()
     onClose();
   };
 
@@ -1247,13 +1228,7 @@ export const useViewRoomBookingsDialog = (
       return;
     }
 
-    const [startTimehour, startTimeminute] = editingBooking.startTime.split(":");
-    const startTimeInMinutes = (parseInt(startTimehour) * 60) + startTimeminute;
-
-    const [endTimehour, endTimeminute] = editingBooking.endTime.split(":");
-    const endTimeInMinutes = (parseInt(endTimehour) * 60) + endTimeminute;
-
-    if (startTimeInMinutes >= endTimeInMinutes) {
+    if (editingBooking.endTime <= editingBooking.startTime) {
       alert("End time must be after start time.");
       return;
     }
@@ -1294,7 +1269,8 @@ export const useViewRoomBookingsDialog = (
     }
 
     setEditingBooking(null);
-    // onClose();
+    reloadBookings()
+    onClose();
   };
 
   return {

@@ -86,7 +86,7 @@ const RoomBookingDialog: React.FC<RoomBookingDialogProps> = ({ onClose, selected
             )}
 
             <div className="create-event-buttons">
-              <button type="submit" disabled={!roomId} className="create-event-save">
+              <button type="submit" className="create-event-save">
                 Make Reservation
               </button>
               <button type="button" className="create-event-cancel" onClick={onClose}>

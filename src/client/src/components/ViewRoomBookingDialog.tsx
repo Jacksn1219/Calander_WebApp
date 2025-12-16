@@ -7,10 +7,11 @@ import { useViewRoomBookingsDialog } from "../hooks/hooks";
 interface ViewRoomBookingDialogProps {
   onClose: () => void;
   roomBookingsOnDay: RoomBooking[];
+  reloadBookings: () => void
 }
 
-const ViewRoomBookingDialog: React.FC<ViewRoomBookingDialogProps> = ({ onClose, roomBookingsOnDay }) => {
-  const { editingBooking, setEditingBooking, handleDelete, handleSaveEdit } = useViewRoomBookingsDialog(onClose, roomBookingsOnDay);
+const ViewRoomBookingDialog: React.FC<ViewRoomBookingDialogProps> = ({ onClose, roomBookingsOnDay, reloadBookings }) => {
+  const { editingBooking, setEditingBooking, handleDelete, handleSaveEdit } = useViewRoomBookingsDialog(onClose, roomBookingsOnDay, reloadBookings);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
