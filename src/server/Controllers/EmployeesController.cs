@@ -1,4 +1,5 @@
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
@@ -101,7 +102,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpPut("{id:int}")]
-	public async Task<ActionResult<EmployeesModel>> Update(int id, [FromBody] EmployeesModel employee)
+	public async Task<ActionResult<EmployeesModel>> Update(int id, [FromBody] EmployeesModelForUpdate employee)
 	{
 		if (employee == null)
 		{
@@ -115,7 +116,15 @@ public class EmployeesController : ControllerBase
 
 		try
 		{
-			var updatedEmployee = await _employeesService.Put(id, employee).ConfigureAwait(false);
+			var updatedEmployee = await _employeesService.Put(id,
+			new EmployeesModel
+			{
+				Id = employee.User_id,
+				Name = employee.Name,
+				Email = employee.Email,
+				Role = employee.Role,
+				Password = employee.Password ?? string.Empty
+			}).ConfigureAwait(false);
 			return Ok(updatedEmployee);
 		}
 		catch (InvalidOperationException)
@@ -141,5 +150,14 @@ public class EmployeesController : ControllerBase
 		{
 			return NotFound();
 		}
+	}
+		public class EmployeesModelForUpdate
+	{
+		public int User_id { get; set; } = 0;
+		public string Name { get; set; } = string.Empty;
+		public string Email { get; set; } = string.Empty;
+		[JsonConverter(typeof(JsonStringEnumConverter))]
+		public UserRole Role { get; set; } = UserRole.User;
+		public string? Password { get; set; } = string.Empty;
 	}
 }
