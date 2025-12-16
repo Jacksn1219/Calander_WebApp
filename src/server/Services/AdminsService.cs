@@ -19,7 +19,7 @@ public class AdminsService : CrudService<AdminsModel>, IAdminsService
     /// <exception cref="InvalidOperationException">Thrown when the admin is not found.</exception>
     public async Task<AdminsModel> GetByUsername(string username)
     {
-        return await _dbSet.FirstOrDefaultAsync(a => a.Employee.Name == username).ConfigureAwait(false)
+        return await _dbSet.FirstOrDefaultAsync(a => a.Employee != null && a.Employee.Name == username).ConfigureAwait(false)
               ?? throw new InvalidOperationException("Admin not found.");
     }
 

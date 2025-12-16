@@ -7,6 +7,7 @@ import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
+import Notifications from './Notifications';
 
 export default function App() {
   return (
@@ -61,6 +62,14 @@ export default function App() {
                 <AdminRoute>
                   <CreateEmployee />
                 </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/notifications"
+            element={
+              <ProtectedRoute>
+                <Notifications />
               </ProtectedRoute>
             }
           />

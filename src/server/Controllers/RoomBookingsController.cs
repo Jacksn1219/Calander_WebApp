@@ -12,10 +12,12 @@ namespace Calender_WebApp.Controllers;
 public class RoomBookingsController : ControllerBase
 {
 	private readonly IRoomBookingsService _roomBookingsService;
+	private readonly IRemindersService _remindersService;
 
-	public RoomBookingsController(IRoomBookingsService roomBookingsService)
+	public RoomBookingsController(IRoomBookingsService roomBookingsService, IRemindersService remindersService)
 	{
 		_roomBookingsService = roomBookingsService ?? throw new ArgumentNullException(nameof(roomBookingsService));
+		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
 	// GET /api/room-bookings — Get all bookings
@@ -86,6 +88,30 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewStartTime { get; set; }
 	}
 
+	// PUT /api/room-bookings/{booking_id} — Update booking (entire booking)
+	[HttpPut("{bookingid}")]
+	public async Task<ActionResult<RoomBookingsModel>> Update(int bookingid, [FromBody] RoomBookingsModel booking)
+	{
+		if (booking == null)
+			return BadRequest("Booking payload must be provided.");
+
+		if (!ModelState.IsValid)
+			return ValidationProblem(ModelState);
+
+		try
+		{
+			var updated = await _roomBookingsService.Put(bookingid, booking).ConfigureAwait(false);
+			return Ok(updated);
+		}
+		catch (InvalidOperationException)
+		{
+			return NotFound();
+		}
+		catch (ArgumentException ex)
+		{
+			return BadRequest(ex.Message);
+		}
+	}
 	// PATCH /api/room-bookings/update-start-time — Update booking start time
 	[HttpPatch("update-start-time")]
 	public async Task<ActionResult<RoomBookingsModel>> UpdateStartTime([FromBody] UpdateStartTimeRequest request)
@@ -191,6 +217,8 @@ public class RoomBookingsController : ControllerBase
 				EndTime = request.EndTime,
 				Purpose = string.Empty
 			}).ConfigureAwait(false);
+
+			await _remindersService.DeleteRoomBookingRemindersAsync(request.UserId, request.RoomId, request.BookingDate, request.StartTime).ConfigureAwait(false);
 
 			return NoContent();
 		}
