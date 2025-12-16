@@ -59,3 +59,81 @@
   max-width: 420px;
   width: 100%;
 }
+
+.add-roombooking {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  width: 22px;
+  height: 22px;
+  display: flex;
+  align-items: center;
+  font-size: 15px;
+  font-weight: 900;
+  justify-content: center;
+  cursor: pointer;
+  opacity: 0;
+  transition: all 0.3s ease;
+  color: white;
+  border-radius: 40px;
+  background: #01a211;
+}
+
+.calendar-day:hover .add-roombooking {
+  opacity: 1;
+}
+
+.add-roombooking:hover {
+  background: #006e0b;
+}
+
+.booking-room {
+  padding: 5px 5px;
+  border-radius: 5px;
+  font-size: 10px;
+  margin-bottom: 3px;
+  cursor: grab;
+  position: relative;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+  text-align: left;
+  width: 90px;
+  transition: all 0.2s ease;
+  background-color: rgba(44, 229, 167, 0.2);
+  border-left: 3px solid #2ce5a7;
+}
+
+.booking-room:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1);
+}
+
+@media (min-width: 1200px) and (max-width: 1466px) {
+  .booking-room {
+    padding: 2px 2px;
+    width: 50px;
+  }
+}
+
+.planner-layout {
+  display: flex;
+  align-items: flex-start;
+  gap: 20px;
+  width: 100%;
+}
+
+.planner-side-panel {
+  flex: 1;
+  background: white;
+  border-radius: 8px;
+  padding: 16px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+
+@media (max-width: 900px) {
+  .planner-layout {
+    flex-direction: column;
+  }
+}

@@ -1,125 +1,128 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
+import "../styles/calendar.css";
 import "../styles/RoomBooking.css";
-import "../styles/login-page.css";
 import Sidebar from "./Sidebar";
+import CreateRoomBookingDialog from "./CreateRoomBookingDialog";
 import { useRoomBooking } from "../hooks/hooks";
+import ViewRoomBookingDialog from "./ViewRoomBookingDialog";
 
 const RoomBooking: React.FC = () => {
-  const {
-    rooms,
-    bookings,
-    roomId,
-    bookingDate,
-    startTime,
-    endTime,
-    capacity,
-    purpose,
-    message,
+    const { fetchRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, roomBookings,
+        currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate } = useRoomBooking()
+    const today = new Date();
+    const [showCreateBookingDialog, setShowCreateBookingDialog] = useState(false);
+    const [showViewBookingDialog, setShowViewBookingDialog] = useState(false);
+    const [isMobile] = useState<boolean>(window.innerWidth <= 500);
 
-    setRoomId,
-    setBookingDate,
-    setStartTime,
-    setEndTime,
-    setCapacity,
-    setPurpose,
-    handleSubmit,
-  } = useRoomBooking();
+    const daysArray = [];
+    for (let i = 0; i < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay(); i++) daysArray.push(null);
+    for (let d = 1; d <= new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(); d++) daysArray.push(d);
 
-  const formattedDate = bookingDate
-    ? new Date(bookingDate).toLocaleDateString("en-GB", {
-        day: "2-digit",
-        month: "long",
-        year: "numeric",
-      })
-    : "";
+    const calendarContainerStyle: React.CSSProperties = { width: '60%' };
 
-  return (
-    <div className="app-layout">
-      <Sidebar />
-      <div className="booking-container">
-        <form className="booking-card" onSubmit={handleSubmit}>
-          <h2>Book a meeting room</h2>
-          <p>Please fill the details to reserve a room.</p>
+    const mainContentStyle: React.CSSProperties = { padding: '20px' };
 
-          <label>Date</label>
-          <input
-            type="date"
-            value={bookingDate}
-            onChange={(e) => setBookingDate(e.target.value)}
-          />
+    const calendarGridStyle: React.CSSProperties = isMobile ? { overflowX: 'auto' } : {};
 
-          <label>Start time</label>
-          <input
-            type="time"
-            value={startTime}
-            onChange={(e) => setStartTime(e.target.value)}
-          />
+    const calendarInnerStyle: React.CSSProperties = isMobile ? { minWidth: '700px', paddingRight: '900px' } : {};
 
-          <label>End time</label>
-          <input
-            type="time"
-            value={endTime}
-            onChange={(e) => setEndTime(e.target.value)}
-          />
+    useEffect(() => {
+        if (showCreateBookingDialog) {
+            setShowViewBookingDialog(false);
+        }
+    }, [showCreateBookingDialog]);
 
-          <label>Capacity</label>
-          <input
-            type="number"
-            min="1"
-            value={capacity}
-            onChange={(e) => setCapacity(Number(e.target.value))}
-          />
+    return (
+        <div className="app-layout">
+            <Sidebar />
+            <main className="main-content" style={mainContentStyle}>
+                <div className="planner-layout">
+                    <div className="calendar-container" style={calendarContainerStyle}>
+                        <div className="calendar-controls">
+                            <button className="btn-nav" onClick={goToPreviousMonth}>←</button>
+                            {isMobile &&
+                                <>
+                                    <button className="btn-today" onClick={goToCurrentDate}>Today</button>
+                                    <button className="btn-nav" onClick={goToNextMonth}>→</button>
+                                </>
+                            }
 
-          <label>Purpose</label>
-          <input
-            type="text"
-            value={purpose}
-            onChange={(e) => setPurpose(e.target.value)}
-            placeholder="Optional purpose"
-          />
+                            <div className="month-year">
+                                <h2>
+                                    Room Bookings - {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+                                </h2>
+                            </div>
 
-          {rooms.length > 0 && (
-            <>
-              <label>Select Room</label>
-              <select
-                value={roomId ?? ""}
-                onChange={(e) => setRoomId(Number(e.target.value))}
-              >
-                <option value="">Choose a room</option>
-                {rooms.map((room) => (
-                  <option key={room.room_id} value={room.room_id}>
-                    {room.roomName} ({room.capacity} pers, {room.location})
-                  </option>
-                ))}
-              </select>
-            </>
-          )}
+                            <button className="btn-nav" onClick={goToNextMonth}>→</button>
 
-          <button type="submit" disabled={!roomId}>
-            Make a reservation
-          </button>
+                            <button className="btn-today" onClick={goToCurrentDate}>Today</button>
+                        </div>
 
-          {message && <p className="message">{message}</p>}
-        </form>
+                        <div className="calendar-grid" style={calendarGridStyle}>
+                            <div className="calendar-header" style={calendarInnerStyle}>
+                                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (<div key={d} className="weekday">{d}</div>))}
+                            </div>
+                            <div className="calendar-days" style={calendarInnerStyle}>
+                                {daysArray.map((day, i) => {
+                                    if (day === null) return <div key={i} className="calendar-day empty"></div>;
 
-        {roomId && bookingDate && bookings.length > 0 ? (
-          <div className="existing-bookings">
-            <h4>Booked rooms for {formattedDate}</h4>
-            <ul>
-              {bookings.map((b) => (
-                <li key={b.booking_id ?? `${b.startTime}-${b.endTime}`}>
-                  {b.startTime.slice(0, 5)} - {b.endTime.slice(0, 5)}:{" "}
-                  {b.purpose}
-                </li>
-              ))}
-            </ul>
-          </div>
-        ) : (
-          ""
-        )}
-      </div>
-    </div>
-  );
-};
+                                    const isToday = day === today.getDate() &&
+                                        currentDate.getMonth() === today.getMonth() &&
+                                        currentDate.getFullYear() === today.getFullYear();
 
-export default RoomBooking;
+                                    const roomBookingsForDay = roomBookings.filter(booking => {
+                                        const bookingDate = new Date(booking.bookingDate);
+                                        return bookingDate.getFullYear() === currentDate.getFullYear() &&
+                                            bookingDate.getMonth() === currentDate.getMonth() &&
+                                            bookingDate.getDate() === day;
+                                    });
+                                    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+                                    return (
+                                        <div key={i} className={`calendar-day ${isToday ? "today" : (roomBookingsForDay.length > 0 ? "has-event" : "")}`}
+                                            onClick={() => {
+                                                setShowViewBookingDialog(true);
+                                                setRoomBookingsOnDay(roomBookingsForDay);
+                                            }}>
+                                            <div className="day-number">{day}</div>
+                                            {roomBookingsForDay.length > 0 && (
+                                                <div className="event-indicator">
+                                                    <span className="event-count">{roomBookingsForDay.length}</span>
+                                                </div>
+                                            )}
+                                            {newDate.setHours(0, 0, 0, 0) >= today.setHours(0, 0, 0, 0) &&
+                                                <div className="add-roombooking" onClick={() => {
+                                                    setShowCreateBookingDialog(true);
+                                                    setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+                                                }}>＋</div>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="planner-side-panel">
+                        <h3>Here are all your bookings</h3>
+                        <p>...</p>
+                    </div>
+                </div>
+            </main>
+            {showCreateBookingDialog && (
+                <CreateRoomBookingDialog
+                    onClose={() => setShowCreateBookingDialog(false)}
+                    selectedDate={selectedDate}
+                    reloadBookings={fetchRoomBookings}
+                />
+            )}
+            {showViewBookingDialog && (
+                <ViewRoomBookingDialog
+                    onClose={() => setShowViewBookingDialog(false)}
+                    roomBookingsOnDay={roomBookingsOnDay}
+                />
+            )}
+        </div>
+    );
+}
+
+export default RoomBooking
