@@ -1185,263 +1185,8 @@ export const useReminders = () => {
   };
 };
 // _________________________________________
-// functions home
+// end functions reminders
 // _________________________________________
-
-export const useHomeDashboard = () => {
-  const { user } = useAuth();
-
-  const { loading, error, events, reload, getEventsForDate } = useCalendarEvents(user);
-
-  const {
-    bookings: roomBookings,
-    loading: roomBookingsLoading,
-    error: roomBookingsError,
-  } = useUserRoomBookings(user?.userId);
-
-  const { upcomingEvents, totalEvents, acceptedEventsForUser } = useMemo(() => {
-    const now = new Date();
-    const sorted = [...events].sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
-    let acceptedForUser = 0;
-
-    sorted.forEach(ev => {
-      if (user?.userId) {
-        const me = ev.participants.find(p => p.userId === user.userId);
-        if (me && me.status === 'Accepted') {
-          acceptedForUser += 1;
-        }
-      }
-    });
-
-    const upcoming = sorted.filter(ev => ev.eventDate >= now);
-
-    return {
-      upcomingEvents: upcoming,
-      totalEvents: events.length,
-      acceptedEventsForUser: acceptedForUser,
-    };
-  }, [events, user?.userId]);
-
-  const attendanceRate = totalEvents > 0
-    ? Math.round((acceptedEventsForUser / totalEvents) * 100)
-    : 0;
-
-  const [currentWeekStart, setCurrentWeekStart] = useState(() => {
-    const base = new Date();
-    base.setHours(0, 0, 0, 0);
-    const dayOfWeek = base.getDay();
-    const diffToMonday = (dayOfWeek + 6) % 7;
-    base.setDate(base.getDate() - diffToMonday);
-    return base;
-  });
-
-  const [selectedEvent, setSelectedEvent] = useState<CalendarEvent | null>(null);
-  const [selectedDayEvents, setSelectedDayEvents] = useState<CalendarEvent[] | null>(null);
-  const [selectedDateForDialog, setSelectedDateForDialog] = useState<Date | null>(null);
-
-  const handleEventClick = (event: CalendarEvent) => {
-    setSelectedDayEvents([event]);
-    setSelectedDateForDialog(event.eventDate);
-    setSelectedEvent(event);
-  };
-
-  const handleDayClick = (date: Date) => {
-    const dayEvents = getEventsForDate(date);
-    if (dayEvents.length === 0) return;
-    setSelectedDayEvents(dayEvents);
-    setSelectedDateForDialog(date);
-    setSelectedEvent(dayEvents[0]);
-  };
-
-  const goToPreviousWeek = () => {
-    setCurrentWeekStart(prev => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() - 7);
-      return d;
-    });
-  };
-
-  const goToNextWeek = () => {
-    setCurrentWeekStart(prev => {
-      const d = new Date(prev);
-      d.setDate(d.getDate() + 7);
-      return d;
-    });
-  };
-
-  const goToCurrentWeek = () => {
-    const today = new Date();
-    today.setHours(0, 0, 0, 0);
-    const dayOfWeek = today.getDay();
-    const diffToMonday = (dayOfWeek + 6) % 7;
-    today.setDate(today.getDate() - diffToMonday);
-    setCurrentWeekStart(today);
-  };
-
-  const closeDialog = () => {
-    setSelectedEvent(null);
-    setSelectedDayEvents(null);
-    setSelectedDateForDialog(null);
-  };
-
-  return {
-    user,
-    loading,
-    error,
-    events,
-    reload,
-    upcomingEvents,
-    attendanceRate,
-    currentWeekStart,
-    goToPreviousWeek,
-    goToNextWeek,
-    goToCurrentWeek,
-    handleEventClick,
-    handleDayClick,
-    selectedEvent,
-    selectedDayEvents,
-    selectedDateForDialog,
-    closeDialog,
-    roomBookings,
-    roomBookingsLoading,
-    roomBookingsError,
-  };
-};
-
-// NOTIFICATIONS
-// Add these helper functions at the end of the file or in a utilities section
-
-export const formatDate = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleString('nl-NL', {
-    day: '2-digit',
-    month: 'short',
-    year: 'numeric',
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-export const formatDateOnly = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleDateString('nl-NL', {
-    day: '2-digit',
-    month: 'short'
-  });
-};
-
-export const formatTimeOnly = (dateString: string) => {
-  const date = new Date(dateString);
-  return date.toLocaleTimeString('nl-NL', {
-    hour: '2-digit',
-    minute: '2-digit'
-  });
-};
-
-// _________________________________________
-// end functions home
-// _________________________________________
-
-
-/*
- ====================================
- REMINDERS SECTION
- ====================================
- */
-
-export interface Reminder {
-  reminder_id: number;
-  userId: number;
-  reminderType: number;
-  relatedRoomId: number;
-  relatedEventId: number;
-  reminderTime: string;
-  isRead: boolean;
-  title: string;
-  message: string;
-}
-
-/*
- Custom hook to fetch reminders for the logged-in user
- */
-export const useReminders = () => {
-  const { user } = useAuth();
-  const [reminders, setReminders] = useState<Reminder[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
-
-  const fetchReminders = useCallback(async () => {
-    if (!user?.userId) {
-      setError('No user logged in');
-      return;
-    }
-
-    setLoading(true);
-    setError(null);
-
-    try {
-      const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
-        method: 'GET',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to fetch reminders: ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setReminders(data);
-    } catch (err: any) {
-      setError(err.message || 'An error occurred while fetching reminders');
-      console.error('Error fetching reminders:', err);
-    } finally {
-      setLoading(false);
-    }
-  }, [user?.userId]);
-
-  useEffect(() => {
-    fetchReminders();
-  }, [fetchReminders]);
-
-  const markAsRead = useCallback(async (reminderId: number) => {
-    try {
-      const response = await apiFetch(`/api/reminders/mark-as-read/${reminderId}`, {
-        method: 'PUT',
-      });
-
-      if (!response.ok) {
-        throw new Error(`Failed to mark reminder as read: ${response.statusText}`);
-      }
-
-      // Update local state
-      setReminders(prev => 
-        prev.map(r => r.reminder_id === reminderId ? { ...r, isRead: true } : r)
-      );
-    } catch (err: any) {
-      console.error('Error marking reminder as read:', err);
-      throw err;
-    }
-  }, []);
-
-  const markAllAsRead = useCallback(async () => {
-    try {
-      const unsentReminders = reminders.filter(r => !r.isRead);
-      await Promise.all(
-        unsentReminders.map(r => markAsRead(r.reminder_id))
-      );
-    } catch (err: any) {
-      console.error('Error marking all reminders as read:', err);
-    }
-  }, [reminders, markAsRead]);
-
-  return {
-    reminders,
-    loading,
-    error,
-    refetch: fetchReminders,
-    markAsRead,
-    markAllAsRead,
-  };
-};
 // _________________________________________
 // functions home
 // _________________________________________
@@ -1618,6 +1363,7 @@ export type RoomBooking = {
   startTime: string;
   endTime: string;
   purpose: string;
+  eventId?: number | null;
 };
 
 export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Date, reloadBookings: () => void) => {
@@ -1629,6 +1375,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
   const [capacity, setCapacity] = useState<number>(1);
   const [purpose, setPurpose] = useState("");
   const [message, setMessage] = useState("");
+  const [eventId, setEventId] = useState(0);
   const { user } = useAuth()
 
   useEffect(() => {
@@ -1710,6 +1457,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
       startTime: startTime,
       endTime: endTime,
       purpose: purpose || "Meeting",
+      eventId: null
     };
 
     selectedDate.setDate(selectedDate.getDate() - 1);
@@ -1750,6 +1498,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
     capacity,
     purpose,
     message,
+    eventId,
 
     setRoomId,
     setStartTime,
