@@ -1014,8 +1014,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
   const [capacity, setCapacity] = useState<number>(1);
   const [purpose, setPurpose] = useState("");
   const [message, setMessage] = useState("");
-
-  const testUser = { user_id: 1 };
+  const { user } = useAuth()
 
   useEffect(() => {
     if (selectedDate && startTime && endTime && capacity > 0) {
@@ -1057,6 +1056,11 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
     e.preventDefault();
     setMessage("");
 
+    if (!user?.userId) {
+      alert("User is not logged in.");
+      return;
+    }
+
     if (!startTime || !endTime) {
       setMessage("Please fill all required fields.");
       return;
@@ -1086,7 +1090,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
 
     const payload = {
       roomId,
-      userId: testUser.user_id,
+      userId: user?.userId,
       bookingDate: selectedDate.toISOString().split("T")[0] + "T00:00:00",
       startTime: startTime,
       endTime: endTime,
