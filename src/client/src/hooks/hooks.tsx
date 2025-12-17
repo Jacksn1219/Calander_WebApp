@@ -1390,28 +1390,21 @@ export const useReminders = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const fetchReminders = useCallback(async () => {
+  const fetchReminders = useCallback(async (silent = false) => {
     if (!user?.userId) {
       setError('No user logged in');
       return;
     }
 
-    setLoading(true);
+    // Only show loading state on initial load, not on polling refreshes
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
-      // Fetch only reminders that are due (ReminderTime <= now)
-      const now = new Date();
-      const fromTime = new Date(0); // Start from epoch
-      const toTime = now; // Up to current time
-      
-      // const response = await apiFetch(
-      //   `/api/reminders/user/${user.userId}/bydate?fromTime=${fromTime.toISOString()}&toTime=${toTime.toISOString()}`,
-      //   {
-      //     method: 'GET',
-      //   }
-      // );
       const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
         method: 'GET',
       });
@@ -1422,24 +1415,48 @@ export const useReminders = () => {
 
       const data = await response.json();
       setReminders(data);
+      setIsInitialLoad(false);
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching reminders');
       console.error('Error fetching reminders:', err);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [user?.userId]);
 
-  // This function will refresh the page every 20 seconds to get new reminders
+  // Refresh reminders on user interaction and window focus
   useEffect(() => {
-    fetchReminders();
+    fetchReminders(false); // Initial load with loading state
     
-    // Poll for new reminders every 30 seconds
-    const intervalId = setInterval(() => {
-      fetchReminders();
-    }, 30000);
+    // Refresh when user returns to the tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchReminders(true); // Silent refresh
+      }
+    };
 
-    return () => clearInterval(intervalId);
+    // Refresh when window gains focus
+    const handleFocus = () => {
+      fetchReminders(true); // Silent refresh
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    // Fallback: refresh every 2 minutes as backup (less aggressive than 30s)
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchReminders(true);
+      }
+    }, 120000); // 2 minutes
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
+    };
   }, [fetchReminders]);
 
   const markAsRead = useCallback(async (reminderId: number) => {
@@ -1452,7 +1469,7 @@ export const useReminders = () => {
         throw new Error(`Failed to mark reminder as read: ${response.statusText}`);
       }
 
-      // Update local state
+      // Update local state immediately for instant feedback
       setReminders(prev => 
         prev.map(r => r.reminder_id === reminderId ? { ...r, isRead: true } : r)
       );
@@ -1477,7 +1494,7 @@ export const useReminders = () => {
     reminders,
     loading,
     error,
-    refetch: fetchReminders,
+    refetch: () => fetchReminders(false),
     markAsRead,
     markAllAsRead,
   };
