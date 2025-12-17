@@ -3,6 +3,7 @@ using System;
 using Calender_WebApp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calender_WebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20251208014901_Add_Cascading")]
+    partial class Add_Cascading
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -26,6 +29,9 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(0)
                         .HasAnnotation("Relational:JsonPropertyName", "admin_id");
 
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Permissions")
                         .HasColumnType("INTEGER")
                         .HasColumnName("permissions")
@@ -37,6 +43,8 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(1);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
 
                     b.HasIndex("UserId");
 
@@ -90,11 +98,21 @@ namespace Calender_WebApp.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("user_id");
 
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("EventId1")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER")
                         .HasColumnName("status");
 
                     b.HasKey("EventId", "UserId");
+
+                    b.HasIndex("EmployeeId");
+
+                    b.HasIndex("EventId1");
 
                     b.HasIndex("UserId");
 
@@ -113,27 +131,17 @@ namespace Calender_WebApp.Migrations
                     b.Property<int>("CreatedBy")
                         .HasColumnType("INTEGER")
                         .HasColumnName("created_by")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(4);
 
                     b.Property<string>("Description")
                         .HasColumnType("TEXT")
                         .HasColumnName("description")
                         .HasColumnOrder(2);
 
-                    b.Property<int>("DurationMinutes")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("duration_minutes")
-                        .HasColumnOrder(4);
-
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("TEXT")
                         .HasColumnName("event_date")
                         .HasColumnOrder(3);
-
-                    b.Property<int?>("RoomId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("room_id")
-                        .HasColumnOrder(5);
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -144,8 +152,6 @@ namespace Calender_WebApp.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
-
-                    b.HasIndex("RoomId");
 
                     b.ToTable("events");
                 });
@@ -160,9 +166,19 @@ namespace Calender_WebApp.Migrations
                         .HasColumnType("INTEGER")
                         .HasColumnName("group_id");
 
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("INTEGER");
+
+                    b.Property<int?>("GroupId1")
+                        .HasColumnType("INTEGER");
+
                     b.HasKey("UserId", "GroupId");
 
+                    b.HasIndex("EmployeeId");
+
                     b.HasIndex("GroupId");
+
+                    b.HasIndex("GroupId1");
 
                     b.ToTable("groupmemberships");
                 });
@@ -206,6 +222,9 @@ namespace Calender_WebApp.Migrations
                         .HasColumnName("date")
                         .HasColumnOrder(2);
 
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<int>("Status")
                         .HasColumnType("INTEGER")
                         .HasColumnName("status")
@@ -217,6 +236,8 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(1);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EmployeeId");
 
                     b.HasIndex("UserId");
 
@@ -260,9 +281,9 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(0)
                         .HasAnnotation("Relational:JsonPropertyName", "reminder_id");
 
-                    b.Property<bool>("IsRead")
+                    b.Property<bool>("IsSent")
                         .HasColumnType("INTEGER")
-                        .HasColumnName("is_read")
+                        .HasColumnName("is_sent")
                         .HasColumnOrder(7);
 
                     b.Property<string>("Message")
@@ -304,6 +325,12 @@ namespace Calender_WebApp.Migrations
 
                     b.HasKey("Id");
 
+                    b.HasIndex("RelatedEventId");
+
+                    b.HasIndex("RelatedRoomId");
+
+                    b.HasIndex("UserId");
+
                     b.ToTable("reminders");
                 });
 
@@ -320,26 +347,27 @@ namespace Calender_WebApp.Migrations
                         .HasColumnName("booking_date")
                         .HasColumnOrder(2);
 
+                    b.Property<int?>("EmployeeId")
+                        .HasColumnType("INTEGER");
+
                     b.Property<TimeSpan>("EndTime")
                         .HasColumnType("TEXT")
                         .HasColumnName("end_time")
                         .HasColumnOrder(4);
 
-                    b.Property<int?>("EventId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("event_id")
-                        .HasColumnOrder(5);
-
                     b.Property<string>("Purpose")
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("purpose")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(5);
 
                     b.Property<int>("RoomId")
                         .HasColumnType("INTEGER")
                         .HasColumnName("room_id")
                         .HasColumnOrder(0);
+
+                    b.Property<int?>("RoomId1")
+                        .HasColumnType("INTEGER");
 
                     b.Property<TimeSpan>("StartTime")
                         .HasColumnType("TEXT")
@@ -353,9 +381,11 @@ namespace Calender_WebApp.Migrations
 
                     b.HasKey("Id");
 
-                    b.HasIndex("EventId");
+                    b.HasIndex("EmployeeId");
 
                     b.HasIndex("RoomId");
+
+                    b.HasIndex("RoomId1");
 
                     b.HasIndex("UserId");
 
@@ -397,6 +427,10 @@ namespace Calender_WebApp.Migrations
                 {
                     b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
                         .WithMany()
+                        .HasForeignKey("EmployeeId");
+
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
+                        .WithMany("Admins")
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -406,13 +440,21 @@ namespace Calender_WebApp.Migrations
 
             modelBuilder.Entity("Calender_WebApp.Models.EventParticipationModel", b =>
                 {
-                    b.HasOne("Calender_WebApp.Models.EventsModel", "Event")
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId");
+
+                    b.HasOne("Calender_WebApp.Models.EventsModel", null)
                         .WithMany()
                         .HasForeignKey("EventId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
+                    b.HasOne("Calender_WebApp.Models.EventsModel", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId1");
+
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -431,24 +473,26 @@ namespace Calender_WebApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
-                        .WithMany()
-                        .HasForeignKey("RoomId");
-
                     b.Navigation("CreatedByUser");
-
-                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("Calender_WebApp.Models.GroupMembershipsModel", b =>
                 {
-                    b.HasOne("Calender_WebApp.Models.GroupsModel", "Group")
-                        .WithMany("GroupMemberships")
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
+                        .WithMany()
+                        .HasForeignKey("EmployeeId");
+
+                    b.HasOne("Calender_WebApp.Models.GroupsModel", null)
+                        .WithMany()
                         .HasForeignKey("GroupId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
+                    b.HasOne("Calender_WebApp.Models.GroupsModel", "Group")
+                        .WithMany("GroupMemberships")
+                        .HasForeignKey("GroupId1");
+
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -463,6 +507,10 @@ namespace Calender_WebApp.Migrations
                 {
                     b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
                         .WithMany()
+                        .HasForeignKey("EmployeeId");
+
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
+                        .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
@@ -470,19 +518,53 @@ namespace Calender_WebApp.Migrations
                     b.Navigation("Employee");
                 });
 
+            modelBuilder.Entity("Calender_WebApp.Models.ReminderPreferencesModel", b =>
+                {
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
+                        .WithMany()
+                        .HasForeignKey("Id")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Calender_WebApp.Models.RemindersModel", b =>
+                {
+                    b.HasOne("Calender_WebApp.Models.EventsModel", null)
+                        .WithMany()
+                        .HasForeignKey("RelatedEventId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Calender_WebApp.Models.RoomBookingsModel", null)
+                        .WithMany()
+                        .HasForeignKey("RelatedRoomId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
+                        .WithMany()
+                        .HasForeignKey("UserId")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
             modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>
                 {
-                    b.HasOne("Calender_WebApp.Models.EventsModel", "Event")
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
                         .WithMany()
-                        .HasForeignKey("EventId");
+                        .HasForeignKey("EmployeeId");
 
-                    b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
-                        .WithMany("RoomBookings")
+                    b.HasOne("Calender_WebApp.Models.RoomsModel", null)
+                        .WithMany()
                         .HasForeignKey("RoomId")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
-                    b.HasOne("Calender_WebApp.Models.EmployeesModel", "Employee")
+                    b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
+                        .WithMany("RoomBookings")
+                        .HasForeignKey("RoomId1");
+
+                    b.HasOne("Calender_WebApp.Models.EmployeesModel", null)
                         .WithMany()
                         .HasForeignKey("UserId")
                         .OnDelete(DeleteBehavior.Cascade)
@@ -490,9 +572,12 @@ namespace Calender_WebApp.Migrations
 
                     b.Navigation("Employee");
 
-                    b.Navigation("Event");
-
                     b.Navigation("Room");
+                });
+
+            modelBuilder.Entity("Calender_WebApp.Models.EmployeesModel", b =>
+                {
+                    b.Navigation("Admins");
                 });
 
             modelBuilder.Entity("Calender_WebApp.Models.GroupsModel", b =>

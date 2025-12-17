@@ -10,10 +10,12 @@ namespace Calender_WebApp.Controllers;
 public class EmployeesController : ControllerBase
 {
 	private readonly IEmployeesService _employeesService;
+	private readonly IReminderPreferencesService _reminderPreferencesService;
 
-	public EmployeesController(IEmployeesService employeesService)
+	public EmployeesController(IEmployeesService employeesService, IReminderPreferencesService reminderPreferencesService)
 	{
 		_employeesService = employeesService ?? throw new ArgumentNullException(nameof(employeesService));
+		_reminderPreferencesService = reminderPreferencesService ?? throw new ArgumentNullException(nameof(reminderPreferencesService));
 	}
 
 	[HttpGet]
@@ -72,6 +74,20 @@ public class EmployeesController : ControllerBase
 		try
 		{
 			var createdEmployee = await _employeesService.Post(employee).ConfigureAwait(false);
+			
+			if (!createdEmployee.Id.HasValue)
+			{
+				return StatusCode(500, "Failed to create employee: ID was not generated.");
+			}
+
+			var reminderPreferences = new ReminderPreferencesModel
+			{
+				Id = createdEmployee.Id.Value
+			};
+			Console.WriteLine("Creating default reminder preferences for new user.");
+			Console.WriteLine($"User ID: {createdEmployee.Id}");
+			await _reminderPreferencesService.Post(reminderPreferences).ConfigureAwait(false);
+
 			return CreatedAtAction(nameof(GetById), new { id = createdEmployee.Id }, createdEmployee);
 		}
 		catch (ArgumentException ex)
@@ -118,6 +134,7 @@ public class EmployeesController : ControllerBase
 		try
 		{
 			await _employeesService.Delete(id).ConfigureAwait(false);
+			await _reminderPreferencesService.Delete(id).ConfigureAwait(false);
 			return NoContent();
 		}
 		catch (InvalidOperationException)
