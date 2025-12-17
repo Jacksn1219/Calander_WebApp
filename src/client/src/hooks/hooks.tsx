@@ -1464,6 +1464,9 @@ export const useReminders = () => {
   };
 };
 // _________________________________________
+// end functions reminders
+// _________________________________________
+// _________________________________________
 // functions home
 // _________________________________________
 
@@ -1621,3 +1624,356 @@ export const formatTimeOnly = (dateString: string) => {
 // end functions home
 // _________________________________________
 
+// _________________________________________
+// start functions roombooking
+// _________________________________________
+export type Room = {
+  room_id: number;
+  roomName: string;
+  capacity: number;
+  location: string;
+};
+
+export type RoomBooking = {
+  booking_id?: number;
+  roomId: number;
+  userId: number;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+  eventId?: number | null;
+};
+
+export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Date, reloadBookings: () => void) => {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [bookings, setBookings] = useState<RoomBooking[]>([]);
+  const [roomId, setRoomId] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [capacity, setCapacity] = useState<number>(1);
+  const [purpose, setPurpose] = useState("");
+  const [message, setMessage] = useState("");
+  const [eventId, setEventId] = useState(0);
+  const { user } = useAuth()
+
+  useEffect(() => {
+    if (selectedDate && startTime && endTime && capacity > 0) {
+      loadAvailableRooms();
+    } else {
+      setRooms([]);
+    }
+  }, [selectedDate, startTime, endTime, capacity]);
+
+  const loadAvailableRooms = async () => {
+    try {
+      const start = selectedDate.toLocaleDateString("en-GB") + "T" + startTime + ":00";
+      const end = selectedDate.toLocaleDateString("en-GB") + "T" + endTime + ":00";
+      const result = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${start}&endtime=${end}&capacity=${capacity}`);
+      if (!result.ok) throw new Error("Failed to fetch available rooms");
+
+      const data = await result.json();
+      setRooms(data);
+    } catch (err) {
+      setRooms([]);
+    }
+  };
+
+  const checkConflict = (start: string, end: string) => {
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const newStart = toMinutes(start);
+    const newEnd = toMinutes(end);
+
+    return bookings.some(
+      (b) => toMinutes(b.startTime) < newEnd && toMinutes(b.endTime) > newStart
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage("");
+
+    if (!user?.userId) {
+      alert("User is not logged in.");
+      return;
+    }
+
+    if (!startTime || !endTime || !purpose) {
+      setMessage("Please fill all required fields.");
+      return;
+    }
+
+    if (checkConflict(startTime, endTime)) {
+      setMessage("Time slot already booked for this room.");
+      return;
+    }
+
+    if (endTime <= startTime) {
+      setMessage("End time must be after start time.");
+      return;
+    }
+
+    if (rooms.length < 1 || !roomId) {
+      setMessage("There are no rooms. Please create a room first.")
+      return;
+    }
+
+    if (rooms.every(r => r.capacity < capacity)) {
+      setMessage("There are no rooms with enough capacity.")
+      return;
+    }
+
+    selectedDate.setDate(selectedDate.getDate() + 1);
+
+    const payload = {
+      roomId,
+      userId: user?.userId,
+      bookingDate: selectedDate.toISOString().split("T")[0] + "T00:00:00",
+      startTime: startTime,
+      endTime: endTime,
+      purpose: purpose,
+      eventId: null
+    };
+
+    selectedDate.setDate(selectedDate.getDate() - 1);
+
+    try {
+      const res = await apiFetch("/api/room-bookings", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (res.status === 409) {
+        setMessage("This room is already booked for the selected time.");
+        return;
+      }
+
+      if (!res.ok) throw new Error("Failed to create booking");
+
+      reloadBookings()
+      onClose()
+
+      setRoomId(null);
+      setStartTime("");
+      setEndTime("");
+      setCapacity(1);
+      setPurpose("");
+    } catch (err) {
+      console.error("Error creating booking:", err);
+      setMessage("Error adding booking.");
+    }
+  };
+
+  const generateTime = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 0 && m === 0) continue;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
+  return {
+    rooms, 
+    bookings, 
+    roomId,
+    startTime,
+    endTime,
+    capacity,
+    purpose,
+    message,
+    eventId,
+
+    setRoomId,
+    setStartTime,
+    setEndTime,
+    setCapacity,
+    setPurpose,
+    handleSubmit,
+    generateTime
+  };
+};
+
+export const useRoomBooking = () => {
+  const { user } = useAuth()
+  const [roomBookings, setRoomBookings] = useState<RoomBooking[]>([]);
+  const [roomBookingsOnDay, setRoomBookingsOnDay] = useState<RoomBooking[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const fetchRoomBookings = async () => {
+    if (!user) return;
+    try {
+      const response = await apiFetch(`/api/room-bookings/user/${user.userId}`);
+
+      if (!response.ok) throw new Error("Failed to fetch roombookings");
+
+      const data: RoomBooking[] = await response.json();
+      setRoomBookings(data);
+    } catch (err) {
+      console.error("Fetching roombookings failed: ", err);
+      setRoomBookings([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoomBookings();
+  }, [user]);
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const goToCurrentDate = () => {
+    setCurrentDate(new Date());
+  };
+
+  return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, 
+    currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
+}
+
+export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: RoomBooking[], reloadBookings: () => void) => {
+  const [editingBooking, setEditingBooking] = useState<RoomBooking | null>(null);
+  const [capacityFilter, setCapacityFilter] = useState<number | "">("");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
+
+  const allFieldsFilled =
+    editingBooking?.purpose &&
+    editingBooking?.startTime &&
+    editingBooking?.endTime &&
+    capacityFilter !== "";
+
+
+  const getRoomName = (roomId: number | undefined) => {
+    if (!roomId) return "-";
+    const room = allRooms.find(r => r.room_id === roomId);
+    return room ? room.roomName : "-";
+  };
+
+  useEffect(() => {
+    const fetchAllRooms = async () => {
+      const data = await apiFetch("/api/Rooms");
+      const result: Room[] = await data.json();
+      setAllRooms(result);
+    };
+    fetchAllRooms();
+  }, []);
+
+  useEffect(() => {
+    if (!allFieldsFilled) return;
+
+    const fetchRooms = async () => {
+      const data = await apiFetch("/api/Rooms");
+      const result: Room[] = await data.json()
+      setRooms(result.filter(r => r.capacity >= Number(capacityFilter)));
+    };
+
+    fetchRooms();
+  }, [allFieldsFilled, capacityFilter]);
+
+  const checkConflict = (start: string, end: string, currentId?: number) => {
+    const toMin = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    return roomBookings.some(
+      b =>
+        b.booking_id !== currentId &&
+        toMin(b.startTime) < toMin(end) &&
+        toMin(b.endTime) > toMin(start)
+    );
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBooking || capacityFilter === "") return;
+
+    if (editingBooking.endTime <= editingBooking.startTime) {
+      alert("End time must be after start time");
+      return;
+    }
+
+    if (checkConflict(editingBooking.startTime, editingBooking.endTime, editingBooking.booking_id)) {
+      alert("Time slot already booked");
+      return;
+    }
+
+    await apiFetch(`/api/room-bookings/${editingBooking.booking_id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        booking_id: editingBooking.booking_id,
+        roomId: editingBooking.roomId,
+        userId: editingBooking.userId,
+        bookingDate: editingBooking.bookingDate,
+        startTime: editingBooking.startTime.slice(0, 5),
+        endTime: editingBooking.endTime.slice(0, 5),
+        eventId: null,
+        purpose: editingBooking.purpose,
+      }),
+    });
+
+    setEditingBooking(null);
+    reloadBookings();
+    onClose();
+  };
+
+  const handleDelete = async (booking: RoomBooking) => {
+    if (!window.confirm("Delete this booking?")) return;
+
+    await apiFetch(`/api/room-bookings`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        roomId: booking.roomId,
+        userId: booking.userId,
+        bookingDate: booking.bookingDate,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+      }),
+    });
+
+    reloadBookings()
+    onClose();
+  };
+
+  const generateTime = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 0 && m === 0) continue;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}:00`);
+      }
+    }
+    return options;
+  };
+
+  return {
+    editingBooking,
+    setEditingBooking,
+    handleSaveEdit,
+    capacityFilter,
+    setCapacityFilter,
+    rooms,
+    handleDelete,
+    getRoomName,
+    generateTime
+  };
+};
+
+// _________________________________________
+// end functions roombooking
+// _________________________________________
