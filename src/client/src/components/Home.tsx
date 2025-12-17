@@ -9,6 +9,8 @@ import '../styles/login-page.css';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [upPage, setUpPage] = React.useState(1);
+  const UPCOMING_PER_PAGE = 5;
   const {
     user,
     loading,
@@ -30,7 +32,20 @@ const Home: React.FC = () => {
     roomBookings,
     roomBookingsLoading,
     roomBookingsError,
+    handleAttend,
+    roomsById,
   } = useHomeDashboard();
+
+  const totalUpcomingPages = Math.max(1, Math.ceil(upcomingEvents.length / UPCOMING_PER_PAGE));
+  const pagedUpcoming = React.useMemo(
+    () => upcomingEvents.slice((upPage - 1) * UPCOMING_PER_PAGE, upPage * UPCOMING_PER_PAGE),
+    [upcomingEvents, upPage]
+  );
+  React.useEffect(() => {
+    // keep page in range when upcomingEvents changes (e.g., after attending)
+    if (upPage > totalUpcomingPages) setUpPage(1);
+  }, [upPage, totalUpcomingPages]);
+
 
   const renderMiniWeek = () => {
     const startOfWeek = currentWeekStart;
@@ -246,42 +261,83 @@ const Home: React.FC = () => {
                 </button>
               </div>
 
-              <div className="calendar-days home-upcoming-list">
-                {!loading && !error && events.length === 0 && (
-                  <p className="muted">There are no events yet.</p>
+                {!loading && !error && upcomingEvents.length === 0 && (
+                  <p className="muted">You have no upcoming events to attend.</p>
                 )}
-                {upcomingEvents.slice(0, 5).map(ev => (
-                  <div
-                    key={ev.eventId}
-                    className="calendar-day has-event"
-                    onClick={() => handleEventClick(ev)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleEventClick(ev);
-                      }
-                    }}
-                  >
-                    <span className="day-number">
-                      {ev.eventDate.toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
+                {upcomingEvents.length > 0 && (
+                  <>
+                    <div className="room-booking-list">
+                      {pagedUpcoming.map(ev => {
+                        const start = ev.eventDate;
+                        const end = new Date(start.getTime() + ev.durationMinutes * 60000);
+                        const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+                        return (
+                          <div key={ev.eventId} className="room-booking-row home-upcoming-row">
+                            <div className="room-booking-date">
+                              <span className="room-booking-date-label">
+                                {start.toLocaleDateString(undefined, { month: 'short', day: 'numeric' })}
+                              </span>
+                            </div>
+                            <div className="home-upcoming-main">
+                              <div className="home-upcoming-title">{ev.title}</div>
+                              <div className="home-upcoming-desc">
+                                {(ev.description && ev.description.trim().length > 0)
+                                  ? (ev.description.length > 120 ? `${ev.description.slice(0, 117)}...` : ev.description)
+                                  : 'No description'}
+                              </div>
+                              <div className="home-upcoming-time">{timeRange}</div>
+                              <div className="home-upcoming-location">
+                                {ev.roomId != null && roomsById[ev.roomId] && (
+                                  `${roomsById[ev.roomId].roomName}${roomsById[ev.roomId].location ? ' — ' + roomsById[ev.roomId].location : ''}`
+                                )}
+                              </div>
+                            </div>
+                            <div className="home-upcoming-right">
+                              <button
+                                type="button"
+                                className="btn-today"
+                                onClick={() => handleEventClick(ev)}
+                              >
+                                See event
+                              </button>
+                              <button
+                                type="button"
+                                className="btn-today"
+                                style={{ backgroundColor: '#22c55e' }}
+                                onClick={() => handleAttend(ev.eventId)}
+                              >
+                                Attend
+                              </button>
+                            </div>
+                          </div>
+                        );
                       })}
-                    </span>
-                    <div className="event-indicator">
-                      <span className="event-count">{ev.title}</span>
                     </div>
-                    {ev.description && (
-                      <p className="muted home-event-description">
-                        {ev.description.length > 80
-                          ? `${ev.description.slice(0, 77)}...`
-                          : ev.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
-              </div>
+                    <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
+                      <button
+                        type="button"
+                        className="btn-today"
+                        onClick={() => setUpPage(p => Math.max(1, p - 1))}
+                        disabled={upPage === 1}
+                        style={{ minWidth: 80 }}
+                      >
+                        Previous
+                      </button>
+                      <span style={{ alignSelf: 'center', color: '#333', fontWeight: 500 }}>
+                        Page {upPage} of {totalUpcomingPages}
+                      </span>
+                      <button
+                        type="button"
+                        className="btn-today"
+                        onClick={() => setUpPage(p => Math.min(totalUpcomingPages, p + 1))}
+                        disabled={upPage === totalUpcomingPages}
+                        style={{ minWidth: 80 }}
+                      >
+                        Next
+                      </button>
+                    </div>
+                  </>
+                )}
             </section>
           </div>
         </div>

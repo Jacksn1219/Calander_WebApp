@@ -354,3 +354,95 @@
 .room-booking-error {
   color: #b91c1c;
 }
+
+  .btn-green {
+    background: #22c55e;
+    color: #fff;
+    border: none;
+    border-radius: 6px;
+    padding: 0.5rem 1.2rem;
+    font-size: 1rem;
+    font-weight: 600;
+    cursor: pointer;
+    transition: background 0.2s;
+  }
+
+  .btn-green:hover {
+    background: #16a34a;
+  }
+
+  .btn-green:disabled {
+    background: #bbf7d0;
+    cursor: not-allowed;
+  }
+
+  /* Upcoming Events layout (three columns: date | main | right) */
+  .home-right-column .home-upcoming-row {
+    display: grid;
+    grid-template-columns: auto 1fr 1.2fr;
+    align-items: start;
+    column-gap: 16px;
+  }
+
+  .home-upcoming-main {
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .home-upcoming-title {
+    font-weight: 600;
+    font-size: 0.95rem;
+  }
+
+  .home-upcoming-time {
+    font-size: 0.9rem;
+    color: #555;
+  }
+
+  .home-upcoming-location {
+    font-size: 0.9rem;
+    color: #666;
+  }
+
+  .home-upcoming-right {
+    display: flex;
+    flex-direction: row;
+    align-items: flex-start;
+    justify-content: flex-end;
+    gap: 8px;
+  }
+
+  .home-upcoming-desc {
+    color: #333;
+    text-align: left;
+    font-size: 0.9rem;
+  }
+
+  .home-upcoming-pagination {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    gap: 8px;
+    margin-top: 12px;
+  }
+
+  .home-upcoming-page-indicator {
+    color: #333;
+    font-weight: 500;
+  }
+
+  @media (max-width: 800px) {
+    .home-right-column .home-upcoming-row {
+      grid-template-columns: auto 1fr;
+      row-gap: 8px;
+    }
+    .home-upcoming-right {
+      grid-column: 1 / -1;
+      align-items: flex-start;
+      text-align: left;
+    }
+    .home-upcoming-desc {
+      text-align: left;
+    }
+  }

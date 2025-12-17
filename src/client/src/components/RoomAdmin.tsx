@@ -23,10 +23,17 @@ const RoomAdmin: React.FC = () => {
 
   const [isModalOpen, setIsModalOpen] = useState(false);
   // Pagination state
-  const [page, setPage] = useState(1);
+  const [upPage, setUpPage] = useState(1);
   const ROOMS_PER_PAGE = 5;
-  const totalPages = Math.ceil(rooms.length / ROOMS_PER_PAGE);
-  const pagedRooms = rooms.slice((page - 1) * ROOMS_PER_PAGE, page * ROOMS_PER_PAGE);
+  const totalPages = Math.max(1, Math.ceil(rooms.length / ROOMS_PER_PAGE));
+  const pagedRooms = React.useMemo(
+    () => rooms.slice((upPage - 1) * ROOMS_PER_PAGE, upPage * ROOMS_PER_PAGE),
+    [rooms, upPage]
+  );
+  React.useEffect(() => {
+    // keep page in range when rooms changes (e.g., after deleting)
+    if (upPage > totalPages) setUpPage(1);
+  }, [upPage, totalPages]);
 
   const openEditModal = (room: any) => {
     setError(null);
@@ -78,8 +85,8 @@ const RoomAdmin: React.FC = () => {
                 <input
                   id="room-name"
                   type="text"
-                  value={createForm.name}
-                  onChange={e => updateCreateField('name', e.target.value)}
+                  value={createForm.roomName}
+                  onChange={e => updateCreateField('roomName', e.target.value)}
                   placeholder="Room name"
                   required
                 />
@@ -134,7 +141,7 @@ const RoomAdmin: React.FC = () => {
                       <div key={room.id} className="room-booking-row">
                       <div className="room-booking-details">
                         <div className="room-booking-room">
-                          {room.name} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
+                          {room.roomName} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
                         </div>
                         {room.location && (
                           <div className="room-booking-time">Location: {room.location}</div>
@@ -169,21 +176,20 @@ const RoomAdmin: React.FC = () => {
                     <button
                       type="button"
                       className="btn-today"
-                      onClick={() => setPage(p => Math.max(1, p - 1))}
-                      disabled={page === 1}
+                      onClick={() => setUpPage(p => Math.max(1, p - 1))}
+                      disabled={upPage === 1}
                       style={{ minWidth: 80 }}
                     >
                       Previous
                     </button>
                     <span style={{ alignSelf: 'center', color: '#333', fontWeight: 500 }}>
-                      Page {page} of {totalPages}
+                      Page {upPage} of {totalPages}
                     </span>
                     <button
                       type="button"
                       className="btn-today"
-                      onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                      disabled={page === totalPages}
-                      style={{ minWidth: 80 }}
+                      onClick={() => setUpPage(p => Math.min(totalPages, p + 1))}
+                      disabled={upPage === totalPages}
                     >
                       Next
                     </button>
@@ -226,8 +232,8 @@ const RoomAdmin: React.FC = () => {
                 <input
                   id="modal-room-name"
                   type="text"
-                  value={editForm.name}
-                  onChange={e => updateEditField('name', e.target.value)}
+                  value={editForm.roomName}
+                  onChange={e => updateEditField('roomName', e.target.value)}
                   placeholder="Room name"
                   required
                 />

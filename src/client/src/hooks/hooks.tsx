@@ -1258,6 +1258,8 @@ export const useHomeDashboard = () => {
     error: roomBookingsError,
   } = useUserRoomBookings(user?.userId);
 
+  const [roomsById, setRoomsById] = useState<Record<number, RoomDto>>({});
+
   const { upcomingEvents, totalEvents, acceptedEventsForUser } = useMemo(() => {
     const now = new Date();
     const sorted = [...events].sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
@@ -1272,7 +1274,13 @@ export const useHomeDashboard = () => {
       }
     });
 
-    const upcoming = sorted.filter(ev => ev.eventDate >= now);
+      // Filter to show only upcoming events that the user hasn't attended yet
+      const upcoming = sorted.filter(ev => {
+        if (ev.eventDate < now) return false;
+        if (!user?.userId) return true;
+        const me = ev.participants.find(p => p.userId === user.userId);
+        return !me || me.status !== 'Accepted';
+      });
 
     return {
       upcomingEvents: upcoming,
@@ -1280,6 +1288,25 @@ export const useHomeDashboard = () => {
       acceptedEventsForUser: acceptedForUser,
     };
   }, [events, user?.userId]);
+
+  // Fetch room details for events with roomId
+  useEffect(() => {
+    const roomIds = Array.from(new Set(upcomingEvents.map(ev => ev.roomId).filter((id): id is number => id != null)));
+    
+    roomIds.forEach(async (roomId) => {
+      if (!roomsById[roomId]) {
+        try {
+          const response = await apiFetch(`/api/rooms/${roomId}`);
+          if (response.ok) {
+            const room: RoomDto = await response.json();
+            setRoomsById(prev => ({ ...prev, [roomId]: room }));
+          }
+        } catch (error) {
+          console.error(`Failed to fetch room ${roomId}:`, error);
+        }
+      }
+    });
+  }, [upcomingEvents, roomsById]);
 
   const attendanceRate = totalEvents > 0
     ? Math.round((acceptedEventsForUser / totalEvents) * 100)
@@ -1343,6 +1370,24 @@ export const useHomeDashboard = () => {
     setSelectedDateForDialog(null);
   };
 
+    const handleAttend = useCallback(async (eventId: number) => {
+      if (!user?.userId || !user?.name) return;
+      try {
+        const res = await apiFetch('/api/event-participation', {
+          method: 'POST',
+          body: JSON.stringify({ eventId, userId: user.userId, status: 1 }),
+        });
+        if (!res.ok) throw new Error('Failed to register for event');
+
+        // Reload events to refresh the list
+        await reload();
+        alert('You have successfully registered for this event.');
+      } catch (e) {
+        console.error(e);
+        alert('Unable to register for this event. Please try again.');
+      }
+    }, [user, reload]);
+
   return {
     user,
     loading,
@@ -1364,6 +1409,8 @@ export const useHomeDashboard = () => {
     roomBookings,
     roomBookingsLoading,
     roomBookingsError,
+    handleAttend,
+    roomsById,
   };
 };
 
@@ -1407,14 +1454,14 @@ export const formatTimeOnly = (dateString: string) => {
 
 export interface RoomDto {
   id: number;
-  name: string;
+  roomName: string;
   capacity?: number | null;
   location: string;
 }
 
 export interface RoomFormState {
   id?: number | null;
-  name: string;
+  roomName: string;
   location: string;
   capacity: string;
 }
@@ -1424,14 +1471,14 @@ export const useRoomsAdmin = () => {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [createForm, setCreateForm] = useState<Omit<RoomFormState, 'id'>>({
-    name: '',
+    roomName: '',
     location: '',
     capacity: ''
   });
 
   const [editForm, setEditForm] = useState<RoomFormState>({
     id: null,
-    name: '',
+    roomName: '',
     location: '',
     capacity: ''
   });
@@ -1469,17 +1516,17 @@ export const useRoomsAdmin = () => {
   const isEditing = editForm.id != null;
 
   const resetCreateForm = () => {
-    setCreateForm({ name: '', location: '', capacity: '' });
+    setCreateForm({ roomName: '', location: '', capacity: '' });
   };
 
   const resetEditForm = () => {
-    setEditForm({ id: null, name: '', location: '', capacity: '' });
+    setEditForm({ id: null, roomName: '', location: '', capacity: '' });
   };
 
   const startEdit = (room: RoomDto) => {
     setEditForm({
       id: room.id,
-      name: room.name,
+      roomName: room.roomName,
       location: (room as any).location ?? (room as any).Location ?? '',
       capacity: room.capacity != null ? String(room.capacity) : '',
     });
@@ -1509,7 +1556,7 @@ export const useRoomsAdmin = () => {
       return false;
     };
 
-    if (!form.name.trim()) {
+    if (!form.roomName.trim()) {
       return fail('room name is required');
     }
 
@@ -1528,7 +1575,7 @@ export const useRoomsAdmin = () => {
     }
 
     const payload: any = {
-      roomName: form.name.trim(),
+      roomName: form.roomName.trim(),
       location: form.location.trim(),
       capacity: capacityNumber,
     };
