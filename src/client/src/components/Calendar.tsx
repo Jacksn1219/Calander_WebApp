@@ -27,6 +27,8 @@ const Calendar: React.FC = () => {
     onUpcomingBack,
     onUpcomingForward,
     onUpcomingEventSelect,
+    calendarGridRef,
+    upcomingHeaderRef,
   } = useCalendar();
 
   return (
@@ -63,7 +65,7 @@ const Calendar: React.FC = () => {
 
           <div className="calendar-content">
             <div className="calendar-grid-wrapper">
-              <div className="calendar-grid">
+              <div className="calendar-grid" ref={calendarGridRef}>
                 <div className="calendar-header">
                   {weekdays.map(weekday => (
                     <div key={weekday} className="weekday">{weekday}</div>
@@ -108,7 +110,7 @@ const Calendar: React.FC = () => {
               </div>
             </div>
             <aside className="upcoming-panel" aria-live="polite">
-              <div className="upcoming-header">
+              <div className="upcoming-header" ref={upcomingHeaderRef}>
                 <div>
                   <p className="muted uppercase">Upcoming events</p>
                   <h3>{upcomingLabel}</h3>

@@ -1,4 +1,4 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
@@ -11,7 +11,10 @@ const MONTH_NAMES = [
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const MAX_UPCOMING_EVENTS = 7;
+// Conservative estimate for event card height: date badge + title + time + description (2 lines) + attending + padding
+const ESTIMATED_EVENT_CARD_HEIGHT = 115;
+const MIN_UPCOMING_EVENTS = 1;
+const DEFAULT_UPCOMING_EVENTS = 3;
 
 interface CalendarDayCell {
   key: string;
@@ -646,6 +649,10 @@ export const useCalendar = () => {
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [listMonthOffset, setListMonthOffset] = useState(0);
   const [eventPage, setEventPage] = useState(0);
+  const [maxUpcomingEvents, setMaxUpcomingEvents] = useState(DEFAULT_UPCOMING_EVENTS);
+
+  const calendarGridRef = useRef<HTMLDivElement>(null);
+  const upcomingHeaderRef = useRef<HTMLDivElement>(null);
 
   const timeFormatter = useMemo(() => new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
@@ -676,6 +683,40 @@ export const useCalendar = () => {
     const now = new Date();
     return new Date(now.getFullYear(), now.getMonth(), now.getDate());
   }, []);
+
+  // ResizeObserver to dynamically calculate max events based on calendar height
+  useEffect(() => {
+    const calendarGrid = calendarGridRef.current;
+    const upcomingHeader = upcomingHeaderRef.current;
+
+    if (!calendarGrid || !upcomingHeader) return;
+
+    const observer = new ResizeObserver(() => {
+      const calendarHeight = calendarGrid.offsetHeight;
+      const headerHeight = upcomingHeader.offsetHeight;
+      const availableHeight = calendarHeight - headerHeight;
+
+      // Calculate how many events can fit
+      const calculatedMax = Math.max(
+        MIN_UPCOMING_EVENTS,
+        Math.floor(availableHeight / ESTIMATED_EVENT_CARD_HEIGHT)
+      );
+
+      setMaxUpcomingEvents(calculatedMax);
+    });
+
+    observer.observe(calendarGrid);
+    observer.observe(upcomingHeader);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Reset page when maxUpcomingEvents changes
+  useEffect(() => {
+    setEventPage(0);
+  }, [maxUpcomingEvents]);
 
   const calendarMonthLabel = useMemo(() => (
     `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`
@@ -725,16 +766,16 @@ export const useCalendar = () => {
   }, [roleScopedEvents, listMonth, today]);
 
   useEffect(() => {
-    const totalPages = Math.ceil(monthlyEvents.length / MAX_UPCOMING_EVENTS);
+    const totalPages = Math.ceil(monthlyEvents.length / maxUpcomingEvents);
     if (eventPage > 0 && eventPage >= totalPages) {
       setEventPage(totalPages > 0 ? totalPages - 1 : 0);
     }
-  }, [monthlyEvents.length, eventPage]);
+  }, [monthlyEvents.length, eventPage, maxUpcomingEvents]);
 
   const pagedEvents = useMemo(() => {
-    const start = eventPage * MAX_UPCOMING_EVENTS;
-    return monthlyEvents.slice(start, start + MAX_UPCOMING_EVENTS);
-  }, [monthlyEvents, eventPage]);
+    const start = eventPage * maxUpcomingEvents;
+    return monthlyEvents.slice(start, start + maxUpcomingEvents);
+  }, [monthlyEvents, eventPage, maxUpcomingEvents]);
 
   const upcomingEvents = useMemo<UpcomingEventSummary[]>(() => {
     return pagedEvents.map(event => {
@@ -766,7 +807,7 @@ export const useCalendar = () => {
     });
   }, [roleScopedEvents, listMonth, today]);
 
-  const hasNextEventPage = monthlyEvents.length > (eventPage + 1) * MAX_UPCOMING_EVENTS;
+  const hasNextEventPage = monthlyEvents.length > (eventPage + 1) * maxUpcomingEvents;
   const hasPrevEventPage = eventPage > 0;
   const canGoBackInList = hasPrevEventPage || listMonthOffset > 0;
   const canGoForwardInList = hasNextEventPage || hasFutureMonths;
@@ -841,6 +882,8 @@ export const useCalendar = () => {
     onUpcomingBack: handlePreviousListMonth,
     onUpcomingForward: handleNextListMonth,
     onUpcomingEventSelect: handleUpcomingEventClick,
+    calendarGridRef,
+    upcomingHeaderRef,
   };
 };
 
