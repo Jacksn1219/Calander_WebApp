@@ -65,7 +65,7 @@ const RoomBookingDialog: React.FC<RoomBookingDialogProps> = ({ onClose, selected
               type="text"
               value={purpose}
               onChange={(e) => setPurpose(e.target.value)}
-              placeholder="Optional purpose"
+              placeholder="Purpose"
             />
 
             {rooms.length > 0 && (

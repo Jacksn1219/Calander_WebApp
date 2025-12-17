@@ -1423,7 +1423,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
       return;
     }
 
-    if (!startTime || !endTime) {
+    if (!startTime || !endTime || !purpose) {
       setMessage("Please fill all required fields.");
       return;
     }
@@ -1438,13 +1438,13 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
       return;
     }
 
-    if (rooms.every(r => r.capacity < capacity)) {
-      setMessage("There are no rooms with enough capacity.")
+    if (rooms.length < 1 || !roomId) {
+      setMessage("There are no rooms. Please create a room first.")
       return;
     }
 
-    if (rooms.length < 1 || !roomId) {
-      setMessage("There are no rooms. Please create a room first.")
+    if (rooms.every(r => r.capacity < capacity)) {
+      setMessage("There are no rooms with enough capacity.")
       return;
     }
 
@@ -1456,7 +1456,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
       bookingDate: selectedDate.toISOString().split("T")[0] + "T00:00:00",
       startTime: startTime,
       endTime: endTime,
-      purpose: purpose || "Meeting",
+      purpose: purpose,
       eventId: null
     };
 
