@@ -1496,33 +1496,35 @@ export const useRoomsAdmin = () => {
   const saveRoom = async (
     mode: 'create' | 'edit',
     e?: React.FormEvent
-  ) => {
+  ): Promise<boolean> => {
     if (e) e.preventDefault();
 
     const form = mode === 'create'
       ? { ...createForm, id: null }
       : editForm;
 
+    const fail = (reason: string) => {
+      const action = mode === 'create' ? 'create' : 'edit';
+      setError(`Couldn't ${action} because ${reason}`);
+      return false;
+    };
+
     if (!form.name.trim()) {
-      setError('Room name is required');
-      return;
+      return fail('room name is required');
     }
 
     if (!form.location.trim()) {
-      setError('Room location is required');
-      return;
+      return fail('room location is required');
     }
 
     if (!form.capacity.trim()) {
-      setError('Room capacity is required');
-      return;
+      return fail('room capacity is required');
     }
 
     const capacityNumber = form.capacity.trim() ? Number(form.capacity) : null;
 
-    if (capacityNumber != null && (Number.isNaN(capacityNumber) || capacityNumber < 0)) {
-      setError('Room capacity must be a non-negative number');
-      return;
+    if (capacityNumber != null && (Number.isNaN(capacityNumber) || capacityNumber < 1)) {
+      return fail('room capacity must be at least 1');
     }
 
     const payload: any = {
@@ -1561,9 +1563,11 @@ export const useRoomsAdmin = () => {
       } else {
         resetEditForm();
       }
+      return true;
     } catch (e: any) {
       console.error('Error saving room', e);
-      setError(e.message ?? 'Failed to save room');
+      const reason = e?.message || 'failed to save room';
+      return fail(reason);
     } finally {
       setLoading(false);
     }
@@ -1592,6 +1596,7 @@ export const useRoomsAdmin = () => {
     rooms,
     loading,
     error,
+    setError,
     createForm,
     editForm,
     isEditing,
@@ -1663,7 +1668,7 @@ export const useEmployeesAdmin = () => {
       }
       const data = await res.json();
       const mapped: EmployeeDto[] = (data || []).map((emp: any) => ({
-        id: emp.employee_id ?? emp.id ?? emp.employeeId ?? emp.EmployeeId ?? 0,
+        id: emp.user_id ?? emp.Id ?? emp.id ?? 0,
         name: emp.name ?? emp.Name ?? 'Unknown',
         email: emp.email ?? emp.Email ?? '',
         role: emp.role ?? emp.Role ?? 'User',
@@ -1724,30 +1729,36 @@ export const useEmployeesAdmin = () => {
     setEditForm(prev => ({ ...prev, [field]: value }));
   };
 
-  const saveEmployee = async (mode: 'create' | 'edit', e?: React.FormEvent) => {
+  const saveEmployee = async (mode: 'create' | 'edit', e?: React.FormEvent): Promise<boolean> => {
     if (e) e.preventDefault();
 
     const form = mode === 'create' ? { ...createForm, id: null } : editForm;
 
+    const fail = (reason: string) => {
+      const action = mode === 'create' ? 'create' : 'edit';
+      setError(`Couldn't ${action} because ${reason}`);
+      return false;
+    };
+
     if (!form.name.trim()) {
-      setError('Full name is required');
-      return;
+      return fail('full name is required');
     }
 
     if (!form.email.trim()) {
-      setError('Email is required');
-      return;
+      return fail('email is required');
     }
-
+    // Validate email format
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      return fail('the email address is invalid');
+    }
     if (mode === 'create') {
       if (!form.password || form.password.length < 8) {
-        setError('Password must be at least 8 characters');
-        return;
+        return fail('password must be at least 8 characters');
       }
 
       if (form.password !== form.confirmPassword) {
-        setError('Passwords do not match');
-        return;
+        return fail('passwords do not match');
       }
     }
 
@@ -1793,9 +1804,11 @@ export const useEmployeesAdmin = () => {
       } else {
         resetEditForm();
       }
+      return true;
     } catch (e: any) {
       console.error('Error saving employee', e);
-      setError(e.message ?? 'Failed to save employee');
+      const reason = e?.message || 'failed to save employee';
+      return fail(reason);
     } finally {
       setLoading(false);
     }
@@ -1824,6 +1837,7 @@ export const useEmployeesAdmin = () => {
     employees,
     loading,
     error,
+    setError,
     createForm,
     editForm,
     isEditing,

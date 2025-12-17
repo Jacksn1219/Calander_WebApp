@@ -9,6 +9,7 @@ const RoomAdmin: React.FC = () => {
     rooms,
     loading,
     error,
+    setError,
     createForm,
     editForm,
     isEditing,
@@ -28,11 +29,13 @@ const RoomAdmin: React.FC = () => {
   const pagedRooms = rooms.slice((page - 1) * ROOMS_PER_PAGE, page * ROOMS_PER_PAGE);
 
   const openEditModal = (room: any) => {
+    setError(null);
     startEdit(room);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    setError(null);
     resetEditForm();
     setIsModalOpen(false);
   };
@@ -51,11 +54,6 @@ const RoomAdmin: React.FC = () => {
             <h1>Manage rooms</h1>
             <p className="muted">Create and manage rooms for bookings.</p>
             {loading && <p className="muted">Loading rooms...</p>}
-            {error && (
-              <div className="calendar-status error">
-                <span>{error}</span>
-              </div>
-            )}
           </div>
         </div>
 
@@ -104,15 +102,15 @@ const RoomAdmin: React.FC = () => {
                 <input
                   id="room-capacity"
                   type="number"
-                  min="0"
+                  min="1"
                   value={createForm.capacity}
                   onChange={e => {
                     const value = e.target.value;
-                    if (value === '' || Number(value) >= 0) {
+                    if (value === '' || Number(value) >= 1) {
                       updateCreateField('capacity', value);
                     }
                   }}
-                  placeholder="Optional capacity"
+                  placeholder="Must be at least 1"
                 />
                 <div className="form-actions">
                   <button type="submit" className="btn-green" disabled={loading}>
@@ -208,14 +206,14 @@ const RoomAdmin: React.FC = () => {
             <div className="room-modal" onClick={e => e.stopPropagation()}>
               <h2 className="section-title">Edit room</h2>
               {error && (
-                <div className="banner banner-error" role="alert">
+                <div className="banner banner-error" role="alert" style={{ marginBottom: 12 }}>
                   {error}
                 </div>
               )}
               <form
                 onSubmit={async e => {
-                  await saveRoom('edit', e);
-                  if (!error) {
+                  const ok = await saveRoom('edit', e);
+                  if (ok) {
                     closeModal();
                   }
                 }}
@@ -252,15 +250,15 @@ const RoomAdmin: React.FC = () => {
                 <input
                   id="modal-room-capacity"
                   type="number"
-                  min="0"
+                  min="1"
                   value={editForm.capacity}
                   onChange={e => {
                     const value = e.target.value;
-                    if (value === '' || Number(value) >= 0) {
+                    if (value === '' || Number(value) >= 1) {
                       updateEditField('capacity', value);
                     }
                   }}
-                  placeholder="Optional capacity"
+                  placeholder="Must be at least 1"
                 />
 
                 <div className="form-actions">

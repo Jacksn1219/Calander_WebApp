@@ -18,6 +18,7 @@ const EmployeeAdmin: React.FC = () => {
     saveEmployee,
     startEdit,
     resetEditForm,
+    setError,
     deleteEmployee,
     canAssignAdminRole,
   } = useEmployeesAdmin();
@@ -39,11 +40,13 @@ const EmployeeAdmin: React.FC = () => {
   const pagedEmployees = visibleEmployees.slice((page - 1) * EMPLOYEES_PER_PAGE, page * EMPLOYEES_PER_PAGE);
 
   const openEditModal = (employee: any) => {
+    setError(null);
     startEdit(employee);
     setIsModalOpen(true);
   };
 
   const closeModal = () => {
+    setError(null);
     resetEditForm();
     setIsModalOpen(false);
     setShowEditPassword(false);
@@ -115,11 +118,7 @@ const EmployeeAdmin: React.FC = () => {
             <h1>Manage employees</h1>
             <p className="muted">Create and manage employee accounts.</p>
             {loading && <p className="muted">Loading employees...</p>}
-            {error && (
-              <div className="calendar-status error">
-                <span>{error}</span>
-              </div>
-            )}
+               
           </div>
         </div>
 
@@ -128,11 +127,11 @@ const EmployeeAdmin: React.FC = () => {
           <div className="calendar-container" style={{ maxWidth: '600px' }}>
             <section className="calendar-grid">
               <h2 className="section-title">Add employee</h2>
-              {error && !isModalOpen && (
-                <div className="banner banner-error" role="alert">
-                  {error}
-                </div>
-              )}
+              {error && !isModalOpen && !isEditing && (
+              <div className="calendar-status error">
+                <span>{error}</span>
+              </div>
+            )}
               <form
                 onSubmit={e => saveEmployee('create', e)}
                 className="login-form"
@@ -306,10 +305,15 @@ const EmployeeAdmin: React.FC = () => {
               onClick={e => e.stopPropagation()}
             >
               <h2 style={{ marginTop: 0 }}>Edit employee</h2>
+              {error && (
+                <div className="banner banner-error" role="alert" style={{ marginBottom: 12 }}>
+                  {error}
+                </div>
+              )}
               <form
-                onSubmit={e => {
-                  saveEmployee('edit', e);
-                  closeModal();
+                onSubmit={async e => {
+                  const ok = await saveEmployee('edit', e);
+                  if (ok) closeModal();
                 }}
                 className="login-form"
                 noValidate
@@ -372,7 +376,7 @@ const EmployeeAdmin: React.FC = () => {
                 </div>
 
                 <div className="form-actions">
-                  <button type="button" className="btn-today" onClick={closeModal}>
+                  <button type="button" className="btn-red" onClick={closeModal}>
                     Cancel
                   </button>
                   <button type="submit" className="btn-blue" disabled={loading}>
