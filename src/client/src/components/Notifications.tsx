@@ -220,7 +220,11 @@ const Notifications: React.FC = () => {
               border: '1px solid #e9ecef',
               overflow: 'hidden'
             }}>
-              {filteredReminders.map((reminder, index) => (
+              {filteredReminders.map((reminder, index) => {
+                const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
+                const isCanceled = reminder.reminderType === 4 || reminder.reminderType === 5;
+                
+                return (
                 <div
                   key={reminder.reminder_id}
                   style={{
@@ -235,9 +239,10 @@ const Notifications: React.FC = () => {
                 >
                   <div style={{ 
                     padding: '15px',
-                    backgroundColor: '#e8e8e8',
+                    backgroundColor: isChanged ? '#fff8e1' : isCanceled ? '#f8d7da' : '#e8e8e8',
                     borderRadius: '6px',
-                    overflow: 'hidden'
+                    overflow: 'hidden',
+                    borderLeft: isChanged ? '4px solid #ff9800' : isCanceled ? '4px solid #dc3545' : 'none'
                   }}>
                     {/* Header Bar with Cross */}
                     <div style={{ 
@@ -245,7 +250,7 @@ const Notifications: React.FC = () => {
                       justifyContent: 'space-between', 
                       alignItems: 'center',
                       padding: '10px 15px',
-                      backgroundColor: '#e8e8e8',
+                      backgroundColor: isChanged ? '#fff8e1' : isCanceled ? '#f8d7da' : '#e8e8e8',
                       marginBottom: '-20px'
                     }}>
                       <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
@@ -348,7 +353,8 @@ const Notifications: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>
