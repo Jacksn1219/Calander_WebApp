@@ -11,7 +11,7 @@ interface RoomBookingDialogProps {
 
 const RoomBookingDialog: React.FC<RoomBookingDialogProps> = ({ onClose, selectedDate, reloadBookings }) => {
   const { rooms, bookings, roomId, startTime, endTime, capacity, purpose, message,
-    setRoomId, setStartTime, setEndTime, setCapacity, setPurpose, handleSubmit } = useCreateRoomBookingDialog(onClose, selectedDate, reloadBookings);
+    setRoomId, setStartTime, setEndTime, setCapacity, setPurpose, handleSubmit, generateTime } = useCreateRoomBookingDialog(onClose, selectedDate, reloadBookings);
 
   const formattedDate = selectedDate
     ? new Date(selectedDate).toLocaleDateString("en-GB", {
@@ -27,6 +27,8 @@ const RoomBookingDialog: React.FC<RoomBookingDialogProps> = ({ onClose, selected
     }
   };
 
+  const times = generateTime();
+
   return (
     <div className="dialog-backdrop" onClick={(e) => handleBackdropClick(e)}>
       <div className="dialog-content">
@@ -39,18 +41,20 @@ const RoomBookingDialog: React.FC<RoomBookingDialogProps> = ({ onClose, selected
         <div className="dialog-body">
           <form className="booking-card" onSubmit={handleSubmit}>
             <label>Start time</label>
-            <input
-              type="time"
-              value={startTime}
-              onChange={(e) => setStartTime(e.target.value)}
-            />
+            <select value={startTime} onChange={(e) => setStartTime(e.target.value)}>
+              <option value="">Select start time</option>
+              {times.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
 
             <label>End time</label>
-            <input
-              type="time"
-              value={endTime}
-              onChange={(e) => setEndTime(e.target.value)}
-            />
+            <select value={endTime} onChange={(e) => setEndTime(e.target.value)}>
+              <option value="">Select end time</option>
+              {times.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
 
             <label>Capacity</label>
             <input

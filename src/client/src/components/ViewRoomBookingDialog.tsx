@@ -11,13 +11,15 @@ interface ViewRoomBookingDialogProps {
 }
 
 const ViewRoomBookingDialog: React.FC<ViewRoomBookingDialogProps> = ({ onClose, roomBookingsOnDay, reloadBookings }) => {
-  const { editingBooking, setEditingBooking, handleDelete, handleSaveEdit } = useViewRoomBookingsDialog(onClose, roomBookingsOnDay, reloadBookings);
+  const { editingBooking, setEditingBooking, rooms, handleSaveEdit, capacityFilter, setCapacityFilter, handleDelete, getRoomName, generateTime } = useViewRoomBookingsDialog(onClose, roomBookingsOnDay, reloadBookings);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) onClose();
   };
 
-  const dialogLargeStyle: React.CSSProperties = roomBookingsOnDay.some(rb => rb.purpose.length > 14) ? { maxWidth: '810px' } : { maxWidth: '600px' }
+  const dialogLargeStyle: React.CSSProperties = editingBooking ? { maxWidth: '1250px' } : { maxWidth: '650px' }
+
+  const times = generateTime();
 
   return (
     <div className="dialog-backdrop" onClick={handleBackdropClick}>
@@ -37,6 +39,9 @@ const ViewRoomBookingDialog: React.FC<ViewRoomBookingDialogProps> = ({ onClose, 
                   <th>Purpose</th>
                   <th>Start</th>
                   <th>End</th>
+                  {editingBooking && (
+                    <th>Capacity</th>
+                  )}
                   <th>Room</th>
                   <th className="actions">Actions</th>
                 </tr>
@@ -47,40 +52,90 @@ const ViewRoomBookingDialog: React.FC<ViewRoomBookingDialogProps> = ({ onClose, 
 
                   return (
                     <tr key={b.booking_id}>
-                      <td>{(b.purpose)}</td>
                       <td>
                         {isEditing ? (
                           <input
-                            type="time"
-                            value={editingBooking!.startTime}
-                            onChange={(e) =>
-                              setEditingBooking({
-                                ...editingBooking!,
-                                startTime: e.target.value,
-                              })
+                            value={editingBooking!.purpose}
+                            onChange={e =>
+                              setEditingBooking({ ...editingBooking!, purpose: e.target.value })
                             }
                           />
+                        ) : (
+                          b.purpose
+                        )}
+                      </td>
+
+                      <td>
+                        {isEditing ? (
+                          <select
+                            value={editingBooking!.startTime}
+                            onChange={e => setEditingBooking({ ...editingBooking!, startTime: e.target.value })}>
+                            <option value="">Select start time</option>
+                            {times.map((time) => (
+                              <option key={time} value={time}>
+                                {time.slice(0, 5)}
+                              </option>
+                            ))}
+                          </select>
                         ) : (
                           b.startTime.slice(0, 5)
                         )}
                       </td>
+
                       <td>
                         {isEditing ? (
-                          <input
-                            type="time"
+                          <select
                             value={editingBooking!.endTime}
-                            onChange={(e) =>
-                              setEditingBooking({
-                                ...editingBooking!,
-                                endTime: e.target.value,
-                              })
-                            }
-                          />
+                            onChange={e => setEditingBooking({ ...editingBooking!, endTime: e.target.value })}>
+                            <option value="">Select end time</option>
+                            {times.map((time) => (
+                              <option key={time} value={time}>
+                                {time.slice(0, 5)}
+                              </option>
+                            ))}
+                          </select>
                         ) : (
                           b.endTime.slice(0, 5)
                         )}
                       </td>
-                      <td>{(b.roomId)}</td>
+
+                      {isEditing && (
+                        <td>
+                          <input
+                            type="number"
+                            placeholder="Capacity"
+                            value={capacityFilter}
+                            onChange={e =>
+                              setCapacityFilter(e.target.value === "" ? "" : Number(e.target.value))
+                            }
+                          />
+                        </td>
+                      )}
+
+                      <td>
+                        {isEditing ? (
+                          <select
+                            disabled={!rooms.length}
+                            value={editingBooking!.roomId}
+                            onChange={e =>
+                              setEditingBooking({
+                                ...editingBooking!,
+                                roomId: Number(e.target.value),
+                              })
+                            }
+                          >
+                            <option value="">Select room</option>
+                            {rooms.map(r => (
+                              <option key={r.room_id} value={r.room_id}>
+                                {r.roomName} ({r.capacity})
+                              </option>
+                            ))}
+                          </select>
+                        ) : (
+                          getRoomName(b.roomId)
+                        )}
+                      </td>
+
                       <td className="actions">
                         {isEditing ? (
                           <>

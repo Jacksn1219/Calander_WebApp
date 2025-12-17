@@ -1489,6 +1489,19 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
     }
   };
 
+  const generateTime = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 0 && m === 0) continue;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
   return {
     rooms, 
     bookings, 
@@ -1506,6 +1519,7 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
     setCapacity,
     setPurpose,
     handleSubmit,
+    generateTime
   };
 };
 
@@ -1547,27 +1561,94 @@ export const useRoomBooking = () => {
     setCurrentDate(new Date());
   };
 
-  return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
+  return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, 
+    currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
 }
 
 export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: RoomBooking[], reloadBookings: () => void) => {
   const [editingBooking, setEditingBooking] = useState<RoomBooking | null>(null);
+  const [capacityFilter, setCapacityFilter] = useState<number | "">("");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
 
-  const checkConflict = (start: string, end: string, currentBookingId?: number) => {
-    const toMinutes = (t: string) => {
+  const allFieldsFilled =
+    editingBooking?.purpose &&
+    editingBooking?.startTime &&
+    editingBooking?.endTime &&
+    capacityFilter !== "";
+
+
+  const getRoomName = (roomId: number | undefined) => {
+    if (!roomId) return "-";
+    const room = allRooms.find(r => r.room_id === roomId);
+    return room ? room.roomName : "-";
+  };
+
+  useEffect(() => {
+    const fetchAllRooms = async () => {
+      const data = await apiFetch("/api/Rooms");
+      const result: Room[] = await data.json();
+      setAllRooms(result);
+    };
+    fetchAllRooms();
+  }, []);
+
+  useEffect(() => {
+    if (!allFieldsFilled) return;
+
+    const fetchRooms = async () => {
+      const data = await apiFetch("/api/Rooms");
+      const result: Room[] = await data.json()
+      setRooms(result.filter(r => r.capacity >= Number(capacityFilter)));
+    };
+
+    fetchRooms();
+  }, [allFieldsFilled, capacityFilter]);
+
+  const checkConflict = (start: string, end: string, currentId?: number) => {
+    const toMin = (t: string) => {
       const [h, m] = t.split(":").map(Number);
       return h * 60 + m;
     };
 
-    const newStart = toMinutes(start);
-    const newEnd = toMinutes(end);
-
     return roomBookings.some(
-      (b) =>
-        b.booking_id !== currentBookingId &&
-        toMinutes(b.startTime) < newEnd &&
-        toMinutes(b.endTime) > newStart
+      b =>
+        b.booking_id !== currentId &&
+        toMin(b.startTime) < toMin(end) &&
+        toMin(b.endTime) > toMin(start)
     );
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBooking || capacityFilter === "") return;
+
+    if (editingBooking.endTime <= editingBooking.startTime) {
+      alert("End time must be after start time");
+      return;
+    }
+
+    if (checkConflict(editingBooking.startTime, editingBooking.endTime, editingBooking.booking_id)) {
+      alert("Time slot already booked");
+      return;
+    }
+
+    await apiFetch(`/api/room-bookings/${editingBooking.booking_id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        booking_id: editingBooking.booking_id,
+        roomId: editingBooking.roomId,
+        userId: editingBooking.userId,
+        bookingDate: editingBooking.bookingDate,
+        startTime: editingBooking.startTime.slice(0, 5),
+        endTime: editingBooking.endTime.slice(0, 5),
+        eventId: null,
+        purpose: editingBooking.purpose,
+      }),
+    });
+
+    setEditingBooking(null);
+    reloadBookings();
+    onClose();
   };
 
   const handleDelete = async (booking: RoomBooking) => {
@@ -1588,66 +1669,32 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
     onClose();
   };
 
-  const handleSaveEdit = async () => {
-    if (!editingBooking) return;
-
-    if (!editingBooking.startTime || !editingBooking.endTime) {
-      alert("Start time and end time are required.");
-      return;
+  const generateTime = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 0 && m === 0) continue;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}:00`);
+      }
     }
-
-    if (editingBooking.endTime <= editingBooking.startTime) {
-      alert("End time must be after start time.");
-      return;
-    }
-
-    if (checkConflict(editingBooking.startTime, editingBooking.endTime, editingBooking.booking_id)) {
-      alert("Time slot already booked for this room.");
-      return;
-    }
-
-    const original = roomBookings.find(b => b.booking_id === editingBooking.booking_id);
-
-    if (!original) return;
-
-    const basePayload = {
-      roomId: original.roomId,
-      userId: original.userId,
-      bookingDate: original.bookingDate,
-      startTime: original.startTime,
-      endTime: original.endTime,
-    };
-    if (editingBooking.startTime !== original.startTime) {
-      await apiFetch(`/api/room-bookings/update-start-time`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          ...basePayload,
-          newStartTime: editingBooking.startTime,
-        }),
-      });
-    }
-    if (editingBooking.endTime !== original.endTime) {
-      await apiFetch(`/api/room-bookings/update-end-time`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          ...basePayload,
-          newEndTime: editingBooking.endTime,
-        }),
-      });
-    }
-
-    setEditingBooking(null);
-    reloadBookings()
-    onClose();
+    return options;
   };
 
   return {
     editingBooking,
     setEditingBooking,
-    handleDelete,
     handleSaveEdit,
+    capacityFilter,
+    setCapacityFilter,
+    rooms,
+    handleDelete,
+    getRoomName,
+    generateTime
   };
 };
+
 // _________________________________________
 // end functions roombooking
 // _________________________________________
