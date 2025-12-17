@@ -11,7 +11,7 @@ const MONTH_NAMES = [
 
 const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
 
-const MAX_UPCOMING_EVENTS = 2;
+const MAX_UPCOMING_EVENTS = 7;
 
 interface CalendarDayCell {
   key: string;
@@ -33,6 +33,13 @@ interface UpcomingEventSummary {
   timeLabel: string;
   acceptedCount: number;
 }
+
+
+/*
+ ====================================
+LOGIN FORM HOOKS
+ ====================================
+ */
 
 /*
  Custom hook for form validation and error handling
@@ -196,6 +203,11 @@ export const useLoginForm = () => {
   };
 };
 
+/*
+ ====================================
+CREATE EMPLOYEE FORM HOOKS
+ ====================================
+ */
 /*
 Custom hook for create employee form logic
  */
@@ -363,6 +375,11 @@ export const useCreateEmployeeForm = () => {
 };
 
 /*
+ ====================================
+SIDEBAR HOOKS
+ ====================================
+ */
+/*
  Custom hook for sidebar logic
  */
 export const useSidebar = () => {
@@ -389,6 +406,13 @@ export const useSidebar = () => {
   };
 };
 
+
+/*
+ ====================================
+LOGOUT HOOKS
+ ====================================
+ */
+
 /**
  * Custom hook for logout confirmation with navigation
  */
@@ -407,7 +431,13 @@ export const useLogoutWithConfirmation = () => {
   return handleLogout;
 };
 
-/*
+/**
+ ====================================
+EVENT DIALOG & CALENDAR HOOKS
+  ====================================
+*/
+
+/**
  Custom hook for event dialog state and actions
  */
 export const useEventDialog = (events: any[]) => {
@@ -530,6 +560,11 @@ export const useEventDialog = (events: any[]) => {
   };
 };
 
+/*
+ ====================================
+CALENDAR HOOKS
+ ====================================
+ */
 
 /**
  * Custom hook for calendar navigation and date selection
@@ -742,8 +777,6 @@ export const useCalendar = () => {
 
 /*
   Custom hook for fetching and managing calendar events
-  with participation and employee data enrichment.
-  No longer performs role-based filtering; all users see all events.
  */
 export const useCalendarEvents = (user: { userId?: number; role?: string } | null) => {
   const isAdmin = user?.role === 'Admin';
@@ -873,6 +906,12 @@ export interface Employee {
   email: string;
 }
 
+
+/*
+ ====================================
+ADMINISTRATIVE DASHBOARD HOOKS
+ ====================================
+ */
 export const useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEvent, setEvent] = useState<EventItem>();
@@ -1071,8 +1110,6 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
   return { formData, handleChange, handleSubmit, handleCancel };
 };
 
-
-
 export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
 
@@ -1108,53 +1145,6 @@ export const useViewAttendees = (event: EventItem | undefined, onClose: () => vo
 
   return { employees, handleCancel };
 };
-/**
- * Custom hook for managing hidden events with localStorage persistence
- */
-// const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
-
-// export const useHiddenEvents = () => {
-//   const [hiddenEventIds, setHiddenEventIds] = useState<number[]>(() => {
-//     // Initialize state from localStorage
-//     const stored = localStorage.getItem(HIDDEN_EVENTS_KEY);
-//     if (stored) {
-//       try {
-//         const parsed = JSON.parse(stored);
-//         return Array.isArray(parsed) ? parsed : [];
-//       } catch {
-//         return [];
-//       }
-//     }
-//     return [];
-//   });
-
-//   // Persist hidden events to localStorage on change
-//   useEffect(() => {
-//     localStorage.setItem(HIDDEN_EVENTS_KEY, JSON.stringify(hiddenEventIds));
-//   }, [hiddenEventIds]);
-
-//   // Pure function to hide an event
-//   const hideEvent = useCallback((eventId: number): void => {
-//     setHiddenEventIds(prev => [...prev, eventId]);
-//   }, []);
-
-//   // Pure function to restore all hidden events
-//   const restoreAllEvents = useCallback((): void => {
-//     setHiddenEventIds([]);
-//   }, []);
-
-//   // Pure function to filter out hidden events
-//   const filterHiddenEvents = useCallback((events: CalendarEvent[]): CalendarEvent[] => {
-//     return events.filter(event => !hiddenEventIds.includes(event.eventId));
-//   }, [hiddenEventIds]);
-
-//   return {
-//     hiddenEventIds,
-//     hideEvent,
-//     restoreAllEvents,
-//     filterHiddenEvents,
-//   };
-// };
 
 /*
  Types for calendar events and participants (shared)

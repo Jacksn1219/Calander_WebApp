@@ -45,16 +45,6 @@ const Calendar: React.FC = () => {
               </div>
             )}
           </div>
-          {/* {hiddenEventIds.length > 0 && (
-            <button
-              type="button"
-              className="btn-restore"
-              onClick={restoreAllEvents}
-              aria-label={`Restore ${hiddenEventIds.length} hidden event${hiddenEventIds.length > 1 ? 's' : ''}`}
-            >
-              🔄 Restore Hidden ({hiddenEventIds.length})
-            </button>
-          )} */}
         </div>
 
         <div className="calendar-container">
@@ -181,7 +171,6 @@ const Calendar: React.FC = () => {
             date={selectedDate}
             events={selectedDateEvents}
             onClose={closeDialog}
-            // onHideEvent={hideEvent}
           />
         )}
       </main>
