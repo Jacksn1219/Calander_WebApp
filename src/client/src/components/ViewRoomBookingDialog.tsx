@@ -40,7 +40,7 @@ const ViewRoomBookingDialog: React.FC<ViewRoomBookingDialogProps> = ({ onClose, 
                   <th>Start</th>
                   <th>End</th>
                   {editingBooking && (
-                    <th>Capacity</th>
+                    <th>Attendees</th>
                   )}
                   <th>Room</th>
                   <th className="actions">Actions</th>

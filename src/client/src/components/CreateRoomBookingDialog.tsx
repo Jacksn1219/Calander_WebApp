@@ -56,7 +56,7 @@ const RoomBookingDialog: React.FC<RoomBookingDialogProps> = ({ onClose, selected
               ))}
             </select>
 
-            <label>Capacity</label>
+            <label>Attendees</label>
             <input
               type="number"
               min="1"

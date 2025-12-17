@@ -18,13 +18,13 @@ const RoomBooking: React.FC = () => {
     for (let i = 0; i < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay(); i++) daysArray.push(null);
     for (let d = 1; d <= new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(); d++) daysArray.push(d);
 
-    const calendarContainerStyle: React.CSSProperties = { width: '60%' };
+    const calendarContainerStyle: React.CSSProperties = { width: '96%' };
 
     const mainContentStyle: React.CSSProperties = { padding: '20px' };
 
     const calendarGridStyle: React.CSSProperties = isMobile ? { overflowX: 'auto' } : {};
 
-    const calendarInnerStyle: React.CSSProperties = isMobile ? { minWidth: '700px', paddingRight: '900px' } : {};
+    const calendarInnerStyle: React.CSSProperties = isMobile ? { minWidth: '700px' } : {};
 
     useEffect(() => {
         if (showCreateBookingDialog) {
@@ -36,7 +36,8 @@ const RoomBooking: React.FC = () => {
         <div className="app-layout">
             <Sidebar />
             <main className="main-content" style={mainContentStyle}>
-                <div className="planner-layout">
+                <h1>Roombooking</h1>
+                <p className="muted">Viewing all bookings</p>
                     <div className="calendar-container" style={calendarContainerStyle}>
                         <div className="calendar-controls">
                             <button className="btn-nav" onClick={goToPreviousMonth}>←</button>
@@ -101,12 +102,6 @@ const RoomBooking: React.FC = () => {
                             </div>
                         </div>
                     </div>
-
-                    <div className="planner-side-panel">
-                        <h3>Here are all your bookings</h3>
-                        <p>...</p>
-                    </div>
-                </div>
             </main>
             {showCreateBookingDialog && (
                 <CreateRoomBookingDialog
