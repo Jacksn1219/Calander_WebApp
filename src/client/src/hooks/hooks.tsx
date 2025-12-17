@@ -1365,10 +1365,10 @@ export interface CalendarEvent {
 }
 
 /*
- ====================================
- REMINDERS SECTION
- ====================================
- */
+====================================
+REMINDERS SECTION
+====================================
+*/
 
 export interface Reminder {
   reminder_id: number;
@@ -1401,6 +1401,17 @@ export const useReminders = () => {
     setError(null);
 
     try {
+      // Fetch only reminders that are due (ReminderTime <= now)
+      const now = new Date();
+      const fromTime = new Date(0); // Start from epoch
+      const toTime = now; // Up to current time
+      
+      // const response = await apiFetch(
+      //   `/api/reminders/user/${user.userId}/bydate?fromTime=${fromTime.toISOString()}&toTime=${toTime.toISOString()}`,
+      //   {
+      //     method: 'GET',
+      //   }
+      // );
       const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
         method: 'GET',
       });
@@ -1419,8 +1430,16 @@ export const useReminders = () => {
     }
   }, [user?.userId]);
 
+  // This function will refresh the page every 20 seconds to get new reminders
   useEffect(() => {
     fetchReminders();
+    
+    // Poll for new reminders every 30 seconds
+    const intervalId = setInterval(() => {
+      fetchReminders();
+    }, 30000);
+
+    return () => clearInterval(intervalId);
   }, [fetchReminders]);
 
   const markAsRead = useCallback(async (reminderId: number) => {
@@ -1463,6 +1482,129 @@ export const useReminders = () => {
     markAllAsRead,
   };
 };
+
+// USER SETTINGS / PREFERENCES
+export interface ReminderPreferences {
+  user_id?: number;
+  id?: number;
+  eventReminder: boolean;
+  bookingReminder: boolean;
+  reminderAdvanceMinutes: string; // TimeSpan as string from API
+}
+
+export const useUserSettings = () => {
+  const [preferences, setPreferences] = useState<ReminderPreferences | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuth();
+
+  const fetchPreferences = useCallback(async () => {
+    if (!user?.userId) return;
+    
+    setLoading(true);
+    setError(null);
+    try {
+      const response = await apiFetch(`/api/reminderspreferences/user/${user.userId}`);
+
+      if (!response.ok) {
+        throw new Error('Failed to fetch preferences');
+      }
+
+      const data = await response.json();
+      if (data && data.length > 0) {
+        setPreferences(data[0]);
+      }
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    } finally {
+      setLoading(false);
+    }
+  }, [user?.userId]);
+
+  const toggleEventReminder = useCallback(async () => {
+    if (!user?.userId) return;
+
+    try {
+      const response = await apiFetch(`/api/reminderspreferences/${user.userId}/toggle-eventreminder`, {
+        method: 'PATCH',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle event reminder');
+      }
+
+      const newValue = await response.json();
+      setPreferences(prev => prev ? { ...prev, eventReminder: newValue } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  }, [user?.userId]);
+
+  const toggleBookingReminder = useCallback(async () => {
+    if (!user?.userId) return;
+
+    try {
+      const response = await apiFetch(`/api/reminderspreferences/${user.userId}/toggle-bookingreminder`, {
+        method: 'PATCH',
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to toggle booking reminder');
+      }
+
+      const newValue = await response.json();
+      setPreferences(prev => prev ? { ...prev, bookingReminder: newValue } : null);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  }, [user?.userId]);
+
+  const updateAdvanceMinutes = useCallback(async (minutes: number) => {
+    if (!user?.userId) return;
+
+    try {
+      // Convert minutes to TimeSpan format (HH:mm:ss)
+      const hours = Math.floor(minutes / 60);
+      const mins = minutes % 60;
+      const timeSpan = `${hours.toString().padStart(2, '0')}:${mins.toString().padStart(2, '0')}:00`;
+
+      const response = await apiFetch(`/api/reminderspreferences/${user.userId}/advance-minutes`, {
+        method: 'PATCH',
+        body: JSON.stringify(timeSpan),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to update advance minutes');
+      }
+
+      const updated = await response.json();
+      setPreferences(updated);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'An error occurred');
+    }
+  }, [user?.userId]);
+
+  useEffect(() => {
+    fetchPreferences();
+  }, [fetchPreferences]);
+
+  return {
+    preferences,
+    loading,
+    error,
+    toggleEventReminder,
+    toggleBookingReminder,
+    updateAdvanceMinutes,
+    refetch: fetchPreferences,
+  };
+};
+
+/*
+====================================
+REMINDERS SECTION
+====================================
+*/
+
 // _________________________________________
 // end functions reminders
 // _________________________________________
