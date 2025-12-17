@@ -45,6 +45,27 @@ public class EventParticipationService : IEventParticipationService
         if (participation == null)
             throw new InvalidOperationException("Participation record not found.");
     
+        // Get event details for the canceled reminder
+        var eventModel = await _context.Set<EventsModel>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == participation.EventId)
+            .ConfigureAwait(false);
+
+        // Send canceled reminder before deleting participation
+        if (eventModel != null)
+        {
+            await _remindersService.Post(new RemindersModel
+            {
+                UserId = participation.UserId,
+                ReminderType = reminderType.EventParticipationCanceled,
+                RelatedEventId = participation.EventId,
+                RelatedRoomId = eventModel.RoomId ?? 0,
+                ReminderTime = DateTime.Now,
+                Title = $"Event Canceled: {eventModel.Title}",
+                Message = $"The event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm} has been canceled."
+            }).ConfigureAwait(false);
+        }
+
         // Delete related reminders
         await _remindersService.DeleteEventParticipationRemindersAsync(participation.UserId, participation.EventId);
 

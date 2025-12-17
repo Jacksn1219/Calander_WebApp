@@ -52,6 +52,22 @@ public class RoomBookingsService : IRoomBookingsService
         if (booking == null)
             throw new InvalidOperationException("Booking not found.");
 
+        // Send canceled reminder before deleting booking
+        var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
+        await _remindersService.Post(new RemindersModel
+        {
+            UserId = booking.UserId,
+            ReminderType = reminderType.RoomBookingCanceled,
+            RelatedRoomId = booking.RoomId,
+            RelatedEventId = booking.EventId ?? 0,
+            ReminderTime = DateTime.Now,
+            Title = $"Room {booking.RoomId} Booking Canceled",
+            Message = $"Your room booking for Room {booking.RoomId} scheduled for {bookingDateTime:yyyy-MM-dd HH:mm} has been canceled."
+        }).ConfigureAwait(false);
+
+        // Delete related reminders
+        await _remindersService.DeleteRoomBookingRemindersAsync(booking.UserId, booking.RoomId, booking.BookingDate, booking.StartTime);
+
         _dbSet.Remove(booking);
         await _context.SaveChangesAsync();
         return booking;

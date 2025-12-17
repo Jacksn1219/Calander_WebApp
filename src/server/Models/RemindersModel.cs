@@ -11,7 +11,9 @@ namespace Calender_WebApp.Models
         EventParticipation,
         RoomBooking,
         EventParticipationChanged,
-        RoomBookingChanged
+        RoomBookingChanged,
+        EventParticipationCanceled,
+        RoomBookingCanceled
     }
 
     /// <summary>

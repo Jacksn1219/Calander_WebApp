@@ -123,7 +123,18 @@
   background-color: #fff8e1;
 }
 
+.reminder-item-canceled {
+  border-left: 4px solid #dc3545;
+  background-color: #f8d7da;
+}
+
 .reminder-changed-badge {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 14px;
+}
+
+.reminder-canceled-badge {
   display: inline-block;
   margin-left: 6px;
   font-size: 14px;

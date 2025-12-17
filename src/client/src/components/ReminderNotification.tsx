@@ -86,8 +86,9 @@ const ReminderNotification: React.FC = () => {
               {unsentReminders.slice(0, 5).map((reminder) => {
                 // Determine icon and color based on reminder type
                 const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
-                const icon = reminder.reminderType === 0 || reminder.reminderType === 2 ? '📅' : '🔔';
-                const itemClass = `reminder-item ${isChanged ? 'reminder-item-changed' : ''}`;
+                const isCanceled = reminder.reminderType === 4 || reminder.reminderType === 5;
+                const icon = reminder.reminderType === 0 || reminder.reminderType === 2 || reminder.reminderType === 4 ? '📅' : '🔔';
+                const itemClass = `reminder-item ${isChanged ? 'reminder-item-changed' : ''} ${isCanceled ? 'reminder-item-canceled' : ''}`;
                 
                 // Handle navigation to related event or room booking
                 const handleNavigate = () => {
@@ -120,6 +121,7 @@ const ReminderNotification: React.FC = () => {
                         <span className="reminder-item-icon">
                           {icon}
                           {isChanged && <span className="reminder-changed-badge">📝</span>}
+                          {isCanceled && <span className="reminder-canceled-badge">❌</span>}
                         </span>
                         <span className="reminder-item-title">
                           {reminder.title}
