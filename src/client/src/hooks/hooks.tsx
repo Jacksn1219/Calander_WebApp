@@ -1,8 +1,38 @@
-import { useState, useCallback, useEffect } from 'react';
+import { useState, useCallback, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
 import { isSuperAdmin } from '../constants/superAdmin';
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+const MAX_UPCOMING_EVENTS = 2;
+
+interface CalendarDayCell {
+  key: string;
+  isEmpty: boolean;
+  dayNumber?: number;
+  date?: Date;
+  isToday?: boolean;
+  hasEvents?: boolean;
+  eventCount?: number;
+}
+
+interface UpcomingEventSummary {
+  eventId: number;
+  date: Date;
+  day: number;
+  monthAbbrev: string;
+  title: string;
+  description?: string;
+  timeLabel: string;
+  acceptedCount: number;
+}
 
 /*
  Custom hook for form validation and error handling
@@ -505,51 +535,208 @@ export const useEventDialog = (events: any[]) => {
  * Custom hook for calendar navigation and date selection
  */
 export const useCalendar = () => {
+  const { user } = useAuth();
+  const { loading, error, events: roleScopedEvents, getEventsForDate, reload } = useCalendarEvents(user);
+
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
   const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [listMonthOffset, setListMonthOffset] = useState(0);
+  const [eventPage, setEventPage] = useState(0);
 
-  const handleDateClick = useCallback((day: number) => {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+  const timeFormatter = useMemo(() => new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit'
+  }), []);
+
+  const normalizedCurrentMonth = useMemo(() => (
+    new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+  ), [currentMonth]);
+  const normalizedCurrentMonthKey = `${normalizedCurrentMonth.getFullYear()}-${normalizedCurrentMonth.getMonth()}`;
+
+  useEffect(() => {
+    setListMonthOffset(0);
+    setEventPage(0);
+  }, [normalizedCurrentMonthKey]);
+
+  useEffect(() => {
+    setEventPage(0);
+  }, [listMonthOffset]);
+
+  const listMonth = useMemo(() => {
+    const month = new Date(normalizedCurrentMonth);
+    month.setMonth(month.getMonth() + listMonthOffset);
+    return month;
+  }, [normalizedCurrentMonth, listMonthOffset]);
+
+  const today = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }, []);
+
+  const calendarMonthLabel = useMemo(() => (
+    `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`
+  ), [currentMonth]);
+
+  const calendarDays = useMemo<CalendarDayCell[]>(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const totalDays = lastDay.getDate();
+    const startOffset = firstDay.getDay();
+    const cells: CalendarDayCell[] = [];
+
+    for (let i = 0; i < startOffset; i++) {
+      cells.push({ key: `empty-${i}`, isEmpty: true });
+    }
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month, day);
+      const dayEvents = getEventsForDate(date);
+      cells.push({
+        key: `day-${day}`,
+        isEmpty: false,
+        dayNumber: day,
+        date,
+        isToday: date.getTime() === today.getTime(),
+        hasEvents: dayEvents.length > 0,
+        eventCount: dayEvents.length
+      });
+    }
+
+    return cells;
+  }, [currentMonth, getEventsForDate, today]);
+
+  const monthlyEvents = useMemo(() => {
+    const monthStart = new Date(listMonth.getFullYear(), listMonth.getMonth(), 1);
+    return roleScopedEvents
+      .filter(event => {
+        const eventDate = new Date(event.eventDate);
+        const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const matchesMonth = eventDate.getMonth() === monthStart.getMonth() && eventDate.getFullYear() === monthStart.getFullYear();
+        const isFuture = normalizedEventDate >= today;
+        return matchesMonth && isFuture;
+      })
+      .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+  }, [roleScopedEvents, listMonth, today]);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(monthlyEvents.length / MAX_UPCOMING_EVENTS);
+    if (eventPage > 0 && eventPage >= totalPages) {
+      setEventPage(totalPages > 0 ? totalPages - 1 : 0);
+    }
+  }, [monthlyEvents.length, eventPage]);
+
+  const pagedEvents = useMemo(() => {
+    const start = eventPage * MAX_UPCOMING_EVENTS;
+    return monthlyEvents.slice(start, start + MAX_UPCOMING_EVENTS);
+  }, [monthlyEvents, eventPage]);
+
+  const upcomingEvents = useMemo<UpcomingEventSummary[]>(() => {
+    return pagedEvents.map(event => {
+      const eventDate = new Date(event.eventDate);
+      const acceptedCount = event.participants.filter(p => p.status === 'Accepted').length;
+      return {
+        eventId: event.eventId,
+        date: eventDate,
+        day: eventDate.getDate(),
+        monthAbbrev: MONTH_NAMES[eventDate.getMonth()].slice(0, 3),
+        title: event.title,
+        description: event.description,
+        timeLabel: timeFormatter.format(eventDate),
+        acceptedCount,
+      };
+    });
+  }, [pagedEvents, timeFormatter]);
+
+  const listMonthLabel = useMemo(() => (
+    `${MONTH_NAMES[listMonth.getMonth()]} ${listMonth.getFullYear()}`
+  ), [listMonth]);
+
+  const hasFutureMonths = useMemo(() => {
+    const monthEnd = new Date(listMonth.getFullYear(), listMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+    return roleScopedEvents.some(event => {
+      const eventDate = new Date(event.eventDate);
+      const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+      return normalizedEventDate >= today && eventDate > monthEnd;
+    });
+  }, [roleScopedEvents, listMonth, today]);
+
+  const hasNextEventPage = monthlyEvents.length > (eventPage + 1) * MAX_UPCOMING_EVENTS;
+  const hasPrevEventPage = eventPage > 0;
+  const canGoBackInList = hasPrevEventPage || listMonthOffset > 0;
+  const canGoForwardInList = hasNextEventPage || hasFutureMonths;
+
+  const handlePreviousMonth = useCallback(() => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }, []);
+
+  const handleToday = useCallback(() => {
+    const now = new Date();
+    setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+  }, []);
+
+  const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
-  }, [currentMonth]);
+  }, []);
 
   const handleCloseDialog = useCallback(() => {
     setSelectedDate(null);
   }, []);
 
-  const handlePreviousMonth = useCallback(() => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
-  }, [currentMonth]);
+  const handlePreviousListMonth = useCallback(() => {
+    if (eventPage > 0) {
+      setEventPage(prev => Math.max(prev - 1, 0));
+    } else if (listMonthOffset > 0) {
+      setListMonthOffset(prev => (prev > 0 ? prev - 1 : 0));
+    }
+  }, [eventPage, listMonthOffset]);
 
-  const handleNextMonth = useCallback(() => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
-  }, [currentMonth]);
+  const handleNextListMonth = useCallback(() => {
+    if (hasNextEventPage) {
+      setEventPage(prev => prev + 1);
+    } else if (hasFutureMonths) {
+      setListMonthOffset(prev => prev + 1);
+    }
+  }, [hasNextEventPage, hasFutureMonths]);
 
-  const handleToday = useCallback(() => {
-    setCurrentMonth(new Date());
+  const handleUpcomingEventClick = useCallback((eventDate: Date) => {
+    const monthStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), 1);
+    setCurrentMonth(monthStart);
+    setSelectedDate(new Date(eventDate));
   }, []);
 
-  const getDaysInMonth = useCallback((date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    return { daysInMonth, startingDayOfWeek };
-  }, []);
+  const selectedDateEvents = useMemo(() => {
+    if (!selectedDate) return [];
+    return getEventsForDate(selectedDate);
+  }, [selectedDate, getEventsForDate]);
 
   return {
+    loading,
+    error,
+    reload,
+    weekdays: WEEKDAY_LABELS,
+    calendarMonthLabel,
+    calendarDays,
+    goToPreviousMonth: handlePreviousMonth,
+    goToNextMonth: handleNextMonth,
+    goToToday: handleToday,
+    onDaySelect: handleSelectDate,
     selectedDate,
-    setSelectedDate,
-    currentMonth,
-    handleDateClick,
-    handleCloseDialog,
-    handlePreviousMonth,
-    handleNextMonth,
-    handleToday,
-    getDaysInMonth,
+    selectedDateEvents,
+    closeDialog: handleCloseDialog,
+    upcomingLabel: listMonthLabel,
+    upcomingEvents,
+    hasUpcomingEvents: monthlyEvents.length > 0,
+    canGoBackUpcoming: canGoBackInList,
+    canGoForwardUpcoming: canGoForwardInList,
+    onUpcomingBack: handlePreviousListMonth,
+    onUpcomingForward: handleNextListMonth,
+    onUpcomingEventSelect: handleUpcomingEventClick,
   };
 };
 

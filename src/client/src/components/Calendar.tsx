@@ -1,72 +1,33 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { useCalendar, useCalendarEvents } from '../hooks/hooks';
-import { useAuth } from '../states/AuthContext';
+import { useCalendar } from '../hooks/hooks';
 import '../styles/calendar.css';
 
 const Calendar: React.FC = () => {
   const {
+    loading,
+    error,
+    reload,
+    weekdays,
+    calendarMonthLabel,
+    calendarDays,
+    goToPreviousMonth,
+    goToNextMonth,
+    goToToday,
+    onDaySelect,
     selectedDate,
-    currentMonth,
-    handleDateClick,
-    handleCloseDialog,
-    handlePreviousMonth,
-    handleNextMonth,
-    handleToday,
-    getDaysInMonth,
+    selectedDateEvents,
+    closeDialog,
+    upcomingLabel,
+    upcomingEvents,
+    hasUpcomingEvents,
+    canGoBackUpcoming,
+    canGoForwardUpcoming,
+    onUpcomingBack,
+    onUpcomingForward,
+    onUpcomingEventSelect,
   } = useCalendar();
-
-  const { user } = useAuth();
-  const { loading, error, events: roleScopedEvents, getEventsForDate: fetchEventsForDate, reload } = useCalendarEvents(user);
-  // const { hiddenEventIds, hideEvent, restoreAllEvents, filterHiddenEvents } = useHiddenEvents();
-
-  // Filter out hidden events using functional approach
-  // const getEventsForDate = (date: Date) => {
-  //   return filterHiddenEvents(fetchEventsForDate(date));
-  // };
-  const getEventsForDate = fetchEventsForDate;
-
-  const renderCalendar = () => {
-    const { daysInMonth, startingDayOfWeek } = getDaysInMonth(currentMonth);
-    const days = [];
-    const today = new Date();
-
-    for (let i = 0; i < startingDayOfWeek; i++) {
-      days.push(<div key={`empty-${i}`} className="calendar-day empty"></div>);
-    }
-
-    for (let day = 1; day <= daysInMonth; day++) {
-      const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
-      const events = getEventsForDate(date);
-      const isToday =
-        day === today.getDate() &&
-        currentMonth.getMonth() === today.getMonth() &&
-        currentMonth.getFullYear() === today.getFullYear();
-
-      days.push(
-        <div
-          key={day}
-          className={`calendar-day ${isToday ? 'today' : ''} ${events.length > 0 ? 'has-event' : ''}`}
-          onClick={() => handleDateClick(day)}
-        >
-          <span className="day-number">{day}</span>
-          {events.length > 0 && (
-            <div className="event-indicator">
-              <span className="event-count">{events.length}</span>
-            </div>
-          )}
-        </div>
-      );
-    }
-
-    return days;
-  };
-
-  const monthNames = [
-    'January', 'February', 'March', 'April', 'May', 'June',
-    'July', 'August', 'September', 'October', 'November', 'December'
-  ];
 
   return (
     <div className="app-layout">
@@ -98,39 +59,128 @@ const Calendar: React.FC = () => {
 
         <div className="calendar-container">
           <div className="calendar-controls">
-            <button onClick={handlePreviousMonth} className="btn-nav" aria-label="Previous month">
+            <button onClick={goToPreviousMonth} className="btn-nav" aria-label="Previous month">
               ←
             </button>
             <div className="month-year">
-              <h2>{monthNames[currentMonth.getMonth()]} {currentMonth.getFullYear()}</h2>
-              <button onClick={handleToday} className="btn-today">Today</button>
+              <h2>{calendarMonthLabel}</h2>
+              <button onClick={goToToday} className="btn-today">Today</button>
             </div>
-            <button onClick={handleNextMonth} className="btn-nav" aria-label="Next month">
+            <button onClick={goToNextMonth} className="btn-nav" aria-label="Next month">
               →
             </button>
           </div>
 
-          <div className="calendar-grid">
-            <div className="calendar-header">
-              <div className="weekday">Sun</div>
-              <div className="weekday">Mon</div>
-              <div className="weekday">Tue</div>
-              <div className="weekday">Wed</div>
-              <div className="weekday">Thu</div>
-              <div className="weekday">Fri</div>
-              <div className="weekday">Sat</div>
+          <div className="calendar-content">
+            <div className="calendar-grid-wrapper">
+              <div className="calendar-grid">
+                <div className="calendar-header">
+                  {weekdays.map(weekday => (
+                    <div key={weekday} className="weekday">{weekday}</div>
+                  ))}
+                </div>
+                <div className="calendar-days">
+                  {calendarDays.map(day => {
+                    const classNames = ['calendar-day'];
+                    if (day.isEmpty) classNames.push('empty');
+                    if (!day.isEmpty && day.isToday) classNames.push('today');
+                    if (!day.isEmpty && day.hasEvents) classNames.push('has-event');
+
+                    const isInteractive = !day.isEmpty && Boolean(day.date);
+                    const handleClick = isInteractive
+                      ? () => {
+                          if (day.date) {
+                            onDaySelect(day.date);
+                          }
+                        }
+                      : undefined;
+
+                    return (
+                      <div
+                        key={day.key}
+                        className={classNames.join(' ')}
+                        onClick={handleClick}
+                      >
+                        {!day.isEmpty && (
+                          <>
+                            <span className="day-number">{day.dayNumber}</span>
+                            {day.hasEvents && (
+                              <div className="event-indicator">
+                                <span className="event-count">{day.eventCount}</span>
+                              </div>
+                            )}
+                          </>
+                        )}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
             </div>
-            <div className="calendar-days">
-              {renderCalendar()}
-            </div>
+            <aside className="upcoming-panel" aria-live="polite">
+              <div className="upcoming-header">
+                <div>
+                  <p className="muted uppercase">Upcoming events</p>
+                  <h3>{upcomingLabel}</h3>
+                </div>
+                <div className="upcoming-nav">
+                  <button
+                    type="button"
+                    className="btn-icon"
+                    onClick={onUpcomingBack}
+                    disabled={!canGoBackUpcoming}
+                    aria-label="Show previous events"
+                  >
+                    ←
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-icon primary"
+                    onClick={onUpcomingForward}
+                    disabled={!canGoForwardUpcoming}
+                    aria-label="Show future events"
+                  >
+                    →
+                  </button>
+                </div>
+              </div>
+
+              <div className="upcoming-list">
+                {!hasUpcomingEvents ? (
+                  <p className="upcoming-empty">No upcoming events for this month.</p>
+                ) : (
+                  upcomingEvents.map(event => (
+                    <button
+                      type="button"
+                      key={event.eventId}
+                      className="upcoming-card"
+                      onClick={() => onUpcomingEventSelect(event.date)}
+                    >
+                      <div className="upcoming-date">
+                        <span className="upcoming-date-day">{event.day}</span>
+                        <span className="upcoming-date-month">{event.monthAbbrev}</span>
+                      </div>
+                      <div className="upcoming-details">
+                        <h4>{event.title}</h4>
+                        <p className="upcoming-time">{event.timeLabel}</p>
+                        {event.description && (
+                          <p className="upcoming-description">{event.description}</p>
+                        )}
+                        <span className="upcoming-meta">{event.acceptedCount} attending</span>
+                      </div>
+                    </button>
+                  ))
+                )}
+              </div>
+            </aside>
           </div>
         </div>
 
         {selectedDate && (
           <EventDialog
             date={selectedDate}
-            events={getEventsForDate(selectedDate)}
-            onClose={handleCloseDialog}
+            events={selectedDateEvents}
+            onClose={closeDialog}
             // onHideEvent={hideEvent}
           />
         )}
