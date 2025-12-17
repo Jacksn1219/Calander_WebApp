@@ -49,6 +49,30 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
                 value={formData.date}
                 onChange={handleChange}
                 />
+                <label>Time:</label>
+                <input
+                type="time"
+                name="time"
+                value={formData.time}
+                onChange={handleChange}
+                />
+                <label>Duration (minutes):</label>
+                <input
+                type="number"
+                name="durationMinutes"
+                value={formData.durationMinutes}
+                onChange={handleChange}
+                min="1"
+                placeholder="Duration in minutes"
+                />
+                <label>Room ID (optional):</label>
+                <input
+                type="number"
+                name="roomId"
+                value={formData.roomId || ''}
+                onChange={handleChange}
+                placeholder="Enter room ID (optional)"
+                />
                 <div className="edit-event-buttons">
                 <button className="edit-event-save" onClick={handleSave}>SAVE</button>
                 <button className="edit-event-cancel" onClick={handleCancel}>CANCEL</button>
