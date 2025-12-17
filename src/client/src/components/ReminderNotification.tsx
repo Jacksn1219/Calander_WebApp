@@ -105,7 +105,7 @@ const ReminderNotification: React.FC = () => {
                   } else if (reminder.relatedRoomId !== 0) {
                     navigate('/roombooking', { 
                       state: { 
-                        roomId: reminder.relatedRoomId 
+                        bookingDate: new Date(reminder.reminderTime).toISOString()
                       } 
                     });
                   }

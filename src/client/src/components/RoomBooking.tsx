@@ -1,190 +1,153 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useEffect, useState, useRef } from "react";
 import { useLocation } from 'react-router-dom';
-import '../styles/RoomBooking.css';
-import '../styles/login-page.css';
-import Sidebar from './Sidebar';
-
-type Room = {
-  room_id: number;
-  room_name: string;
-  capacity: number;
-  location: string;
-};
-
-type RoomBooking = {
-  room_id: number;
-  user_id: number;
-  booking_date: string;
-  start_time: string;
-  end_time: string;
-  purpose: string;
-};
-
-const testUser = {
-  user_id: 102,
-  name: "John Doe"
-};
-
-const testRooms: Room[] = [
-  { room_id: 1, room_name: 'Vergaderruimte A', capacity: 6, location: '1e verdieping' },
-  { room_id: 2, room_name: 'Vergaderruimte B', capacity: 10, location: '2e verdieping' },
-];
-
-const testBookings: RoomBooking[] = [
-  {
-    room_id: 1,
-    user_id: 102,
-    booking_date: '2025-10-14',
-    start_time: '10:00',
-    end_time: '11:00',
-    purpose: 'Important Announcement',
-  },
-  {
-    room_id: 2,
-    user_id: 103,
-    booking_date: '2025-10-14',
-    start_time: '14:00',
-    end_time: '15:30',
-    purpose: 'Discussion about AI',
-  },
-];
+import "../styles/calendar.css";
+import "../styles/RoomBooking.css";
+import Sidebar from "./Sidebar";
+import CreateRoomBookingDialog from "./CreateRoomBookingDialog";
+import { useRoomBooking } from "../hooks/hooks";
+import ViewRoomBookingDialog from "./ViewRoomBookingDialog";
 
 const RoomBooking: React.FC = () => {
-  const location = useLocation();
-  const [roomId, setRoomId] = useState<number | null>(null);
-  const [bookingDate, setBookingDate] = useState('');
-  const [startTime, setStartTime] = useState('');
-  const [endTime, setEndTime] = useState('');
-  const [purpose, setPurpose] = useState('');
-  const [bookings, setBookings] = useState<RoomBooking[]>(testBookings);
-  const [message, setMessage] = useState('');
-  const roomSelectRef = useRef<HTMLSelectElement>(null);
+    const location = useLocation();
+    const { fetchRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, roomBookings,
+        currentDate, setCurrentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate } = useRoomBooking()
+    const today = new Date();
+    const [showCreateBookingDialog, setShowCreateBookingDialog] = useState(false);
+    const [showViewBookingDialog, setShowViewBookingDialog] = useState(false);
+    const [isMobile] = useState<boolean>(window.innerWidth <= 500);
 
-  // Handle navigation from reminder notification
-  useEffect(() => {
-    const state = location.state as { roomId?: number } | null;
-    if (state?.roomId) {
-      setRoomId(state.roomId);
-      // Scroll to and highlight the room select
-      if (roomSelectRef.current) {
-        roomSelectRef.current.focus();
-        roomSelectRef.current.style.backgroundColor = '#fff3cd';
-        setTimeout(() => {
-          if (roomSelectRef.current) {
-            roomSelectRef.current.style.backgroundColor = '';
-          }
-        }, 2000);
+    const daysArray = [];
+    for (let i = 0; i < new Date(currentDate.getFullYear(), currentDate.getMonth(), 1).getDay(); i++) daysArray.push(null);
+    for (let d = 1; d <= new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 0).getDate(); d++) daysArray.push(d);
+
+    const calendarContainerStyle: React.CSSProperties = { width: '96%' };
+
+    const mainContentStyle: React.CSSProperties = { padding: '20px' };
+
+    const calendarGridStyle: React.CSSProperties = isMobile ? { overflowX: 'auto' } : {};
+
+    const calendarInnerStyle: React.CSSProperties = isMobile ? { minWidth: '700px' } : {};
+    const roomSelectRef = useRef<HTMLSelectElement>(null);
+
+    useEffect(() => {
+        if (showCreateBookingDialog) {
+            setShowViewBookingDialog(false);
+        }
+    }, [showCreateBookingDialog]);
+
+    // Handle navigation from reminder notification
+    useEffect(() => {
+      const state = location.state as { bookingDate?: string } | null;
+      if (state?.bookingDate) {
+        const notificationDate = new Date(state.bookingDate);
+        
+        // Set the calendar to the correct month
+        setCurrentDate(new Date(notificationDate.getFullYear(), notificationDate.getMonth(), 1));
+        setSelectedDate(notificationDate);
+        
+        // Filter bookings for that specific day
+        const bookingsForDay = roomBookings.filter(booking => {
+          const bookingDate = new Date(booking.bookingDate);
+          return bookingDate.getFullYear() === notificationDate.getFullYear() &&
+            bookingDate.getMonth() === notificationDate.getMonth() &&
+            bookingDate.getDate() === notificationDate.getDate();
+        });
+        
+        setRoomBookingsOnDay(bookingsForDay);
+        setShowViewBookingDialog(true);
+        
+        // Clear the state after using it
+        window.history.replaceState({}, document.title);
       }
-      // Clear the state after using it
-      window.history.replaceState({}, document.title);
-    }
-  }, [location]);
+    }, [location, setCurrentDate, setSelectedDate, roomBookings, setRoomBookingsOnDay]);
 
-  const checkConflict = (roomId: number, bookingDate: string, start: string, end: string): boolean => {
-    const toMinutes = (t: string) => {
-      const [h, m] = t.split(':').map(Number);
-      return h * 60 + m;
-    };
+    return (
+        <div className="app-layout">
+            <Sidebar />
+            <main className="main-content" style={mainContentStyle}>
+                <h1>Roombooking</h1>
+                <p className="muted">Viewing all bookings</p>
+                    <div className="calendar-container" style={calendarContainerStyle}>
+                        <div className="calendar-controls">
+                            <button className="btn-nav" onClick={goToPreviousMonth}>←</button>
+                            {isMobile &&
+                                <>
+                                    <button className="btn-today" onClick={goToCurrentDate}>Today</button>
+                                    <button className="btn-nav" onClick={goToNextMonth}>→</button>
+                                </>
+                            }
 
-    const newStart = toMinutes(start);
-    const newEnd = toMinutes(end);
+                            <div className="month-year">
+                                <h2>
+                                    Room Bookings - {currentDate.toLocaleString("default", { month: "long" })} {currentDate.getFullYear()}
+                                </h2>
+                            </div>
 
-    return bookings.some(
-      (b) =>
-        b.room_id === roomId &&
-        b.booking_date === bookingDate &&
-        toMinutes(b.start_time) < newEnd &&
-        toMinutes(b.end_time) > newStart
+                            <button className="btn-nav" onClick={goToNextMonth}>→</button>
+
+                            <button className="btn-today" onClick={goToCurrentDate}>Today</button>
+                        </div>
+
+                        <div className="calendar-grid" style={calendarGridStyle}>
+                            <div className="calendar-header" style={calendarInnerStyle}>
+                                {["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"].map((d) => (<div key={d} className="weekday">{d}</div>))}
+                            </div>
+                            <div className="calendar-days" style={calendarInnerStyle}>
+                                {daysArray.map((day, i) => {
+                                    if (day === null) return <div key={i} className="calendar-day empty"></div>;
+
+                                    const isToday = day === today.getDate() &&
+                                        currentDate.getMonth() === today.getMonth() &&
+                                        currentDate.getFullYear() === today.getFullYear();
+
+                                    const roomBookingsForDay = roomBookings.filter(booking => {
+                                        const bookingDate = new Date(booking.bookingDate);
+                                        return bookingDate.getFullYear() === currentDate.getFullYear() &&
+                                            bookingDate.getMonth() === currentDate.getMonth() &&
+                                            bookingDate.getDate() === day;
+                                    });
+                                    const newDate = new Date(currentDate.getFullYear(), currentDate.getMonth(), day);
+
+                                    return (
+                                        <div key={i} className={`calendar-day ${isToday ? "today" : (roomBookingsForDay.length > 0 ? "has-event" : "")}`}
+                                            onClick={() => {
+                                                setShowViewBookingDialog(true);
+                                                setRoomBookingsOnDay(roomBookingsForDay);
+                                            }}>
+                                            <div className="day-number">{day}</div>
+                                            {roomBookingsForDay.length > 0 && (
+                                                <div className="event-indicator">
+                                                    <span className="event-count">{roomBookingsForDay.length}</span>
+                                                </div>
+                                            )}
+                                            {newDate.setHours(0, 0, 0, 0) >= today.setHours(0, 0, 0, 0) &&
+                                                <div className="add-roombooking" onClick={() => {
+                                                    setShowCreateBookingDialog(true);
+                                                    setSelectedDate(new Date(currentDate.getFullYear(), currentDate.getMonth(), day));
+                                                }}>＋</div>}
+                                        </div>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    </div>
+            </main>
+            {showCreateBookingDialog && (
+                <CreateRoomBookingDialog
+                    onClose={() => setShowCreateBookingDialog(false)}
+                    selectedDate={selectedDate}
+                    reloadBookings={fetchRoomBookings}
+                />
+            )}
+            {showViewBookingDialog && (
+                <ViewRoomBookingDialog
+                    onClose={() => setShowViewBookingDialog(false)}
+                    roomBookingsOnDay={roomBookingsOnDay}
+                    reloadBookings={fetchRoomBookings}
+                />
+            )}
+        </div>
     );
-  };
+}
 
-  const handleSubmit = (e: React.FormEvent) => {
-    e.preventDefault();
-
-    if (!roomId || !bookingDate || !startTime || !endTime || !purpose) {
-      setMessage('Vul alle velden in.');
-      return;
-    }
-
-    if (checkConflict(roomId, bookingDate, startTime, endTime)) {
-      setMessage('Tijdslot al geboekt voor deze ruimte.');
-      return;
-    }
-
-    const newBooking: RoomBooking = {
-      room_id: roomId,
-      user_id: testUser.user_id,
-      booking_date: bookingDate,
-      start_time: startTime,
-      end_time: endTime,
-      purpose,
-    };
-
-    setBookings([...bookings, newBooking]);
-    setMessage('Boeking succesvol toegevoegd!');
-
-    setRoomId(null);
-    setBookingDate('');
-    setStartTime('');
-    setEndTime('');
-    setPurpose('');
-  };
-  return (
-    <div className="app-layout">
-      <Sidebar />
-      <div className="booking-container">
-        <form className="booking-card" onSubmit={(e) => handleSubmit(e)}>
-          <h2>Reserveer een vergaderruimte</h2>
-          <p>Vul de gegevens in om een ruimte te reserveren.</p>
-
-          <label>Ruimte</label>
-          <select 
-            ref={roomSelectRef}
-            value={roomId ?? ''} 
-            onChange={(e) => setRoomId(Number(e.target.value))}
-          >
-            <option value="">Kies een ruimte</option>
-            {testRooms.map((room) => (
-              <option key={room.room_id} value={room.room_id}>
-                {room.room_name} ({room.capacity} pers, {room.location})
-              </option>
-            ))}
-          </select>
-
-          <label>Datum</label>
-          <input type="date" value={bookingDate} onChange={(e) => setBookingDate(e.target.value)} />
-
-          <label>Starttijd</label>
-          <input type="time" value={startTime} onChange={(e) => setStartTime(e.target.value)} />
-
-          <label>Eindtijd</label>
-          <input type="time" value={endTime} onChange={(e) => setEndTime(e.target.value)} />
-
-          <label>Opmerking</label>
-          <input type="text" value={purpose} onChange={(e) => setPurpose(e.target.value)} placeholder="Bijv. teams meeting" />
-
-          <button type="submit">Reserveer</button>
-
-          {message && <p className="message">{message}</p>}
-        </form>
-
-        {roomId && bookingDate && (
-          <div className="existing-bookings">
-            <h4>Huidige boekingen</h4>
-            <ul>
-              {bookings
-                .filter((b) => b.room_id === roomId && b.booking_date === bookingDate)
-                .map((b, i) => (
-                  <li key={i}>
-                    {b.start_time} - {b.end_time}: {b.purpose}
-                  </li>
-                ))}
-            </ul>
-          </div>
-        )}
-      </div>
-    </div>
-  );
-};
-
-export default RoomBooking;
+export default RoomBooking

@@ -73,16 +73,30 @@ public class RoomBookingsService : IRoomBookingsService
     public Task<RoomBookingsModel> GetById(int id)
         => throw new NotSupportedException("Direct access by ID is not supported for RoomBookings. Use GetBookingsForRoomAsync instead.");
 
-    /// <summary>
-    /// Updating room bookings is not supported. Use UpdateStartTime, UpdateEndTime or Post methods instead.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <param name="entity"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Thrown when attempting to update a room booking.</exception>
-    public Task<RoomBookingsModel> Put(int id, RoomBookingsModel entity)
-        => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
+    public virtual async Task<RoomBookingsModel> Put(int id, RoomBookingsModel newNewRoombooking)
+    {
+        if (newNewRoombooking == null) throw new ArgumentNullException(nameof(newNewRoombooking));
+        var dbNewRoombooking = await _dbSet.FindAsync(id).ConfigureAwait(false);
+        if (dbNewRoombooking == null) throw new InvalidOperationException("Entity not found.");
 
+        var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(RoomBookingsModel).Name);
+
+        // Validate model using whitelist util (ignore properties without validators)
+        var inputDict = typeof(RoomBookingsModel)
+            .GetProperties()
+            .Where(p => p.Name != nameof(IDbItem.Id))
+            .Where(p => validators == null || validators.ContainsKey(p.Name))
+            .ToDictionary(p => p.Name, p => p.GetValue(newNewRoombooking));
+
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
+            throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
+        }
+
+        newNewRoombooking.Id = dbNewRoombooking.Id; // Ensure the ID is not changed
+        _context.Entry(dbNewRoombooking).CurrentValues.SetValues(newNewRoombooking);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+        return dbNewRoombooking;
+    }
     /// <summary>
     /// Covers the Patch method from CrudService, but is not supported.
     /// </summary>
@@ -90,7 +104,7 @@ public class RoomBookingsService : IRoomBookingsService
     /// <param name="newTEntity"></param>
     /// <returns>This method is not supported.</returns>
     /// <exception cref="NotSupportedException">Thrown when attempting to update a room booking.</exception>
-    public Task<RoomBookingsModel> Patch(int userId, RoomBookingsModel newTEntity)
+    public Task<RoomBookingsModel> Patch(int userId, RoomBookingsModel newNewRoombooking)
         => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
 
     /// <summary>
@@ -211,7 +225,7 @@ public class RoomBookingsService : IRoomBookingsService
                         && p.Name != nameof(RoomBookingsModel.Room)
                         && p.Name != nameof(RoomBookingsModel.Employee)
                         && p.Name != nameof(RoomBookingsModel.Event))
-            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
+            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (p.PropertyType == typeof(int?) ? (object?)null : (object)string.Empty));
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
