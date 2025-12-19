@@ -180,6 +180,11 @@
   background: #ffe69c;
 }
 
+.calendar-day.past-event-day.has-event {
+  opacity: 0.6;
+
+}
+
 .calendar-day.past-event-day:not(.has-event) {
   opacity: 0.4;
   background: #f5f7fa;
@@ -189,6 +194,19 @@
 .calendar-day.past-event-day:not(.has-event):hover {
   background: #f5f7fa;
   border-color: #d1d5db;
+}
+
+.calendar-day.selected {
+  border-color: #1f6feb;
+  box-shadow: 0 0 0 2px rgba(31, 111, 235, 0.3);
+}
+
+.calendar-day.selected:hover {
+  background: #f7f9fc;
+}
+
+.calendar-container .calendar-day:focus-visible {
+  outline: 2px solid #1f6feb;
 }
 
 .day-number {
