@@ -174,7 +174,7 @@ const Home: React.FC = () => {
                     className="btn-today"
                     onClick={() => navigate('/calendar')}
                   >
-                    See more
+                    See more...
                   </button>
                 </div>
               </section>
@@ -198,7 +198,7 @@ const Home: React.FC = () => {
                 {roomBookings.length > 0 && (
                   <>
                     <div className="upcoming-list">
-                      {roomBookings.slice(0, 4).map(b => {
+                      {[...roomBookings].reverse().slice(0, 3).map(b => {
                         const start = new Date(b.startTime);
                         const end = new Date(b.endTime);
                         const bookingDate = start; // Use start time for the date badge
@@ -232,7 +232,7 @@ const Home: React.FC = () => {
                         className="btn-today"
                         onClick={() => navigate('/roombooking')}
                       >
-                        See all
+                        See more...
                       </button>
                     </div>
                   </>
@@ -301,7 +301,7 @@ const Home: React.FC = () => {
                     className="btn-today"
                     onClick={() => navigate('/calendar')}
                   >
-                    View all events
+                    See more...
                   </button>
                 </div>
               )}
