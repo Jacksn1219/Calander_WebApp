@@ -76,6 +76,7 @@ const Calendar: React.FC = () => {
                     const classNames = ['calendar-day'];
                     if (day.isEmpty) classNames.push('empty');
                     if (!day.isEmpty && day.isToday) classNames.push('today');
+                    if (!day.isEmpty && day.isPast) classNames.push('past-event-day');
                     if (!day.isEmpty && day.hasEvents) classNames.push('has-event');
 
                     const isInteractive = !day.isEmpty && Boolean(day.date);
@@ -112,7 +113,7 @@ const Calendar: React.FC = () => {
             <aside className="upcoming-panel" aria-live="polite">
               <div className="upcoming-header" ref={upcomingHeaderRef}>
                 <div>
-                  <p className="muted uppercase">Upcoming events</p>
+                  <p className="muted uppercase">Upcoming invited events</p>
                   <h3>{upcomingLabel}</h3>
                 </div>
                 <div className="upcoming-nav">
@@ -173,6 +174,7 @@ const Calendar: React.FC = () => {
             date={selectedDate}
             events={selectedDateEvents}
             onClose={closeDialog}
+            onStatusChange={reload}
           />
         )}
       </main>

@@ -180,6 +180,17 @@
   background: #ffe69c;
 }
 
+.calendar-day.past-event-day:not(.has-event) {
+  opacity: 0.4;
+  background: #f5f7fa;
+  border-color: #d1d5db;
+}
+
+.calendar-day.past-event-day:not(.has-event):hover {
+  background: #f5f7fa;
+  border-color: #d1d5db;
+}
+
 .day-number {
   font-size: 0.9rem;
   font-weight: 500;

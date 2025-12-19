@@ -24,6 +24,7 @@ interface CalendarDayCell {
   isToday?: boolean;
   hasEvents?: boolean;
   eventCount?: number;
+  isPast?: boolean;
 }
 
 interface UpcomingEventSummary {
@@ -512,7 +513,7 @@ EVENT DIALOG & CALENDAR HOOKS
 /**
  Custom hook for event dialog state and actions
  */
-export const useEventDialog = (events: any[]) => {
+export const useEventDialog = (events: any[], onStatusChange?: () => void) => {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
   const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
   const { user } = useAuth();
@@ -585,6 +586,7 @@ export const useEventDialog = (events: any[]) => {
       }
 
       setUserParticipationStatus('accepted');
+      onStatusChange?.();
       alert('You have successfully registered for this event.');
     } catch (e) {
       console.error(e);
@@ -614,6 +616,7 @@ export const useEventDialog = (events: any[]) => {
       }
 
       setUserParticipationStatus('not-registered');
+      onStatusChange?.();
       alert('Your registration has been cancelled.');
     } catch (e) {
       console.error(e);
@@ -646,6 +649,7 @@ export const useCalendar = () => {
   const { loading, error, events: roleScopedEvents, getEventsForDate, reload } = useCalendarEvents(user);
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDateSource, setSelectedDateSource] = useState<'calendar' | 'upcoming'>('calendar');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [listMonthOffset, setListMonthOffset] = useState(0);
   const [eventPage, setEventPage] = useState(0);
@@ -653,6 +657,17 @@ export const useCalendar = () => {
 
   const calendarGridRef = useRef<HTMLDivElement>(null);
   const upcomingHeaderRef = useRef<HTMLDivElement>(null);
+
+  const isAcceptedByUser = useCallback((event: any): boolean => {
+    const userId = user?.userId;
+    if (!userId) return false;
+    const participants = event?.participants ?? [];
+    return participants.some((p: any) => {
+      if (p.userId !== userId) return false;
+      const status = typeof p.status === 'string' ? p.status.toLowerCase() : p.status;
+      return status === 'accepted' || status === 1;
+    });
+  }, [user?.userId]);
 
   const timeFormatter = useMemo(() => new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
@@ -737,12 +752,13 @@ export const useCalendar = () => {
 
     for (let day = 1; day <= totalDays; day++) {
       const date = new Date(year, month, day);
-      const dayEvents = getEventsForDate(date);
+      const dayEvents = getEventsForDate(date).filter(isAcceptedByUser);
       cells.push({
         key: `day-${day}`,
         isEmpty: false,
         dayNumber: day,
         date,
+        isPast: date.getTime() < today.getTime(),
         isToday: date.getTime() === today.getTime(),
         hasEvents: dayEvents.length > 0,
         eventCount: dayEvents.length
@@ -750,7 +766,7 @@ export const useCalendar = () => {
     }
 
     return cells;
-  }, [currentMonth, getEventsForDate, today]);
+  }, [currentMonth, getEventsForDate, isAcceptedByUser, today]);
 
   const monthlyEvents = useMemo(() => {
     const monthStart = new Date(listMonth.getFullYear(), listMonth.getMonth(), 1);
@@ -760,10 +776,11 @@ export const useCalendar = () => {
         const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const matchesMonth = eventDate.getMonth() === monthStart.getMonth() && eventDate.getFullYear() === monthStart.getFullYear();
         const isFuture = normalizedEventDate >= today;
-        return matchesMonth && isFuture;
+        // const notAlreadyAccepted = !isAcceptedByUser(event);
+        return matchesMonth && isFuture // && notAlreadyAccepted;
       })
       .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
-  }, [roleScopedEvents, listMonth, today]);
+  }, [roleScopedEvents, listMonth, isAcceptedByUser, today]);
 
   useEffect(() => {
     const totalPages = Math.ceil(monthlyEvents.length / maxUpcomingEvents);
@@ -792,7 +809,7 @@ export const useCalendar = () => {
         acceptedCount,
       };
     });
-  }, [pagedEvents, timeFormatter]);
+  }, [pagedEvents, timeFormatter, isAcceptedByUser]);
 
   const listMonthLabel = useMemo(() => (
     `${MONTH_NAMES[listMonth.getMonth()]} ${listMonth.getFullYear()}`
@@ -827,6 +844,7 @@ export const useCalendar = () => {
 
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
+    setSelectedDateSource('calendar');
   }, []);
 
   const handleCloseDialog = useCallback(() => {
@@ -853,12 +871,17 @@ export const useCalendar = () => {
     const monthStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), 1);
     setCurrentMonth(monthStart);
     setSelectedDate(new Date(eventDate));
+    setSelectedDateSource('upcoming');
   }, []);
 
   const selectedDateEvents = useMemo(() => {
     if (!selectedDate) return [];
-    return getEventsForDate(selectedDate);
-  }, [selectedDate, getEventsForDate]);
+    const eventsForDay = getEventsForDate(selectedDate);
+    if (selectedDateSource === 'calendar') {
+      return eventsForDay.filter(isAcceptedByUser);
+    }
+    return eventsForDay;
+  }, [selectedDate, selectedDateSource, getEventsForDate, isAcceptedByUser]);
 
   return {
     loading,

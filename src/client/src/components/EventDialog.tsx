@@ -1,4 +1,4 @@
-import React, { useEffect, useState, useRef, useCallback } from 'react';
+import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import '../styles/event-dialog.css';
 import { CalendarEvent, CalendarParticipant, useEventDialog } from '../hooks/hooks';
 import { useAuth } from '../states/AuthContext';
@@ -7,10 +7,10 @@ interface EventDialogProps {
   events: CalendarEvent[];
   date: Date | null;
   onClose: () => void;
-  // onHideEvent: (eventId: number) => void;
+  onStatusChange?: () => void;
 }
 
-const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose /*, onHideEvent*/ }) => {
+const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose, onStatusChange }) => {
   const {
     selectedEvent,
     setSelectedEvent,
@@ -19,9 +19,18 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose /*, onH
     formatTime,
     handleAttend,
     handleUnattend,
-  } = useEventDialog(events);
+  } = useEventDialog(events, onStatusChange);
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'list' | 'detail'>(events.length > 1 ? 'list' : 'detail');
+
+  const isPastSelectedEvent = useMemo(() => {
+    if (!selectedEvent) return false;
+    const eventDate = new Date(selectedEvent.eventDate);
+    const today = new Date();
+    eventDate.setHours(0, 0, 0, 0);
+    today.setHours(0, 0, 0, 0);
+    return eventDate.getTime() < today.getTime();
+  }, [selectedEvent]);
 
   const selectEvent = useCallback((ev: CalendarEvent) => {
     setSelectedEvent(ev);
@@ -32,17 +41,6 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose /*, onH
     setViewMode('list');
     setSelectedEvent(null);
   }, [setSelectedEvent]);
-
-  // const handleDeleteClick = useCallback(() => {
-  //   if (!selectedEvent) return;
-  //   const confirmed = window.confirm(
-  //     `Are you sure you want to hide "${selectedEvent.title}" from your calendar? You can restore it later using the restore button.`
-  //   );
-  //   if (confirmed) {
-  //     onHideEvent(selectedEvent.eventId);
-  //     onClose();
-  //   }
-  // }, [selectedEvent, onHideEvent, onClose]);
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -107,16 +105,6 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose /*, onH
         <div className="dialog-header">
           <h2 id="dialog-title">{date ? formatDate(date) : 'Selected Date'}</h2>
           <div className="dialog-header-actions">
-            {/* {viewMode === 'detail' && selectedEvent && (
-              <button
-                className="btn-delete"
-                onClick={handleDeleteClick}
-                aria-label="Hide event from calendar"
-                title="Hide this event"
-              >
-                🗑️
-              </button>
-            )} */}
             <button className="btn-close" onClick={onClose} aria-label="Close dialog">×</button>
           </div>
         </div>
@@ -178,13 +166,15 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose /*, onH
                 </div>
                 {selectedEvent.description && <p className="event-description">{selectedEvent.description}</p>}
               </div>
-              <div className="event-actions">
-                {userParticipationStatus === 'not-registered' ? (
-                  <button className="btn-attend" onClick={() => handleAttend(selectedEvent.eventId)}>Attend Event</button>
-                ) : (
-                  <button className="btn-unattend" onClick={() => handleUnattend(selectedEvent.eventId)}>Cancel Registration</button>
-                )}
-              </div>
+              {!isPastSelectedEvent && (
+                <div className="event-actions">
+                  {userParticipationStatus === 'not-registered' ? (
+                    <button className="btn-attend" onClick={() => handleAttend(selectedEvent.eventId)}>Attend Event</button>
+                  ) : (
+                    <button className="btn-unattend" onClick={() => handleUnattend(selectedEvent.eventId)}>Cancel Registration</button>
+                  )}
+                </div>
+              )}
               <div className="participants-section">
                 <h4>Attendees ({selectedEvent.participants.length})</h4>
                 <div className="participants-list">
