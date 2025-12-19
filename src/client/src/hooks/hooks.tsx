@@ -776,8 +776,8 @@ export const useCalendar = () => {
         const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const matchesMonth = eventDate.getMonth() === monthStart.getMonth() && eventDate.getFullYear() === monthStart.getFullYear();
         const isFuture = normalizedEventDate >= today;
-        // const notAlreadyAccepted = !isAcceptedByUser(event);
-        return matchesMonth && isFuture // && notAlreadyAccepted;
+        const notAlreadyAccepted = !isAcceptedByUser(event);
+        return matchesMonth && isFuture && notAlreadyAccepted;
       })
       .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
   }, [roleScopedEvents, listMonth, isAcceptedByUser, today]);
