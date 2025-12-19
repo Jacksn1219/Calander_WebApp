@@ -101,7 +101,7 @@ const Home: React.FC = () => {
       <main className="main-content">
         <div className="events-header">
           <div className="events-header-left">
-            <h1>Your week at a glance</h1>
+            <h1>Welcome {user ? user.name || user.email : 'User'}</h1>
             <p className="muted">Review your meetings, bookings, and events in one place.</p>
             {loading && <p className="muted">Loading dashboard data...</p>}
             {error && (
