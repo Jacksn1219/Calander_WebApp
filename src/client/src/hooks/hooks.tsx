@@ -214,7 +214,17 @@ export type RoomBookingSummary = {
   roomName: string;
   startTime: string; // ISO string
   endTime: string;   // ISO string
+  bookingDate: string; // ISO string (optional)
+  purpose: string; // optional
 };
+
+export type RoomToFindName = {
+  id: number;
+  name: string;
+  location: string;
+  capacity: number;
+};
+
 
 export const useUserRoomBookings = (userId?: number) => {
   const [bookings, setBookings] = useState<RoomBookingSummary[]>([]);
@@ -238,27 +248,43 @@ export const useUserRoomBookings = (userId?: number) => {
       }
 
       const data = await response.json();
-      // Expect an array of bookings with room and time info.
-      // Backend sends BookingDate (DateTime) and StartTime/EndTime (TimeSpan),
-      // so we compose full ISO strings for the frontend Date constructor.
-      const mapped: RoomBookingSummary[] = (data || []).map((b: any) => {
-        const bookingDateRaw: string | undefined = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
-        const startTimeRaw: string | undefined = b.startTime;
-        const endTimeRaw: string | undefined = b.endTime;
 
-        const buildDateTime = (date: string | undefined, time: string | undefined): string => {
-          if (!date || !time) return '';
+      // Fetch room details for each booking if roomId is defined
+      const mapped: RoomBookingSummary[] = await Promise.all((data || []).map(async (b: any) => {
+        const bookingDateRaw: string  = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
+        const startTimeRaw: string  = b.startTime;
+        const endTimeRaw: string  = b.endTime;
+
+        const buildDateTime = (date: string, time: string): string => {
+          if (!date || !time) return '2000-01-01T00:00:00Z'; // Fallback
           const datePart = date.split('T')[0];
           return `${datePart}T${time}`;
         };
 
+        let roomName = "TEST";
+        if (b.roomId !== undefined && b.roomId !== null) {
+          try {
+            const resp = await apiFetch(`/api/rooms/${b.roomId}`);
+            if (resp.ok) {
+              const roomData = await resp.json();
+              if (roomData && (roomData.roomName || roomData.name)) {
+                roomName = roomData.roomName || roomData.name;
+              }
+            }
+          } catch (e) {
+            // ignore room fetch error, fallback to existing roomName
+          }
+        }
+
         return {
           id: b.id ?? b.roomBookingId ?? 0,
-          roomName: b.room?.name ?? b.roomName ?? 'Room',
+          roomName,
           startTime: buildDateTime(bookingDateRaw, startTimeRaw),
           endTime: buildDateTime(bookingDateRaw, endTimeRaw),
+          bookingDate: bookingDateRaw || '',
+          purpose: b.purpose ?? '',
         };
-      });
+      }));
 
       setBookings(mapped);
     } catch (err: any) {
@@ -289,7 +315,7 @@ export const useCreateEmployeeForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRoleState] = useState<'Admin' | 'User'>('User');
+  const [role, setRoleState] = useState<string>('User');
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -306,8 +332,8 @@ export const useCreateEmployeeForm = () => {
     }
   }, [canAssignAdminRole]);
 
-  const setRole = useCallback((newRole: 'Admin' | 'User') => {
-    if (!canAssignAdminRole) {
+  const setRole = useCallback((newRole: string) => {
+    if (!canAssignAdminRole && newRole !== 'User') {
       setRoleState('User');
       return;
     }
@@ -513,7 +539,7 @@ EVENT DIALOG & CALENDAR HOOKS
 /**
  Custom hook for event dialog state and actions
  */
-export const useEventDialog = (events: any[], onStatusChange?: () => void) => {
+export const useEventDialog = (events: any[], onStatusChange?: () => void,onClose?: () => void) => {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
   const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
   const { user } = useAuth();
@@ -525,8 +551,8 @@ export const useEventDialog = (events: any[], onStatusChange?: () => void) => {
       return;
     }
     const me = (selectedEvent.participants || []).find((p: any) => p.userId === user.userId);
-    // Support both string and possible numeric enum values (0 Pending,1 Accepted,2 Declined)
-    if (me && (me.status === 'Accepted' || me.status === 'accepted' || me.status === 1)) {
+    // Status is already normalized to string 'Accepted', 'Pending', or 'Declined' from the fetch
+    if (me && me.status === 'Accepted') {
       setUserParticipationStatus('accepted');
     } else {
       setUserParticipationStatus('not-registered');
@@ -588,11 +614,13 @@ export const useEventDialog = (events: any[], onStatusChange?: () => void) => {
       setUserParticipationStatus('accepted');
       onStatusChange?.();
       alert('You have successfully registered for this event.');
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       alert('Unable to register for this event. Please try again.');
+      if (onClose) onClose();
     }
-  }, [events, user]);
+  }, [events, user, onClose]);
 
   const handleUnattend = useCallback(async (eventId: number) => {
     if (!user?.userId) return;
@@ -618,11 +646,13 @@ export const useEventDialog = (events: any[], onStatusChange?: () => void) => {
       setUserParticipationStatus('not-registered');
       onStatusChange?.();
       alert('Your registration has been cancelled.');
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       alert('Unable to cancel your registration. Please try again.');
+      if (onClose) onClose();
     }
-  }, [events, user]);
+  }, [events, user, onClose]);
 
   return {
     selectedEvent,
@@ -1506,7 +1536,7 @@ export const useHomeDashboard = () => {
 
   const [roomsById, setRoomsById] = useState<Record<number, RoomDto>>({});
 
-  const { upcomingEvents, totalEvents, acceptedEventsForUser } = useMemo(() => {
+  const { upcomingEvents, totalEvents, acceptedEventsForUser, weekEventsAttending } = useMemo(() => {
     const now = new Date();
     const sorted = [...events].sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
     let acceptedForUser = 0;
@@ -1520,18 +1550,27 @@ export const useHomeDashboard = () => {
       }
     });
 
-      // Filter to show only upcoming events that the user hasn't attended yet
-      const upcoming = sorted.filter(ev => {
-        if (ev.eventDate < now) return false;
-        if (!user?.userId) return true;
-        const me = ev.participants.find(p => p.userId === user.userId);
-        return !me || me.status !== 'Accepted';
-      });
+    // Only show events attended by the user for the week calendar
+    const weekEventsAttending = sorted.filter(ev => {
+      if (ev.eventDate < now) return false;
+      if (!user?.userId) return false;
+      const me = ev.participants.find(p => p.userId === user.userId);
+      return me && me.status === 'Accepted';
+    });
+
+    // Filter to show only upcoming events that the user hasn't attended yet
+    const upcoming = sorted.filter(ev => {
+      if (ev.eventDate < now) return false;
+      if (!user?.userId) return true;
+      const me = ev.participants.find(p => p.userId === user.userId);
+      return !me || me.status !== 'Accepted';
+    });
 
     return {
       upcomingEvents: upcoming,
       totalEvents: events.length,
       acceptedEventsForUser: acceptedForUser,
+      weekEventsAttending,
     };
   }, [events, user?.userId]);
 
@@ -1657,6 +1696,7 @@ export const useHomeDashboard = () => {
     roomBookingsError,
     handleAttend,
     roomsById,
+    weekEventsAttending,
   };
 };
 

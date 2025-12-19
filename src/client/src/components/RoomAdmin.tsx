@@ -66,7 +66,7 @@ const RoomAdmin: React.FC = () => {
 
         <div className={`home-row ${isModalOpen ? 'blurred-background' : ''}`} style={{ marginTop: '1.5rem' }}>
           {/* Left: Create room form */}
-          <div className="calendar-container" style={{ maxWidth: '600px' }}>
+          <div className="calendar-container" style={{ maxWidth: '600px', flex: '1 1 0' }}>
             <section className="calendar-grid">
               <h2 className="section-title">Create room</h2>
               {error && !isModalOpen && (
@@ -128,7 +128,7 @@ const RoomAdmin: React.FC = () => {
             </section>
           </div>
 
-          <div className="calendar-container" style={{ maxWidth: '480px' }}>
+          <div className="calendar-container" style={{ maxWidth: '480px', flex: '1 1 0' }}>
             <section className="calendar-grid">
               <h2 className="section-title">Existing rooms</h2>
               {rooms.length === 0 && !loading && (
@@ -172,26 +172,27 @@ const RoomAdmin: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, gap: 8 }}>
                     <button
                       type="button"
-                      className="btn-today"
+                      className="btn-icon"
                       onClick={() => setUpPage(p => Math.max(1, p - 1))}
                       disabled={upPage === 1}
-                      style={{ minWidth: 80 }}
+                      aria-label="Previous page"
                     >
-                      Previous
+                      ←
                     </button>
-                    <span style={{ alignSelf: 'center', color: '#333', fontWeight: 500 }}>
+                    <span style={{ color: '#333', fontWeight: 500 }}>
                       Page {upPage} of {totalPages}
                     </span>
                     <button
                       type="button"
-                      className="btn-today"
+                      className="btn-icon primary"
                       onClick={() => setUpPage(p => Math.min(totalPages, p + 1))}
                       disabled={upPage === totalPages}
+                      aria-label="Next page"
                     >
-                      Next
+                      →
                     </button>
                   </div>
                 </>

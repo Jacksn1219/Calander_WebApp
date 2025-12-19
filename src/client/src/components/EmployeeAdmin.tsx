@@ -124,7 +124,7 @@ const EmployeeAdmin: React.FC = () => {
 
         <div className={`home-row ${isModalOpen ? 'blurred-background' : ''}`} style={{ marginTop: '1.5rem' }}>
           {/* Left: Create employee form */}
-          <div className="calendar-container" style={{ maxWidth: '600px' }}>
+          <div className="calendar-container" style={{ maxWidth: '600px', flex: '1 1 0' }}>
             <section className="calendar-grid">
               <h2 className="section-title">Add employee</h2>
               {error && !isModalOpen && !isEditing && (
@@ -226,7 +226,7 @@ const EmployeeAdmin: React.FC = () => {
           </div>
 
           {/* Right: Existing employees list */}
-          <div className="calendar-container" style={{ maxWidth: '480px' }}>
+          <div className="calendar-container" style={{ maxWidth: '480px', flex: '1 1 0' }}>
             <section className="calendar-grid">
               <h2 className="section-title">Existing employees</h2>
               {visibleEmployees.length === 0 && !loading && (
@@ -265,27 +265,27 @@ const EmployeeAdmin: React.FC = () => {
                       </div>
                     ))}
                   </div>
-                  <div style={{ display: 'flex', justifyContent: 'center', marginTop: 16, gap: 8 }}>
+                  <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', marginTop: 16, gap: 8 }}>
                     <button
                       type="button"
-                      className="btn-today"
+                      className="btn-icon"
                       onClick={() => setPage(p => Math.max(1, p - 1))}
                       disabled={page === 1}
-                      style={{ minWidth: 80 }}
+                      aria-label="Previous page"
                     >
-                      Previous
+                      ←
                     </button>
-                    <span style={{ alignSelf: 'center', color: '#333', fontWeight: 500 }}>
+                    <span style={{ color: '#333', fontWeight: 500 }}>
                       Page {page} of {totalPages}
                     </span>
                     <button
                       type="button"
-                      className="btn-today"
+                      className="btn-icon primary"
                       onClick={() => setPage(p => Math.min(totalPages, p + 1))}
                       disabled={page === totalPages}
-                      style={{ minWidth: 80 }}
+                      aria-label="Next page"
                     >
-                      Next
+                      →
                     </button>
                   </div>
                 </>

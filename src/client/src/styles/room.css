@@ -221,3 +221,28 @@
   background: #fecaca;
   cursor: not-allowed;
 }
+
+/* Pagination button styles */
+.rooms-page .btn-icon {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.rooms-page .btn-icon.primary {
+  background: #1f6feb;
+  color: white;
+}
+
+.rooms-page .btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

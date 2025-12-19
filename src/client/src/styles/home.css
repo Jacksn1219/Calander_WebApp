@@ -1,6 +1,7 @@
 /* Home dashboard calendar styles: derived from calendar.css but scoped for compact use */
 
-.events-header {
+/* Scope all styles under .home-page */
+.home-page .events-header {
   margin-bottom: 24px;
   display: flex;
   align-items: flex-start;
@@ -8,23 +9,23 @@
   gap: 16px;
 }
 
-.events-header-left {
+.home-page .events-header-left {
   flex: 1;
 }
 
-.home-header-right {
+.home-page .home-header-right {
   display: flex;
   align-items: center;
   gap: 12px;
 }
 
-.home-header-user {
+.home-page .home-header-user {
   display: flex;
   align-items: center;
   gap: 8px;
 }
 
-.home-header-avatar {
+.home-page .home-header-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -36,23 +37,23 @@
   font-weight: 600;
 }
 
-.home-header-user-text {
+.home-page .home-header-user-text {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.home-header-user-name {
+.home-page .home-header-user-name {
   font-size: 0.9rem;
   font-weight: 600;
 }
 
-.home-header-user-role {
+.home-page .home-header-user-role {
   font-size: 0.8rem;
   color: #6b7280;
 }
 
-.home-notification-button {
+.home-page .home-notification-button {
   position: relative;
   width: 32px;
   height: 32px;
@@ -66,14 +67,14 @@
   padding: 0;
 }
 
-.home-notification-icon {
+.home-page .home-notification-icon {
   width: 16px;
   height: 16px;
   border-radius: 4px;
   border: 1px solid #e5e7eb;
 }
 
-.home-notification-dot {
+.home-page .home-notification-dot {
   position: absolute;
   top: -2px;
   right: -2px;
@@ -84,45 +85,45 @@
   border: 2px solid #020617;
 }
 
-.events-header h1 {
+.home-page .events-header h1 {
   margin: 0 0 4px 0;
   font-size: 1.75rem;
 }
 
-.events-header .muted {
+.home-page .events-header .muted {
   margin: 0;
 }
 
-.home-row .calendar-container {
+.home-page .home-row .calendar-container {
   border-radius: 8px;
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
   padding: 12px;
 }
 
 /* Generic row wrapper for putting cards next to each other */
-.home-row {
+.home-page .home-row {
   display: flex;
   flex-wrap: wrap;
   gap: 16px;
 }
 
-.home-row > .calendar-container {
+.home-page .home-row > .calendar-container {
   flex: 1 1 0;
   min-width: 260px;
 }
 
-.home-row .calendar-grid {
+.home-page .home-row .calendar-grid {
   width: 100%;
   padding: 0;
 }
-.home-row .calendar-header {
+.home-page .home-row .calendar-header {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0;           /* remove gaps between weekday labels */
   margin: 0 0 2px;  /* minimal space just above the boxes */
 }
 
-.home-row .weekday {
+.home-page .home-row .weekday {
   text-align: center;
   font-weight: 600;
   font-size: 0.75rem;
@@ -131,13 +132,13 @@
 }
 
 /* 5-column layout for Mon–Fri mini week - scoped to home page only */
-.home-row .calendar-container .calendar-grid .calendar-days {
+.home-page .home-row .calendar-container .calendar-grid .calendar-days {
   display: grid;
   grid-template-columns: repeat(5, 1fr);
   gap: 0;           /* no extra horizontal gap vs header */
 }
 
-.home-row .calendar-day {
+.home-page .home-row .calendar-day {
   aspect-ratio: 4 / 3;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
@@ -152,56 +153,56 @@
   background: white;
 }
 
-.home-row .weekday-label {
+.home-page .home-row .weekday-label {
   font-size: 0.7rem;
   font-weight: 600;
   color: #666;
 }
 
-.home-row .calendar-day.empty {
+.home-page .home-row .calendar-day.empty {
   cursor: default;
   background: transparent;
   border-color: transparent;
 }
 
-.home-row .calendar-day:not(.empty):hover {
+.home-page .home-row .calendar-day:not(.empty):hover {
   background: #f7f9fc;
   border-color: #1f6feb;
 }
 
-.home-row .calendar-day.today {
+.home-page .home-row .calendar-day.today {
   background: #e3f2fd;
   border-color: #1f6feb;
   font-weight: 600;
 }
 
-.home-row .calendar-day.has-event {
+.home-page .home-row .calendar-day.has-event {
   background: #fff3cd;
   border-color: #ffc107;
 }
 
-.home-row .calendar-day.has-event:hover {
+.home-page .home-row .calendar-day.has-event:hover {
   background: #ffe69c;
 }
 
 /* Make Upcoming Events tiles more compact on Home */
-.home-upcoming-events .calendar-day.has-event {
+.home-page .home-upcoming-events .calendar-day.has-event {
   aspect-ratio: auto;
   padding: 6px 10px;
   align-items: flex-start;
 }
 
-.home-upcoming-events .calendar-days {
+.home-page .home-upcoming-events .calendar-days {
   max-height: 260px;
   overflow-y: auto;
 }
 
-.home-row .day-number {
+.home-page .home-row .day-number {
   font-size: 0.75rem;
   font-weight: 500;
 }
 
-.home-row .event-indicator {
+.home-page .home-row .event-indicator {
   margin-top: auto;
   background: #1f6feb;
   color: white;
@@ -211,23 +212,23 @@
   font-weight: 600;
 }
 
-.home-row .event-count {
+.home-page .home-row .event-count {
   display: block;
 }
 
 /* Past events/day styling for dashboard mini calendar */
-.home-row .calendar-day.past-event-day {
+.home-page .home-row .calendar-day.past-event-day {
   opacity: 0.4;
 }
 
 /* Room booking list styling on Home */
-.room-booking-list {
+.home-page .room-booking-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.room-booking-row {
+.home-page .room-booking-row {
   display: grid;
   grid-template-columns: auto 1fr;
   align-items: center;
@@ -235,42 +236,42 @@
   padding: 8px 4px;
 }
 
-.room-booking-date-label {
+.home-page .room-booking-date-label {
   font-size: 0.85rem;
   font-weight: 600;
 }
 
-.room-booking-details {
+.home-page .room-booking-details {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
 }
 
-.room-booking-room {
+.home-page .room-booking-room {
   font-size: 0.85rem;
   font-weight: 600;
 }
 
-.room-booking-time {
+.home-page .room-booking-time {
   font-size: 0.8rem;
   color: #666;
 }
 
 /* Notifications card styling */
-.notifications-list {
+.home-page .notifications-list {
   display: flex;
   flex-direction: column;
   gap: 8px;
 }
 
-.notification-row {
+.home-page .notification-row {
   display: flex;
   align-items: center;
   gap: 8px;
   padding: 6px 0;
 }
 
-.notification-icon {
+.home-page .notification-icon {
   width: 24px;
   height: 24px;
   border-radius: 6px;
@@ -281,168 +282,208 @@
   font-size: 0.8rem;
 }
 
-.notification-content {
+.home-page .notification-content {
   flex: 1;
 }
 
-.notification-title {
+.home-page .notification-title {
   font-size: 0.85rem;
 }
 
-.notification-meta {
+.home-page .notification-meta {
   font-size: 0.75rem;
   color: #6b7280;
 }
 
 /* Home layout styles */
-.home-row {
+.home-page .home-row {
   margin-top: 1.5rem;
 }
 
-.home-left-column {
+.home-page .home-left-column {
   flex: 1;
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
 }
 
-.home-calendar-section {
+.home-page .home-calendar-section {
   margin-bottom: 1.5rem;
 }
 
-.home-see-more-wrapper {
+.home-page .home-see-more-wrapper {
   display: flex;
   justify-content: flex-end;
   margin-top: 0.75rem;
 }
 
-.home-right-column {
+.home-page .home-right-column {
   flex: 0.8;
 }
 
-.home-upcoming-section {
-  display: flex;
-  flex-direction: column;
-  gap: 0.75rem;
-}
-
-.home-upcoming-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-}
-
-.home-upcoming-header .section-title {
-  margin-bottom: 0;
-}
-
-.home-upcoming-header .btn-today {
-  padding-inline: 0.9rem;
-  padding-block: 0.35rem;
-}
-
-.home-upcoming-list {
-  display: grid;
-  grid-template-columns: 1fr;
-  gap: 0.75rem;
-}
-
-.home-event-description {
-  margin-top: 0.35rem;
-}
-
-.room-booking-error {
+.home-page .room-booking-error {
   color: #b91c1c;
 }
 
-  .btn-green {
-    background: #22c55e;
-    color: #fff;
-    border: none;
-    border-radius: 6px;
-    padding: 0.5rem 1.2rem;
-    font-size: 1rem;
-    font-weight: 600;
-    cursor: pointer;
-    transition: background 0.2s;
-  }
+/* Upcoming panel styles for home - copied from calendar.css */
+.home-page .home-upcoming-panel {
+  width: 100%;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  border: none;
+}
 
-  .btn-green:hover {
-    background: #16a34a;
-  }
+.home-page .home-upcoming-panel .upcoming-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 12px;
+}
 
-  .btn-green:disabled {
-    background: #bbf7d0;
-    cursor: not-allowed;
-  }
+.home-page .home-upcoming-panel .uppercase {
+  text-transform: uppercase;
+  font-size: 0.75rem;
+  letter-spacing: 0.08em;
+}
 
-  /* Upcoming Events layout (three columns: date | main | right) */
-  .home-right-column .home-upcoming-row {
-    display: grid;
-    grid-template-columns: auto 1fr 1.2fr;
-    align-items: start;
-    column-gap: 16px;
-  }
+.home-page .home-upcoming-panel .upcoming-nav {
+  display: flex;
+  gap: 8px;
+}
 
-  .home-upcoming-main {
-    display: flex;
-    flex-direction: column;
-    gap: 2px;
-  }
+.home-page .home-upcoming-panel .btn-icon {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
 
-  .home-upcoming-title {
-    font-weight: 600;
-    font-size: 0.95rem;
-  }
+.home-page .home-upcoming-panel .btn-icon.primary {
+  background: #1f6feb;
+  color: white;
+}
 
-  .home-upcoming-time {
-    font-size: 0.9rem;
-    color: #555;
-  }
+.home-page .home-upcoming-panel .btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
 
-  .home-upcoming-location {
-    font-size: 0.9rem;
-    color: #666;
-  }
+.home-page .home-upcoming-panel .upcoming-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-  .home-upcoming-right {
-    display: flex;
-    flex-direction: row;
-    align-items: flex-start;
-    justify-content: flex-end;
-    gap: 8px;
-  }
+.home-page .home-upcoming-card {
+  border: 1px solid #e0e0e0;
+  border-radius: 10px;
+  padding: 12px;
+  background: #f9fafc;
+  display: flex;
+  gap: 12px;
+  text-align: left;
+  transition: border-color 0.2s, background 0.2s, transform 0.2s;
+  width: 100%;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  outline: none;
+}
 
-  .home-upcoming-desc {
-    color: #333;
-    text-align: left;
-    font-size: 0.9rem;
-  }
+.home-page .home-upcoming-card:hover {
+  border-color: #1f6feb;
+  background: #eff5ff;
+  transform: translateY(-2px);
+}
 
-  .home-upcoming-pagination {
-    display: flex;
-    justify-content: center;
-    align-items: center;
-    gap: 8px;
-    margin-top: 12px;
-  }
+.home-page .home-upcoming-card:focus-visible {
+  outline: 2px solid #1f6feb;
+}
 
-  .home-upcoming-page-indicator {
-    color: #333;
-    font-weight: 500;
-  }
+.home-page .home-upcoming-card .upcoming-date {
+  min-width: 56px;
+  border-radius: 8px;
+  background: white;
+  border: 1px solid #e0e6f0;
+  text-align: center;
+  padding: 6px 4px;
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+  flex-shrink: 0;
+}
 
-  @media (max-width: 800px) {
-    .home-right-column .home-upcoming-row {
-      grid-template-columns: auto 1fr;
-      row-gap: 8px;
-    }
-    .home-upcoming-right {
-      grid-column: 1 / -1;
-      align-items: flex-start;
-      text-align: left;
-    }
-    .home-upcoming-desc {
-      text-align: left;
-    }
-  }
+.home-page .home-upcoming-card .upcoming-date-day {
+  font-size: 1.25rem;
+  font-weight: 700;
+}
+
+.home-page .home-upcoming-card .upcoming-date-month {
+  font-size: 0.75rem;
+  color: #6b7280;
+}
+
+.home-page .home-upcoming-card .upcoming-details {
+  flex: 1;
+}
+
+.home-page .home-upcoming-card .upcoming-details h4 {
+  margin: 0 0 4px;
+  font-size: 1rem;
+}
+
+.home-page .home-upcoming-card .upcoming-time {
+  margin: 0;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: #1f6feb;
+}
+
+.home-page .home-upcoming-card .upcoming-description {
+  margin: 6px 0;
+  font-size: 0.85rem;
+  color: #4b5563;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  overflow: hidden;
+}
+
+.home-page .home-upcoming-card .upcoming-location {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: #6b7280;
+}
+
+.home-page .home-upcoming-panel .upcoming-empty {
+  margin: 0;
+  padding: 16px;
+  border: 1px dashed #c7cede;
+  border-radius: 8px;
+  text-align: center;
+  color: #6b7280;
+  background: #fdfdfd;
+}
+
+.home-page .home-upcoming-panel .upcoming-footer {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding-top: 8px;
+  border-top: 1px solid #e6e9f2;
+}
+
+.home-page .home-upcoming-panel .upcoming-page-info {
+  font-size: 0.85rem;
+  color: #6b7280;
+  font-weight: 500;
+}
