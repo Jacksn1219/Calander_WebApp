@@ -152,13 +152,20 @@ class Program
 
             if (!db.Employees.Any())
             {
-                db.Employees.Add(new EmployeesModel
+                var bartEmployee = new EmployeesModel
                 {
                     Name = "bart",
                     Email = "bart@test.com",
                     Password = BCrypt.Net.BCrypt.HashPassword("1234"), // hash before saving
                     Role = UserRole.Admin
-                });
+                };
+
+                // Create default reminder preferences for bart
+                var bartPreferences = new ReminderPreferencesModel
+                {
+                    Id = bartEmployee.Id!.Value
+                };
+                db.ReminderPreferences.Add(bartPreferences);
             }
 
             db.SaveChanges();

@@ -82,49 +82,53 @@ const UserSettings: React.FC = () => {
             <div className="user-settings-loading">Loading...</div>
           ) : error ? (
             <div className="user-settings-error">{error}</div>
-          ) : preferences ? (
+          ) : (
             <div className="user-settings-content">
-              <div className="settings-section">
-                <h4 className="settings-section-title">Reminder Preferences</h4>
-                
-                <div className="settings-item">
-                  <div className="settings-item-label">
-                    <span>Event Reminders</span>
+              {preferences ? (
+                <div className="settings-section">
+                  <h4 className="settings-section-title">Reminder Preferences</h4>
+                  
+                  <div className="settings-item">
+                    <div className="settings-item-label">
+                      <span>Event Reminders</span>
+                    </div>
+                    <button
+                      onClick={toggleEventReminder}
+                      className={`toggle-button ${preferences.eventReminder ? 'active' : ''}`}
+                    >
+                      <span className="toggle-slider"></span>
+                    </button>
                   </div>
-                  <button
-                    onClick={toggleEventReminder}
-                    className={`toggle-button ${preferences.eventReminder ? 'active' : ''}`}
-                  >
-                    <span className="toggle-slider"></span>
-                  </button>
-                </div>
 
-                <div className="settings-item">
-                  <div className="settings-item-label">
-                    <span>Booking Reminders</span>
+                  <div className="settings-item">
+                    <div className="settings-item-label">
+                      <span>Booking Reminders</span>
+                    </div>
+                    <button
+                      onClick={toggleBookingReminder}
+                      className={`toggle-button ${preferences.bookingReminder ? 'active' : ''}`}
+                    >
+                      <span className="toggle-slider"></span>
+                    </button>
                   </div>
-                  <button
-                    onClick={toggleBookingReminder}
-                    className={`toggle-button ${preferences.bookingReminder ? 'active' : ''}`}
-                  >
-                    <span className="toggle-slider"></span>
-                  </button>
-                </div>
 
-                <div className="settings-item">
-                  <div className="settings-item-label">
-                    <span>Advance Notice (minutes)</span>
+                  <div className="settings-item">
+                    <div className="settings-item-label">
+                      <span>Advance Notice (minutes)</span>
+                    </div>
+                    <input
+                      type="number"
+                      min="0"
+                      value={advanceMinutesInput}
+                      onChange={handleAdvanceMinutesChange}
+                      onBlur={handleAdvanceMinutesBlur}
+                      className="advance-minutes-input"
+                    />
                   </div>
-                  <input
-                    type="number"
-                    min="0"
-                    value={advanceMinutesInput}
-                    onChange={handleAdvanceMinutesChange}
-                    onBlur={handleAdvanceMinutesBlur}
-                    className="advance-minutes-input"
-                  />
                 </div>
-              </div>
+              ) : (
+                <div className="user-settings-empty">No preferences found</div>
+              )}
 
               <div className="settings-divider"></div>
 
@@ -139,8 +143,6 @@ const UserSettings: React.FC = () => {
                 </button>
               </div>
             </div>
-          ) : (
-            <div className="user-settings-empty">No preferences found</div>
           )}
         </div>
       )}
