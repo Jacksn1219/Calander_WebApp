@@ -1782,7 +1782,7 @@ export const useRoomsAdmin = () => {
       const data = await res.json();
       const mapped: RoomDto[] = (data || []).map((r: any) => ({
         id: r.room_id ?? r.id ?? r.roomId ?? r.RoomId ?? 0,
-        name: r.room_name ?? r.roomName ?? r.RoomName ?? 'Room',
+        roomName: r.room_name ?? r.roomName ?? r.RoomName ?? 'Room',
         capacity: r.capacity ?? r.Capacity ?? null,
         location: r.location ?? r.Location ?? '',
       }));

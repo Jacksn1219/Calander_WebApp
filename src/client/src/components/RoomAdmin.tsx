@@ -141,7 +141,7 @@ const RoomAdmin: React.FC = () => {
                       <div key={room.id} className="room-booking-row">
                       <div className="room-booking-details">
                         <div className="room-booking-room">
-                          {room.roomName} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
+                          Room: {room.roomName} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
                         </div>
                         {room.location && (
                           <div className="room-booking-time">Location: {room.location}</div>

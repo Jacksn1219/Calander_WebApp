@@ -24,7 +24,7 @@ const AdminPanel: React.FC = () => {
           </div>
           <div className="admin-panel-card">
             <h2>Event Dashboard</h2>
-            <p>View events.</p>
+            <p>View and manage all events.</p>
             <Link to="/admin-panel/administrative-dashboard">
               <button className="btn-today">Go to Dashboard</button>
             </Link>
