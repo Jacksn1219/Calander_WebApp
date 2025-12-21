@@ -4,6 +4,7 @@ import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
 import { isSuperAdmin } from '../constants/superAdmin';
 
+
 const MONTH_NAMES = [
   'January', 'February', 'March', 'April', 'May', 'June',
   'July', 'August', 'September', 'October', 'November', 'December'
@@ -2003,12 +2004,73 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
 
 // Office Attendance functions below 
 
-export type AttendanceStatus = 'Present' | 'Absent' | 'Remote';
 
-export interface OfficeAttendance {
-  id?: number;
-  userId: number;
-  date: string; // ISO
-  status: AttendanceStatus;
-}
+const STATUS_TO_INT = {
+  Present: 0,
+  Absent: 1,
+  Remote: 2,
+} as const;
+
+const INT_TO_STATUS = {
+  0: 'Present',
+  1: 'Absent',
+  2: 'Remote',
+} as const;
+
+type AttendanceStatus = 'Present' | 'Absent' | 'Remote';
+
+export const useOfficeAttendance = () => {
+  const [status, setStatus] = useState<AttendanceStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  useEffect(() => {
+    const load = async () => {
+      try {
+        const res = await apiFetch('/api/office-attendance/me/today');
+
+        if (res.ok) {
+          const data: { status: number } = await res.json();
+
+          // ✔ veilige mapping int → string
+          setStatus(INT_TO_STATUS[data.status as 0 | 1 | 2]);
+        } else if (res.status === 404) {
+          setStatus(null);
+        }
+      } catch (e) {
+        console.error('Failed to load attendance', e);
+        setStatus(null);
+      }
+    };
+
+    load();
+  }, []);
+
+  const setTodayAttendance = async (newStatus: AttendanceStatus) => {
+    setLoading(true);
+
+    try {
+      const res = await apiFetch('/api/office-attendance/me/today', {
+        method: 'PUT',
+        body: JSON.stringify({
+          // ✔ string → int
+          status: STATUS_TO_INT[newStatus],
+        }),
+      });
+
+      if (res.ok) {
+        const data: { status: number } = await res.json();
+        setStatus(INT_TO_STATUS[data.status as 0 | 1 | 2]);
+      } else {
+        const text = await res.text();
+        console.error('Attendance update failed:', res.status, text);
+      }
+    } catch (e) {
+      console.error('Attendance update error', e);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return { status, setTodayAttendance, loading };
+};
 

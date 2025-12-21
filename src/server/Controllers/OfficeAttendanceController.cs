@@ -3,9 +3,18 @@ using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+
+using System.Security.Claims;
+using Microsoft.AspNetCore.Authorization;
+
+
+
 namespace Calender_WebApp.Controllers;
+
+
 [ApiController]
 [Route("api/office-attendance")]
+
 public class OfficeAttendanceController : ControllerBase
 {
     private readonly IOfficeAttendanceService _officeAttendanceService;
@@ -164,6 +173,7 @@ attendance)
     }
 
 
+
     [HttpPut("me/today")]
     public async Task<ActionResult<OfficeAttendanceModel>> UpdateMyAttendanceToday(
         [FromBody] UpdateAttendanceRequest request)
@@ -171,26 +181,30 @@ attendance)
         if (!ModelState.IsValid)
             return ValidationProblem(ModelState);
 
-        try
+        if (!Enum.TryParse<AttendanceStatus>(
+            request.Status,
+            ignoreCase: true,
+            out var parsedStatus))
         {
-            var userId = GetCurrentUserId();
-            var today = DateTime.Today;
-
-            var result = await _officeAttendanceService
-                .UpsertAttendanceAsync(userId, today, request.Status)
-                .ConfigureAwait(false);
-
-            return Ok(result);
+            return BadRequest("Invalid attendance status.");
         }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
+
+        var userId = GetCurrentUserId();
+        var today = DateTime.Today;
+
+        var result = await _officeAttendanceService
+            .UpsertAttendanceAsync(userId, today, parsedStatus)
+            .ConfigureAwait(false);
+
+        return Ok(result);
     }
+
+
 
     public class UpdateAttendanceRequest
     {
-        public AttendanceStatus Status { get; set; }
+        public string Status { get; set; } = string.Empty;
     }
+
 
 }

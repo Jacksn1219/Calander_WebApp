@@ -51,8 +51,9 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
   }, []);
 
   const login = (userData: User, token?: string) => {
+    if (!token) throw new Error('Missing token from login response');
     setUser(userData);
-    localStorage.setItem('token', token ?? 'demo-token');
+    localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(userData));
   };
 

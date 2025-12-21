@@ -6,6 +6,8 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
+using System.Text.Json.Serialization;
+
 
 namespace Calender_WebApp;
 
@@ -19,7 +21,14 @@ class Program
             options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
 
         // Add services to the container.
-        builder.Services.AddControllersWithViews();
+        builder.Services.AddControllers()
+        .AddJsonOptions(options =>
+        {
+            options.JsonSerializerOptions.Converters.Add(
+                new JsonStringEnumConverter()
+            );
+        });
+
         builder.Services.AddDistributedMemoryCache();
         builder.Services.AddHttpContextAccessor();
 
@@ -100,6 +109,10 @@ class Program
             };
         });
 
+        builder.Services.AddAuthorization();
+
+
+
 
         var app = builder.Build();
 
@@ -124,17 +137,17 @@ class Program
         // Enable Swagger middleware
         app.UseSwagger();
         app.UseSwaggerUI();
+        app.UseHttpsRedirection();
+        app.UseStaticFiles();
+
+        app.UseRouting();
+        app.UseCors("AllowReactApp");
         app.UseAuthentication();
         app.UseAuthorization();
 
-        app.UseHttpsRedirection();
-        app.UseStaticFiles();
-        app.UseRouting();
-        app.UseCors("AllowReactApp");
-        app.UseSession();
-        app.UseAuthorization();
-
         app.MapControllers();
+        app.UseSession();
+
 
         // One-time setup / seeding
         using (var scope = app.Services.CreateScope())
