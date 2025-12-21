@@ -240,7 +240,7 @@ public class EventParticipationService : IEventParticipationService
             .ToArrayAsync();
 
         if (participants.Length == 0)
-            throw new InvalidOperationException("No participants found for the specified event.");
+            return Array.Empty<EventParticipationModel>();
 
         var eventStartTime = await GetEventStartTimeAsync(eventId);
 
