@@ -2000,3 +2000,15 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
 // _________________________________________
 // end functions roombooking
 // _________________________________________
+
+// Office Attendance functions below 
+
+export type AttendanceStatus = 'Present' | 'Absent' | 'Remote';
+
+export interface OfficeAttendance {
+  id?: number;
+  userId: number;
+  date: string; // ISO
+  status: AttendanceStatus;
+}
+

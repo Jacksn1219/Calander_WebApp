@@ -9,6 +9,17 @@ namespace Calender_WebApp.Controllers;
 public class OfficeAttendanceController : ControllerBase
 {
     private readonly IOfficeAttendanceService _officeAttendanceService;
+    private int GetCurrentUserId()
+    {
+        var userIdClaim =
+            User.FindFirst(ClaimTypes.NameIdentifier) ??
+            User.FindFirst("sub");
+
+        if (userIdClaim == null)
+            throw new UnauthorizedAccessException("User ID not found in token.");
+
+        return int.Parse(userIdClaim.Value);
+    }
 
     public OfficeAttendanceController(IOfficeAttendanceService officeAttendanceService)
     {
@@ -129,4 +140,57 @@ attendance)
             return NotFound();
         }
     }
+
+
+    [HttpGet("me/today")]
+    public async Task<ActionResult<OfficeAttendanceModel>> GetMyAttendanceToday()
+    {
+        try
+        {
+            var userId = GetCurrentUserId();
+            var today = DateTime.Today;
+
+            var record = await _officeAttendanceService
+                .GetAttendanceByUserAndDateAsync(userId, today)
+                .ConfigureAwait(false);
+
+            return Ok(record);
+        }
+        catch (InvalidOperationException)
+        {
+            // Nog geen attendance gezet voor vandaag
+            return NotFound();
+        }
+    }
+
+
+    [HttpPut("me/today")]
+    public async Task<ActionResult<OfficeAttendanceModel>> UpdateMyAttendanceToday(
+        [FromBody] UpdateAttendanceRequest request)
+    {
+        if (!ModelState.IsValid)
+            return ValidationProblem(ModelState);
+
+        try
+        {
+            var userId = GetCurrentUserId();
+            var today = DateTime.Today;
+
+            var result = await _officeAttendanceService
+                .UpsertAttendanceAsync(userId, today, request.Status)
+                .ConfigureAwait(false);
+
+            return Ok(result);
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
+
+    public class UpdateAttendanceRequest
+    {
+        public AttendanceStatus Status { get; set; }
+    }
+
 }
