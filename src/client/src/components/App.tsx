@@ -2,11 +2,13 @@ import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
 import { AuthProvider, useAuth } from '../states/AuthContext';
 import Login from './Login';
-import CreateEmployee from './CreateEmployee';
+import EmployeeAdmin from './EmployeeAdmin';
 import Home from './Home';
 import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
+import RoomAdmin from './RoomAdmin';
+import AdminPanel from './AdminPanel';
 import Notifications from './Notifications';
 
 export default function App() {
@@ -39,10 +41,12 @@ export default function App() {
             }
           />
           <Route
-            path="/administrative-dashboard"
+            path="/admin-panel/administrative-dashboard"
             element={
               <ProtectedRoute>
+                <AdminRoute>
                 <AdministrativeDashboard />
+                </AdminRoute>
               </ProtectedRoute>
                 }
             />
@@ -56,11 +60,31 @@ export default function App() {
             }
           />
           <Route
-            path="/add-emp"
+            path="/admin-panel/add-emp"
+            element={
+              <ProtectedRoute> 
+                <AdminRoute>
+                  <EmployeeAdmin />
+                </AdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-panel/Room-Panel"
+            element={
+              <ProtectedRoute>
+                <SuperAdminRoute>
+                  <RoomAdmin />
+                </SuperAdminRoute>
+              </ProtectedRoute>
+            }
+          />
+          <Route
+            path="/admin-panel"
             element={
               <ProtectedRoute>
                 <AdminRoute>
-                  <CreateEmployee />
+                  <AdminPanel />
                 </AdminRoute>
               </ProtectedRoute>
             }
@@ -93,7 +117,13 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
   const { user } = useAuth();
-  return user?.role === 'Admin' ? <>{children}</> : <Navigate to="/home" replace />;
+  console.log('AdminRoute user:', user);
+  return (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? <>{children}</> : <Navigate to="/home" replace />;
+};
+
+const SuperAdminRoute = ({ children }: { children: React.ReactNode }) => {
+  const { user } = useAuth();
+  return user?.role === 'SuperAdmin' ? <>{children}</> : <Navigate to="/home" replace />;
 };
 
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {
