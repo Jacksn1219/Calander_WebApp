@@ -1,8 +1,10 @@
 import React from 'react';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { useCalendar } from '../hooks/hooks';
+import { useCalendar,useOfficeAttendance } from '../hooks/hooks';
 import '../styles/calendar.css';
+import { useState } from 'react';
+
 
 const Calendar: React.FC = () => {
   const {
@@ -30,6 +32,16 @@ const Calendar: React.FC = () => {
     calendarGridRef,
     upcomingHeaderRef,
   } = useCalendar();
+  
+    const {
+    status: attendanceStatus,
+    setTodayAttendance,
+    loading: attendanceLoading,
+  } = useOfficeAttendance();
+
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const attendanceLabel = attendanceStatus ?? 'Set attendance';
+
 
   return (
     <div className="app-layout">
@@ -47,7 +59,36 @@ const Calendar: React.FC = () => {
               </div>
             )}
           </div>
+
+          <div className="attendance-wrapper">
+            <button
+              className="attendance-button"
+              onClick={() => setAttendanceOpen(o => !o)}
+              disabled={attendanceLoading}
+            >
+              {attendanceLabel}
+              <span className="attendance-caret">▾</span>
+            </button>
+
+            {attendanceOpen && (
+              <div className="attendance-dropdown">
+                {(['Present', 'Absent', 'Remote'] as const).map(option => (
+                  <button
+                    key={option}
+                    className="attendance-option"
+                    onClick={() => {
+                      setTodayAttendance(option);
+                      setAttendanceOpen(false);
+                    }}
+                  >
+                    {option}
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
 
         <div className="calendar-container">
           <div className="calendar-controls">
@@ -181,5 +222,4 @@ const Calendar: React.FC = () => {
     </div>
   );
 };
-
 export default Calendar;

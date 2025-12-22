@@ -383,3 +383,67 @@
     padding-top: 16px;
   }
 }
+
+/* Attendance selector */
+
+.attendance-wrapper {
+  position: relative;
+  flex-shrink: 0;
+}
+
+.attendance-button {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 6px;
+  padding: 8px 12px;
+  font-size: 0.85rem;
+  font-weight: 500;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+
+.attendance-button:hover:not(:disabled) {
+  background: #e0e0e0;
+}
+
+.attendance-button:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.attendance-caret {
+  font-size: 0.7rem;
+}
+
+.attendance-dropdown {
+  position: absolute;
+  right: 0;
+  top: calc(100% + 6px);
+  background: white;
+  border: 1px solid #e0e0e0;
+  border-radius: 8px;
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
+  min-width: 160px;
+  z-index: 10;
+  overflow: hidden;
+}
+
+.attendance-option {
+  width: 100%;
+  padding: 10px 12px;
+  background: transparent;
+  border: none;
+  text-align: left;
+  font-size: 0.85rem;
+  cursor: pointer;
+  transition: background 0.15s;
+}
+
+.attendance-option:hover {
+  background: #f7f9fc;
+}
+
