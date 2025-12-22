@@ -16,35 +16,7 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         _reminderPreferencesService = reminderPreferencesService ?? throw new ArgumentNullException(nameof(reminderPreferencesService));
     }
 
-    /// <summary>
-    /// Creates a new reminder. Checks user preferences and sets isRead to true if the user has disabled that type of reminder.
-    /// </summary>
-    public override async Task<RemindersModel> Post(RemindersModel model)
-    {
-        if (model == null) throw new ArgumentNullException(nameof(model));
-
-        // Check user preferences
-        var userPreferences = await _reminderPreferencesService.GetByUserId(model.UserId).ConfigureAwait(false);
-        var preference = userPreferences.FirstOrDefault();
-
-        // If user has preferences and the specific reminder type is disabled, mark as read immediately
-        if (preference != null)
-        {
-            bool shouldMarkAsRead = model.ReminderType switch
-            {
-                reminderType.EventParticipation => !preference.EventReminder,
-                reminderType.RoomBooking => !preference.BookingReminder,
-                _ => false
-            };
-
-            if (shouldMarkAsRead)
-            {
-                model.IsRead = true;
-            }
-        }
-
-        return await base.Post(model).ConfigureAwait(false);
-    }
+    
 
     /// <summary>
     /// Retrieves all reminders for a specific user.
