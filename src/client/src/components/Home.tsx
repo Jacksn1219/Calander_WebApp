@@ -14,6 +14,7 @@ const Home: React.FC = () => {
     loading,
     error,
     events,
+    weekEventsAttending,
     reload,
     upcomingEvents,
     attendanceRate,
@@ -30,7 +31,15 @@ const Home: React.FC = () => {
     roomBookings,
     roomBookingsLoading,
     roomBookingsError,
+    handleAttend,
+    roomsById,
   } = useHomeDashboard();
+
+  const displayedUpcoming = React.useMemo(
+    () => upcomingEvents.slice(0, 4),
+    [upcomingEvents]
+  );
+
 
   const renderMiniWeek = () => {
     const startOfWeek = currentWeekStart;
@@ -47,7 +56,7 @@ const Home: React.FC = () => {
         date.getMonth() === today.getMonth() &&
         date.getFullYear() === today.getFullYear();
 
-      const eventsOnDay = events.filter(ev => {
+      const eventsOnDay = weekEventsAttending.filter(ev => {
         const d = ev.eventDate;
         return (
           d.getFullYear() === date.getFullYear() &&
@@ -96,12 +105,12 @@ const Home: React.FC = () => {
   };
 
   return (
-    <div className="app-layout">
+    <div className="app-layout home-page">
       <Sidebar />
       <main className="main-content">
         <div className="events-header">
           <div className="events-header-left">
-            <h1>Your week at a glance</h1>
+            <h1>Welcome {user?.name}</h1>
             <p className="muted">Review your meetings, bookings, and events in one place.</p>
             {loading && <p className="muted">Loading dashboard data...</p>}
             {error && (
@@ -135,7 +144,7 @@ const Home: React.FC = () => {
               {/* Embedded week calendar preview */}
               <section className="calendar-grid home-calendar-section">
                 <div className="calendar-controls">
-                  <button onClick={goToPreviousWeek} className="btn-nav" aria-label="Previous week">
+                  <button onClick={goToPreviousWeek} className="btn-icon" aria-label="Previous week">
                     ←
                   </button>
                   <div className="month-year">
@@ -147,7 +156,7 @@ const Home: React.FC = () => {
                     </h2>
                     <button onClick={goToCurrentWeek} className="btn-today">This week</button>
                   </div>
-                  <button onClick={goToNextWeek} className="btn-nav" aria-label="Next week">
+                  <button onClick={goToNextWeek} className="btn-icon primary" aria-label="Next week">
                     →
                   </button>
                 </div>
@@ -165,7 +174,7 @@ const Home: React.FC = () => {
                     className="btn-today"
                     onClick={() => navigate('/calendar')}
                   >
-                    See more
+                    See more...
                   </button>
                 </div>
               </section>
@@ -188,32 +197,32 @@ const Home: React.FC = () => {
 
                 {roomBookings.length > 0 && (
                   <>
-                    <div className="room-booking-list">
-                      {roomBookings.slice(0, 4).map(b => {
+                    <div className="upcoming-list">
+                      {[...roomBookings].reverse().slice(0, 3).map(b => {
                         const start = new Date(b.startTime);
                         const end = new Date(b.endTime);
-                        const dateLabel = start.toLocaleDateString(undefined, {
-                          month: 'short',
-                          day: 'numeric',
-                        });
-                        const timeRange = `${start.toLocaleTimeString(undefined, {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })} - ${end.toLocaleTimeString(undefined, {
-                          hour: '2-digit',
-                          minute: '2-digit',
-                        })}`;
-
+                        const bookingDate = start; // Use start time for the date badge
+                        const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
                         return (
-                          <div key={b.id} className="room-booking-row">
-                            <div className="room-booking-date">
-                              <span className="room-booking-date-label">{dateLabel}</span>
+                          <button
+                            type="button"
+                            key={b.id}
+                            className="upcoming-card home-upcoming-card"
+                          >
+                            <div className="upcoming-date">
+                              <span className="upcoming-date-day">{bookingDate.getDate()}</span>
+                              <span className="upcoming-date-month">{bookingDate.toLocaleDateString(undefined, { month: 'short' })}</span>
                             </div>
-                            <div className="room-booking-details">
-                              <div className="room-booking-room">{b.roomName}</div>
-                              <div className="room-booking-time">{timeRange}</div>
+                            <div className="upcoming-details">
+                              <h4>{b.roomName || 'Room'}</h4>
+                              <p className="upcoming-time">{timeRange}</p>
+                              {b.purpose && (
+                                <p className="upcoming-description">
+                                  {b.purpose.length > 120 ? `${b.purpose.slice(0, 117)}...` : b.purpose}
+                                </p>
+                              )}
                             </div>
-                          </div>
+                          </button>
                         );
                       })}
                     </div>
@@ -223,7 +232,7 @@ const Home: React.FC = () => {
                         className="btn-today"
                         onClick={() => navigate('/roombooking')}
                       >
-                        See all
+                        See more...
                       </button>
                     </div>
                   </>
@@ -234,70 +243,85 @@ const Home: React.FC = () => {
 
           {/* Right column: Upcoming Events */}
           <div className="calendar-container home-upcoming-events home-right-column">
-            <section className="calendar-grid home-upcoming-section">
-              <div className="home-upcoming-header">
-                <h2 className="section-title">Upcoming Events</h2>
-                <button
-                  type="button"
-                  className="btn-today"
-                  onClick={() => navigate('/calendar')}
-                >
-                  See more
-                </button>
+            <aside className="upcoming-panel home-upcoming-panel" aria-live="polite">
+              <div className="upcoming-header">
+                <div>
+                  <h3>New upcoming events</h3>
+                </div>
               </div>
 
-              <div className="calendar-days home-upcoming-list">
-                {!loading && !error && events.length === 0 && (
-                  <p className="muted">There are no events yet.</p>
+              <div className="upcoming-list">
+                {!loading && !error && upcomingEvents.length === 0 ? (
+                  <p className="upcoming-empty">No upcoming events for you to attend.</p>
+                ) : (
+                  displayedUpcoming.map(ev => {
+                    const start = ev.eventDate;
+                    const end = new Date(start.getTime() + ev.durationMinutes * 60000);
+                    const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
+                    return (
+                      <button
+                        type="button"
+                        key={ev.eventId}
+                        className="upcoming-card home-upcoming-card"
+                        onClick={() => handleEventClick(ev)}
+                      >
+                        <div className="upcoming-date">
+                          <span className="upcoming-date-day">{start.getDate()}</span>
+                          <span className="upcoming-date-month">
+                            {start.toLocaleDateString(undefined, { month: 'short' })}
+                          </span>
+                        </div>
+                        <div className="upcoming-details">
+                          <h4>{ev.title}</h4>
+                          <p className="upcoming-time">{timeRange}</p>
+                          {ev.description && ev.description.trim().length > 0 && (
+                            <p className="upcoming-description">
+                              {ev.description.length > 120
+                                ? `${ev.description.slice(0, 117)}...`
+                                : ev.description}
+                            </p>
+                          )}
+                          {ev.roomId != null && roomsById[ev.roomId] && (
+                            <p className="upcoming-location">
+                              {roomsById[ev.roomId].roomName}
+                              {roomsById[ev.roomId].location && ` — ${roomsById[ev.roomId].location}`}
+                            </p>
+                          )}
+                        </div>
+                      </button>
+                    );
+                  })
                 )}
-                {upcomingEvents.slice(0, 5).map(ev => (
-                  <div
-                    key={ev.eventId}
-                    className="calendar-day has-event"
-                    onClick={() => handleEventClick(ev)}
-                    role="button"
-                    tabIndex={0}
-                    onKeyDown={e => {
-                      if (e.key === 'Enter' || e.key === ' ') {
-                        handleEventClick(ev);
-                      }
-                    }}
-                  >
-                    <span className="day-number">
-                      {ev.eventDate.toLocaleDateString(undefined, {
-                        month: 'short',
-                        day: 'numeric',
-                      })}
-                    </span>
-                    <div className="event-indicator">
-                      <span className="event-count">{ev.title}</span>
-                    </div>
-                    {ev.description && (
-                      <p className="muted home-event-description">
-                        {ev.description.length > 80
-                          ? `${ev.description.slice(0, 77)}...`
-                          : ev.description}
-                      </p>
-                    )}
-                  </div>
-                ))}
               </div>
-            </section>
+              
+              {upcomingEvents.length > 0 && (
+                <div className="upcoming-footer">
+                  <button
+                    type="button"
+                    className="btn-today"
+                    onClick={() => navigate('/calendar')}
+                  >
+                    See more...
+                  </button>
+                </div>
+              )}
+            </aside>
           </div>
         </div>
 
         {selectedDayEvents && selectedDateForDialog && (
-          <EventDialog
-            date={selectedDateForDialog}
-            events={selectedDayEvents}
-            onClose={() => {
-              closeDialog();
-            }}
-          />
-        )}
-      </main>
-    </div>
-  );
-};
+            <EventDialog
+              date={selectedDateForDialog}
+              events={selectedDayEvents}
+              onClose={() => {
+                closeDialog();
+                reload();
+              }}
+            />
+          )}
+        </main>
+      </div>
+    );
+  };
 
-export default Home;
+  export default Home;
