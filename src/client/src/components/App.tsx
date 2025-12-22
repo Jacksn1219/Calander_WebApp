@@ -10,6 +10,8 @@ import AdministrativeDashboard from './AdministrativeDashboard';
 import RoomAdmin from './RoomAdmin';
 import AdminPanel from './AdminPanel';
 import Notifications from './Notifications';
+import Error from './Error';
+import Unauthorized from './Unauthorized';
 
 export default function App() {
   return (
@@ -103,6 +105,14 @@ export default function App() {
               <RootRedirect />
             } 
           />
+          <Route 
+            path="/unauthorized" 
+            element={<Unauthorized/>} 
+          />
+          <Route 
+            path="*" 
+            element={<Error />} 
+          />
         </Routes>
       </BrowserRouter>
     </AuthProvider>
@@ -111,20 +121,44 @@ export default function App() {
 
 // small component to redirect authenticated users away from login/register
 const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
-  const token = localStorage.getItem('token');
-  return token ? <>{children}</> : <Navigate to="/login" replace />;
+  const { isAuthenticated, loading } = useAuth();
+
+  if (loading) return null; // or spinner
+
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
+
+  return <>{children}</>;
 };
 
+
+
+
 const AdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  console.log('AdminRoute user:', user);
-  return (user?.role === 'Admin' || user?.role === 'SuperAdmin') ? <>{children}</> : <Navigate to="/home" replace />;
+  const { isAuthenticated, user, loading } = useAuth();
+
+  if (loading) return null;
+
+  if (!isAuthenticated) return <Navigate to="/unauthorized" replace />;
+
+  if (user?.role !== 'Admin' && user?.role !== 'SuperAdmin') return <Navigate to="/unauthorized" replace />;
+
+  return <>{children}</>;
 };
 
 const SuperAdminRoute = ({ children }: { children: React.ReactNode }) => {
-  const { user } = useAuth();
-  return user?.role === 'SuperAdmin' ? <>{children}</> : <Navigate to="/home" replace />;
+  const { isAuthenticated, user, loading } = useAuth();
+  if (loading) return null;
+
+  if (!isAuthenticated) return <Navigate to="/unauthorized" replace />;
+  if (user?.role !== 'SuperAdmin') return <Navigate to="/unauthorized" replace />;
+
+  return <>{children}</>;
 };
+
+
+
+
 
 const AuthRedirectRoute = ({ children }: { children: React.ReactNode }) => {
   const { isAuthenticated, logout } = useAuth();

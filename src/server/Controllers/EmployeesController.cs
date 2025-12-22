@@ -3,11 +3,15 @@ using System.Text.Json.Serialization;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+
 
 namespace Calender_WebApp.Controllers;
 
 [ApiController]
 [Route("api/employees")]
+[Authorize] 
+
 public class EmployeesController : ControllerBase
 {
 	private readonly IEmployeesService _employeesService;
@@ -60,6 +64,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpPost]
+	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<ActionResult<EmployeesModel>> Create([FromBody] EmployeesModel employee)
 	{
 		if (employee == null)
@@ -102,6 +107,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpPut("{id:int}")]
+	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<ActionResult<EmployeesModel>> Update(int id, [FromBody] EmployeesModelForUpdate employee)
 	{
 		if (employee == null)
@@ -138,6 +144,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpDelete("{id:int}")]
+	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<IActionResult> Delete(int id)
 	{
 		try
