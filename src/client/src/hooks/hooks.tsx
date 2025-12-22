@@ -1565,7 +1565,7 @@ export const useHomeDashboard = () => {
     // Filter to show only upcoming events that the user hasn't attended yet
     const upcoming = sorted.filter(ev => {
       if (ev.eventDate < now) return false;
-      if (!user?.userId) return true;
+      if (!user?.userId) return false; // Don't show any events if user not loaded
       const me = ev.participants.find(p => p.userId === user.userId);
       return !me || me.status !== 'Accepted';
     });

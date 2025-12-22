@@ -59,7 +59,7 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const apiUser = data.user;
 
         const normalizedUser: User = {
-          userId: apiUser.userId,
+          userId: typeof apiUser.userId === 'string' ? parseInt(apiUser.userId, 10) : apiUser.userId,
           email: apiUser.email,
           role: apiUser.role,
           name: apiUser.name
