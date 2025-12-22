@@ -47,14 +47,10 @@ cd server
 
 - For running:
 ```bash
-...
+dotnet run --environment Development
 ```
 
-- For restarting (after every change made):
+- For watch-mode (auto restart on changes):
 ```bash
-...
-```
-- For watch-mode:
-```bash
-...
+dotnet watch run --environment Development
 ```
