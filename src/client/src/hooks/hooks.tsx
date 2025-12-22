@@ -498,6 +498,10 @@ export const useSidebar = () => {
     }
   }, [logout, navigate]);
 
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  }, [isCollapsed]);
+
   return {
     isCollapsed,
     toggleSidebar,
