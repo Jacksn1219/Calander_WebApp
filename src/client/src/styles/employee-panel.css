@@ -211,7 +211,7 @@
 }
 
 .employee-panel-page .btn-green {
-  background: #00870e;
+  background: #16a34a;
   color: #fff;
   border: none;
   border-radius: 6px;
@@ -220,6 +220,9 @@
   font-weight: 600;
   cursor: pointer;
   transition: background 0.2s;
+}
+.employee-panel-page .btn-green:hover:not(:disabled) {
+  background: #15803d;
 }
 .employee-panel-page .btn-green:disabled {
   background: #bbf7d0;
