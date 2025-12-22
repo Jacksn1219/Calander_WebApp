@@ -61,7 +61,8 @@ namespace Calender_WebApp.Controllers
 
         // POST /api/events
         [HttpPost]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , SuperAdmin")]
+
 
         public async Task<ActionResult<EventsModel>> CreateEvent([FromBody] EventsModel newEvent)
         {
@@ -92,7 +93,8 @@ namespace Calender_WebApp.Controllers
 
         // PUT /api/events/{id}
         [HttpPut("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , SuperAdmin")]
+
 
         public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventsModel updatedEvent)
         {
@@ -123,7 +125,7 @@ namespace Calender_WebApp.Controllers
 
         // DELETE /api/events/{id}
         [HttpDelete("{id}")]
-        [Authorize(Roles = "Admin")]
+        [Authorize(Roles = "Admin , SuperAdmin")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
            try

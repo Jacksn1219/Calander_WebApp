@@ -64,7 +64,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpPost]
-	[Authorize(Roles = "Admin")]
+	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<ActionResult<EmployeesModel>> Create([FromBody] EmployeesModel employee)
 	{
 		if (employee == null)
@@ -107,7 +107,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpPut("{id:int}")]
-	[Authorize(Roles = "Admin", "SuperAdmin")]
+	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<ActionResult<EmployeesModel>> Update(int id, [FromBody] EmployeesModelForUpdate employee)
 	{
 		if (employee == null)
@@ -144,7 +144,7 @@ public class EmployeesController : ControllerBase
 	}
 
 	[HttpDelete("{id:int}")]
-	[Authorize(Roles = "Admin")]
+	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<IActionResult> Delete(int id)
 	{
 		try

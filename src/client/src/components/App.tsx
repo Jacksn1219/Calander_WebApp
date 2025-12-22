@@ -154,6 +154,7 @@ const SuperAdminRoute = ({ children }: { children: React.ReactNode }) => {
   if (user?.role !== 'SuperAdmin') return <Navigate to="/unauthorized" replace />;
 
   return <>{children}</>;
+};
 
 
 
