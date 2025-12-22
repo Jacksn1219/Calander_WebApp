@@ -12,10 +12,23 @@ export const apiFetch = async (path: string, options: RequestInit = {}) => {
     },
   });
 
-  if (response.status === 401 || response.status === 403) {
+ // Do NOT globally redirect for login
+  const isAuthEndpoint = path.startsWith('/api/auth/login');
+
+  if (!isAuthEndpoint && (response.status === 401 || response.status === 403)) {
     localStorage.removeItem('token');
     localStorage.removeItem('user');
-    window.location.href = '/unauthorized';
+
+    // 401 → not logged in
+    if (response.status === 401) {
+      window.location.href = '/login';
+    }
+
+    // 403 → forbidden
+    if (response.status === 403) {
+      window.location.href = '/unauthorized';
+    }
+
     throw new Error('Unauthorized');
   }
 

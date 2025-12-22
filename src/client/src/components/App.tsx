@@ -101,7 +101,8 @@ const ProtectedRoute = ({ children }: { children: React.ReactNode }) => {
 
   if (loading) return null; // or spinner
 
-  if (!isAuthenticated) return <Navigate to="/unauthorized" replace />;
+  if (!isAuthenticated) return <Navigate to="/login" replace />;
+
 
   return <>{children}</>;
 };
