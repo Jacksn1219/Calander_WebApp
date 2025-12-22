@@ -161,8 +161,10 @@ class Program
                     Name = "bart",
                     Email = "bart@test.com",
                     Password = BCrypt.Net.BCrypt.HashPassword("1234"), // hash before saving
-                    Role = UserRole.Admin
+                    Role = UserRole.SuperAdmin
                 };
+                db.Employees.Add(bartEmployee);
+                db.SaveChanges(); // Save to generate the ID
 
                 // Create default reminder preferences for bart
                 var bartPreferences = new ReminderPreferencesModel

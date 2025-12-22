@@ -46,6 +46,23 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
+        // Validate that the creator exists
+        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == updatedEntity.CreatedBy);
+        if (!creatorExists)
+        {
+            throw new ArgumentException($"Employee with ID {updatedEntity.CreatedBy} does not exist.");
+        }
+
+        // Validate that the room exists if specified
+        if (updatedEntity.RoomId.HasValue)
+        {
+            var roomExists = await _context.Set<RoomsModel>().AnyAsync(r => r.Id == updatedEntity.RoomId.Value);
+            if (!roomExists)
+            {
+                throw new ArgumentException($"Room with ID {updatedEntity.RoomId.Value} does not exist.");
+            }
+        }
+
         var updatedEvent =  await base.Put(id, updatedEntity);
 
         // Update related reminders
@@ -106,6 +123,24 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
+        // Validate that the creator exists
+        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == newEntity.CreatedBy);
+        if (!creatorExists)
+        {
+            throw new ArgumentException($"Employee with ID {newEntity.CreatedBy} does not exist.");
+        }
+
+        // Validate that the room exists if specified
+        if (newEntity.RoomId == 0) throw new ArgumentException("RoomId cannot be 0.");
+        else if (newEntity.RoomId.HasValue)
+        {
+            var roomExists = await _context.Set<RoomsModel>().AnyAsync(r => r.Id == newEntity.RoomId.Value);
+            if (!roomExists)
+            {
+                throw new ArgumentException($"Room with ID {newEntity.RoomId.Value} does not exist.");
+            }
+        }
+
         var createdEvent = await base.Post(newEntity);
 
         // Create related roombookings
