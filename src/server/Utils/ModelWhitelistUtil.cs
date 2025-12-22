@@ -71,7 +71,7 @@ public static class ModelWhitelistUtil
         { "BookingDate", v => v is DateTime dt && dt.Year >= 2000 },
         { "StartTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
         { "EndTime", v => v is TimeSpan ts && ts > TimeSpan.Zero },
-        { "EventId", v => v == null || (v is int i && i > 0) },
+        { "EventId", v => v == null || (v is int i && i >= 0) },
         { "Purpose", v => v is string s && !string.IsNullOrWhiteSpace(s) }
     };
 

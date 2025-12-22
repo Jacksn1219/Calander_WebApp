@@ -1,8 +1,49 @@
-import { useState, useCallback, useEffect, useMemo } from 'react';
+import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { apiFetch } from '../config/api';
 import { isSuperAdmin } from '../constants/superAdmin';
+
+const MONTH_NAMES = [
+  'January', 'February', 'March', 'April', 'May', 'June',
+  'July', 'August', 'September', 'October', 'November', 'December'
+];
+
+const WEEKDAY_LABELS = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+
+// Conservative estimate for event card height: date badge + title + time + description (2 lines) + attending + padding
+const ESTIMATED_EVENT_CARD_HEIGHT = 115;
+const MIN_UPCOMING_EVENTS = 1;
+const DEFAULT_UPCOMING_EVENTS = 3;
+
+interface CalendarDayCell {
+  key: string;
+  isEmpty: boolean;
+  dayNumber?: number;
+  date?: Date;
+  isToday?: boolean;
+  hasEvents?: boolean;
+  eventCount?: number;
+  isPast?: boolean;
+}
+
+interface UpcomingEventSummary {
+  eventId: number;
+  date: Date;
+  day: number;
+  monthAbbrev: string;
+  title: string;
+  description?: string;
+  timeLabel: string;
+  acceptedCount: number;
+}
+
+
+/*
+ ====================================
+LOGIN FORM HOOKS
+ ====================================
+ */
 
 /*
  Custom hook for form validation and error handling
@@ -173,7 +214,17 @@ export type RoomBookingSummary = {
   roomName: string;
   startTime: string; // ISO string
   endTime: string;   // ISO string
+  bookingDate: string; // ISO string (optional)
+  purpose: string; // optional
 };
+
+export type RoomToFindName = {
+  id: number;
+  name: string;
+  location: string;
+  capacity: number;
+};
+
 
 export const useUserRoomBookings = (userId?: number) => {
   const [bookings, setBookings] = useState<RoomBookingSummary[]>([]);
@@ -197,27 +248,43 @@ export const useUserRoomBookings = (userId?: number) => {
       }
 
       const data = await response.json();
-      // Expect an array of bookings with room and time info.
-      // Backend sends BookingDate (DateTime) and StartTime/EndTime (TimeSpan),
-      // so we compose full ISO strings for the frontend Date constructor.
-      const mapped: RoomBookingSummary[] = (data || []).map((b: any) => {
-        const bookingDateRaw: string | undefined = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
-        const startTimeRaw: string | undefined = b.startTime;
-        const endTimeRaw: string | undefined = b.endTime;
 
-        const buildDateTime = (date: string | undefined, time: string | undefined): string => {
-          if (!date || !time) return '';
+      // Fetch room details for each booking if roomId is defined
+      const mapped: RoomBookingSummary[] = await Promise.all((data || []).map(async (b: any) => {
+        const bookingDateRaw: string  = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
+        const startTimeRaw: string  = b.startTime;
+        const endTimeRaw: string  = b.endTime;
+
+        const buildDateTime = (date: string, time: string): string => {
+          if (!date || !time) return '2000-01-01T00:00:00Z'; // Fallback
           const datePart = date.split('T')[0];
           return `${datePart}T${time}`;
         };
 
+        let roomName = "TEST";
+        if (b.roomId !== undefined && b.roomId !== null) {
+          try {
+            const resp = await apiFetch(`/api/rooms/${b.roomId}`);
+            if (resp.ok) {
+              const roomData = await resp.json();
+              if (roomData && (roomData.roomName || roomData.name)) {
+                roomName = roomData.roomName || roomData.name;
+              }
+            }
+          } catch (e) {
+            // ignore room fetch error, fallback to existing roomName
+          }
+        }
+
         return {
           id: b.id ?? b.roomBookingId ?? 0,
-          roomName: b.room?.name ?? b.roomName ?? 'Room',
+          roomName,
           startTime: buildDateTime(bookingDateRaw, startTimeRaw),
           endTime: buildDateTime(bookingDateRaw, endTimeRaw),
+          bookingDate: bookingDateRaw || '',
+          purpose: b.purpose ?? '',
         };
-      });
+      }));
 
       setBookings(mapped);
     } catch (err: any) {
@@ -236,6 +303,11 @@ export const useUserRoomBookings = (userId?: number) => {
 };
 
 /*
+ ====================================
+CREATE EMPLOYEE FORM HOOKS
+ ====================================
+ */
+/*
 Custom hook for create employee form logic
  */
 export const useCreateEmployeeForm = () => {
@@ -243,7 +315,7 @@ export const useCreateEmployeeForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRoleState] = useState<'Admin' | 'User'>('User');
+  const [role, setRoleState] = useState<string>('User');
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -260,8 +332,8 @@ export const useCreateEmployeeForm = () => {
     }
   }, [canAssignAdminRole]);
 
-  const setRole = useCallback((newRole: 'Admin' | 'User') => {
-    if (!canAssignAdminRole) {
+  const setRole = useCallback((newRole: string) => {
+    if (!canAssignAdminRole && newRole !== 'User') {
       setRoleState('User');
       return;
     }
@@ -402,6 +474,11 @@ export const useCreateEmployeeForm = () => {
 };
 
 /*
+ ====================================
+SIDEBAR HOOKS
+ ====================================
+ */
+/*
  Custom hook for sidebar logic
  */
 export const useSidebar = () => {
@@ -421,12 +498,23 @@ export const useSidebar = () => {
     }
   }, [logout, navigate]);
 
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  }, [isCollapsed]);
+
   return {
     isCollapsed,
     toggleSidebar,
     handleLogout,
   };
 };
+
+
+/*
+ ====================================
+LOGOUT HOOKS
+ ====================================
+ */
 
 /**
  * Custom hook for logout confirmation with navigation
@@ -446,10 +534,16 @@ export const useLogoutWithConfirmation = () => {
   return handleLogout;
 };
 
-/*
+/**
+ ====================================
+EVENT DIALOG & CALENDAR HOOKS
+  ====================================
+*/
+
+/**
  Custom hook for event dialog state and actions
  */
-export const useEventDialog = (events: any[]) => {
+export const useEventDialog = (events: any[], onStatusChange?: () => void,onClose?: () => void) => {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
   const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
   const { user } = useAuth();
@@ -461,8 +555,8 @@ export const useEventDialog = (events: any[]) => {
       return;
     }
     const me = (selectedEvent.participants || []).find((p: any) => p.userId === user.userId);
-    // Support both string and possible numeric enum values (0 Pending,1 Accepted,2 Declined)
-    if (me && (me.status === 'Accepted' || me.status === 'accepted' || me.status === 1)) {
+    // Status is already normalized to string 'Accepted', 'Pending', or 'Declined' from the fetch
+    if (me && me.status === 'Accepted') {
       setUserParticipationStatus('accepted');
     } else {
       setUserParticipationStatus('not-registered');
@@ -522,12 +616,15 @@ export const useEventDialog = (events: any[]) => {
       }
 
       setUserParticipationStatus('accepted');
+      onStatusChange?.();
       alert('You have successfully registered for this event.');
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       alert('Unable to register for this event. Please try again.');
+      if (onClose) onClose();
     }
-  }, [events, user]);
+  }, [events, user, onClose]);
 
   const handleUnattend = useCallback(async (eventId: number) => {
     if (!user?.userId) return;
@@ -551,12 +648,15 @@ export const useEventDialog = (events: any[]) => {
       }
 
       setUserParticipationStatus('not-registered');
+      onStatusChange?.();
       alert('Your registration has been cancelled.');
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       alert('Unable to cancel your registration. Please try again.');
+      if (onClose) onClose();
     }
-  }, [events, user]);
+  }, [events, user, onClose]);
 
   return {
     selectedEvent,
@@ -569,63 +669,283 @@ export const useEventDialog = (events: any[]) => {
   };
 };
 
+/*
+ ====================================
+CALENDAR HOOKS
+ ====================================
+ */
 
 /**
  * Custom hook for calendar navigation and date selection
  */
 export const useCalendar = () => {
-  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
-  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const { user } = useAuth();
+  const { loading, error, events: roleScopedEvents, getEventsForDate, reload } = useCalendarEvents(user);
 
-  const handleDateClick = useCallback((day: number) => {
-    const date = new Date(currentMonth.getFullYear(), currentMonth.getMonth(), day);
+  const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDateSource, setSelectedDateSource] = useState<'calendar' | 'upcoming'>('calendar');
+  const [currentMonth, setCurrentMonth] = useState(new Date());
+  const [listMonthOffset, setListMonthOffset] = useState(0);
+  const [eventPage, setEventPage] = useState(0);
+  const [maxUpcomingEvents, setMaxUpcomingEvents] = useState(DEFAULT_UPCOMING_EVENTS);
+
+  const calendarGridRef = useRef<HTMLDivElement>(null);
+  const upcomingHeaderRef = useRef<HTMLDivElement>(null);
+
+  const isAcceptedByUser = useCallback((event: any): boolean => {
+    const userId = user?.userId;
+    if (!userId) return false;
+    const participants = event?.participants ?? [];
+    return participants.some((p: any) => {
+      if (p.userId !== userId) return false;
+      const status = typeof p.status === 'string' ? p.status.toLowerCase() : p.status;
+      return status === 'accepted' || status === 1;
+    });
+  }, [user?.userId]);
+
+  const timeFormatter = useMemo(() => new Intl.DateTimeFormat(undefined, {
+    hour: '2-digit',
+    minute: '2-digit'
+  }), []);
+
+  const normalizedCurrentMonth = useMemo(() => (
+    new Date(currentMonth.getFullYear(), currentMonth.getMonth(), 1)
+  ), [currentMonth]);
+  const normalizedCurrentMonthKey = `${normalizedCurrentMonth.getFullYear()}-${normalizedCurrentMonth.getMonth()}`;
+
+  useEffect(() => {
+    setListMonthOffset(0);
+    setEventPage(0);
+  }, [normalizedCurrentMonthKey]);
+
+  useEffect(() => {
+    setEventPage(0);
+  }, [listMonthOffset]);
+
+  const listMonth = useMemo(() => {
+    const month = new Date(normalizedCurrentMonth);
+    month.setMonth(month.getMonth() + listMonthOffset);
+    return month;
+  }, [normalizedCurrentMonth, listMonthOffset]);
+
+  const today = useMemo(() => {
+    const now = new Date();
+    return new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  }, []);
+
+  // ResizeObserver to dynamically calculate max events based on calendar height
+  useEffect(() => {
+    const calendarGrid = calendarGridRef.current;
+    const upcomingHeader = upcomingHeaderRef.current;
+
+    if (!calendarGrid || !upcomingHeader) return;
+
+    const observer = new ResizeObserver(() => {
+      const calendarHeight = calendarGrid.offsetHeight;
+      const headerHeight = upcomingHeader.offsetHeight;
+      const availableHeight = calendarHeight - headerHeight;
+
+      // Calculate how many events can fit
+      const calculatedMax = Math.max(
+        MIN_UPCOMING_EVENTS,
+        Math.floor(availableHeight / ESTIMATED_EVENT_CARD_HEIGHT)
+      );
+
+      setMaxUpcomingEvents(calculatedMax);
+    });
+
+    observer.observe(calendarGrid);
+    observer.observe(upcomingHeader);
+
+    return () => {
+      observer.disconnect();
+    };
+  }, []);
+
+  // Reset page when maxUpcomingEvents changes
+  useEffect(() => {
+    setEventPage(0);
+  }, [maxUpcomingEvents]);
+
+  const calendarMonthLabel = useMemo(() => (
+    `${MONTH_NAMES[currentMonth.getMonth()]} ${currentMonth.getFullYear()}`
+  ), [currentMonth]);
+
+  const calendarDays = useMemo<CalendarDayCell[]>(() => {
+    const year = currentMonth.getFullYear();
+    const month = currentMonth.getMonth();
+    const firstDay = new Date(year, month, 1);
+    const lastDay = new Date(year, month + 1, 0);
+    const totalDays = lastDay.getDate();
+    const startOffset = firstDay.getDay();
+    const cells: CalendarDayCell[] = [];
+
+    for (let i = 0; i < startOffset; i++) {
+      cells.push({ key: `empty-${i}`, isEmpty: true });
+    }
+
+    for (let day = 1; day <= totalDays; day++) {
+      const date = new Date(year, month, day);
+      const dayEvents = getEventsForDate(date).filter(isAcceptedByUser);
+      cells.push({
+        key: `day-${day}`,
+        isEmpty: false,
+        dayNumber: day,
+        date,
+        isPast: date.getTime() < today.getTime(),
+        isToday: date.getTime() === today.getTime(),
+        hasEvents: dayEvents.length > 0,
+        eventCount: dayEvents.length
+      });
+    }
+
+    return cells;
+  }, [currentMonth, getEventsForDate, isAcceptedByUser, today]);
+
+  const monthlyEvents = useMemo(() => {
+    const monthStart = new Date(listMonth.getFullYear(), listMonth.getMonth(), 1);
+    return roleScopedEvents
+      .filter(event => {
+        const eventDate = new Date(event.eventDate);
+        const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+        const matchesMonth = eventDate.getMonth() === monthStart.getMonth() && eventDate.getFullYear() === monthStart.getFullYear();
+        const isFuture = normalizedEventDate >= today;
+        const notAlreadyAccepted = !isAcceptedByUser(event);
+        return matchesMonth && isFuture && notAlreadyAccepted;
+      })
+      .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
+  }, [roleScopedEvents, listMonth, isAcceptedByUser, today]);
+
+  useEffect(() => {
+    const totalPages = Math.ceil(monthlyEvents.length / maxUpcomingEvents);
+    if (eventPage > 0 && eventPage >= totalPages) {
+      setEventPage(totalPages > 0 ? totalPages - 1 : 0);
+    }
+  }, [monthlyEvents.length, eventPage, maxUpcomingEvents]);
+
+  const pagedEvents = useMemo(() => {
+    const start = eventPage * maxUpcomingEvents;
+    return monthlyEvents.slice(start, start + maxUpcomingEvents);
+  }, [monthlyEvents, eventPage, maxUpcomingEvents]);
+
+  const upcomingEvents = useMemo<UpcomingEventSummary[]>(() => {
+    return pagedEvents.map(event => {
+      const eventDate = new Date(event.eventDate);
+      const acceptedCount = event.participants.filter(p => p.status === 'Accepted').length;
+      return {
+        eventId: event.eventId,
+        date: eventDate,
+        day: eventDate.getDate(),
+        monthAbbrev: MONTH_NAMES[eventDate.getMonth()].slice(0, 3),
+        title: event.title,
+        description: event.description,
+        timeLabel: timeFormatter.format(eventDate),
+        acceptedCount,
+      };
+    });
+  }, [pagedEvents, timeFormatter, isAcceptedByUser]);
+
+  const listMonthLabel = useMemo(() => (
+    `${MONTH_NAMES[listMonth.getMonth()]} ${listMonth.getFullYear()}`
+  ), [listMonth]);
+
+  const hasFutureMonths = useMemo(() => {
+    const monthEnd = new Date(listMonth.getFullYear(), listMonth.getMonth() + 1, 0, 23, 59, 59, 999);
+    return roleScopedEvents.some(event => {
+      const eventDate = new Date(event.eventDate);
+      const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
+      return normalizedEventDate >= today && eventDate > monthEnd;
+    });
+  }, [roleScopedEvents, listMonth, today]);
+
+  const hasNextEventPage = monthlyEvents.length > (eventPage + 1) * maxUpcomingEvents;
+  const hasPrevEventPage = eventPage > 0;
+  const canGoBackInList = hasPrevEventPage || listMonthOffset > 0;
+  const canGoForwardInList = hasNextEventPage || hasFutureMonths;
+
+  const handlePreviousMonth = useCallback(() => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() - 1, 1));
+  }, []);
+
+  const handleNextMonth = useCallback(() => {
+    setCurrentMonth(prev => new Date(prev.getFullYear(), prev.getMonth() + 1, 1));
+  }, []);
+
+  const handleToday = useCallback(() => {
+    const now = new Date();
+    setCurrentMonth(new Date(now.getFullYear(), now.getMonth(), 1));
+  }, []);
+
+  const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
-  }, [currentMonth]);
+    setSelectedDateSource('calendar');
+  }, []);
 
   const handleCloseDialog = useCallback(() => {
     setSelectedDate(null);
   }, []);
 
-  const handlePreviousMonth = useCallback(() => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() - 1));
-  }, [currentMonth]);
+  const handlePreviousListMonth = useCallback(() => {
+    if (eventPage > 0) {
+      setEventPage(prev => Math.max(prev - 1, 0));
+    } else if (listMonthOffset > 0) {
+      setListMonthOffset(prev => (prev > 0 ? prev - 1 : 0));
+    }
+  }, [eventPage, listMonthOffset]);
 
-  const handleNextMonth = useCallback(() => {
-    setCurrentMonth(new Date(currentMonth.getFullYear(), currentMonth.getMonth() + 1));
-  }, [currentMonth]);
+  const handleNextListMonth = useCallback(() => {
+    if (hasNextEventPage) {
+      setEventPage(prev => prev + 1);
+    } else if (hasFutureMonths) {
+      setListMonthOffset(prev => prev + 1);
+    }
+  }, [hasNextEventPage, hasFutureMonths]);
 
-  const handleToday = useCallback(() => {
-    setCurrentMonth(new Date());
+  const handleUpcomingEventClick = useCallback((eventDate: Date) => {
+    const monthStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), 1);
+    setCurrentMonth(monthStart);
+    setSelectedDate(new Date(eventDate));
+    setSelectedDateSource('upcoming');
   }, []);
 
-  const getDaysInMonth = useCallback((date: Date) => {
-    const year = date.getFullYear();
-    const month = date.getMonth();
-    const firstDay = new Date(year, month, 1);
-    const lastDay = new Date(year, month + 1, 0);
-    const daysInMonth = lastDay.getDate();
-    const startingDayOfWeek = firstDay.getDay();
-
-    return { daysInMonth, startingDayOfWeek };
-  }, []);
+  const selectedDateEvents = useMemo(() => {
+    if (!selectedDate) return [];
+    const eventsForDay = getEventsForDate(selectedDate);
+    if (selectedDateSource === 'calendar') {
+      return eventsForDay.filter(isAcceptedByUser);
+    }
+    return eventsForDay;
+  }, [selectedDate, selectedDateSource, getEventsForDate, isAcceptedByUser]);
 
   return {
+    loading,
+    error,
+    reload,
+    weekdays: WEEKDAY_LABELS,
+    calendarMonthLabel,
+    calendarDays,
+    goToPreviousMonth: handlePreviousMonth,
+    goToNextMonth: handleNextMonth,
+    goToToday: handleToday,
+    onDaySelect: handleSelectDate,
     selectedDate,
-    setSelectedDate,
-    currentMonth,
-    handleDateClick,
-    handleCloseDialog,
-    handlePreviousMonth,
-    handleNextMonth,
-    handleToday,
-    getDaysInMonth,
+    selectedDateEvents,
+    closeDialog: handleCloseDialog,
+    upcomingLabel: listMonthLabel,
+    upcomingEvents,
+    hasUpcomingEvents: monthlyEvents.length > 0,
+    canGoBackUpcoming: canGoBackInList,
+    canGoForwardUpcoming: canGoForwardInList,
+    onUpcomingBack: handlePreviousListMonth,
+    onUpcomingForward: handleNextListMonth,
+    onUpcomingEventSelect: handleUpcomingEventClick,
+    calendarGridRef,
+    upcomingHeaderRef,
   };
 };
 
 /*
   Custom hook for fetching and managing calendar events
-  with participation and employee data enrichment.
-  No longer performs role-based filtering; all users see all events.
  */
 export const useCalendarEvents = (user: { userId?: number; role?: string } | null) => {
   const isAdmin = user?.role === 'Admin';
@@ -693,11 +1013,15 @@ export const useCalendarEvents = (user: { userId?: number; role?: string } | nul
         const id: number = ev.event_id ?? ev.EventId ?? ev.Id ?? ev.eventId;
         const createdBy: number = ev.CreatedBy ?? ev.created_by ?? ev.createdBy;
         const eventDateString: string = ev.EventDate ?? ev.event_date ?? ev.eventDate;
+        const durationMinutes: number = ev.DurationMinutes ?? ev.duration_minutes ?? ev.durationMinutes ?? 60;
+        const roomId: number | undefined = ev.RoomId ?? ev.room_id ?? ev.roomId ?? undefined;
         return {
           eventId: id,
           title: ev.Title ?? ev.title ?? 'Untitled Event',
           description: ev.Description ?? ev.description ?? undefined,
           eventDate: eventDateString ? new Date(eventDateString) : new Date(),
+          durationMinutes,
+          roomId,
           createdBy,
           participants: participationByEvent[id] ?? []
         };
@@ -746,6 +1070,8 @@ export interface EventItem {
   title: string;
   description: string;
   eventDate: string;
+  durationMinutes: number;
+  roomId?: number;
   createdBy: number;
 }
 
@@ -755,6 +1081,12 @@ export interface Employee {
   email: string;
 }
 
+
+/*
+ ====================================
+ADMINISTRATIVE DASHBOARD HOOKS
+ ====================================
+ */
 export const useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEvent, setEvent] = useState<EventItem>();
@@ -820,6 +1152,9 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     title: "",
     description: "",
     date: "",
+    time: "",
+    durationMinutes: 60,
+    roomId: null as number | null,
     createdBy: "",
   });
 
@@ -829,17 +1164,24 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       onClose();
       return;
     }
+    const eventDateTime = new Date(currentEvent.eventDate);
     setFormData({
       title: currentEvent.title,
       description: currentEvent.description,
-      date: new Date(currentEvent.eventDate).toLocaleDateString('en-CA'),
+      date: eventDateTime.toLocaleDateString('en-CA'),
+      time: eventDateTime.toTimeString().slice(0, 5), // HH:MM format
+      durationMinutes: currentEvent.durationMinutes || 60,
+      roomId: currentEvent.roomId ?? null,
       createdBy: currentEvent.createdBy.toString()
     });
   }, [currentEvent]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((events) => ({ ...events, [name]: value }));
+    const processedValue = (name === 'durationMinutes' || name === 'roomId') 
+      ? (value === '' ? undefined : Number(value))
+      : value;
+    setFormData((events) => ({ ...events, [name]: processedValue }));
   };
 
   const handleSave = async () => {
@@ -855,6 +1197,14 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       alert("Date cannot be empty");
       return;
     }
+    if (!formData.time.trim()) {
+      alert("Time cannot be empty");
+      return;
+    }
+    if (!formData.durationMinutes || formData.durationMinutes <= 0) {
+      alert("Duration must be greater than 0");
+      return;
+    }
     const selectedDate = new Date(formData.date);
     const today = new Date();
 
@@ -867,19 +1217,28 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     }
 
     try {
+      // Combine date and time into a single DateTime
+      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      
+      const payload = {
+        event_id: currentEvent?.event_id,
+        title: formData.title,
+        description: formData.description || "",
+        eventDate: eventDateTime.toISOString(),
+        durationMinutes: formData.durationMinutes || 60,
+        roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
+        createdBy: currentEvent?.createdBy
+      };
+      
+      console.log('Sending PUT request with payload:', payload);
+      
       const response = await apiFetch(`/api/events/${currentEvent?.event_id}`, { 
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_id: currentEvent?.event_id,
-          title: formData.title,
-          description: formData.description,
-          eventDate: new Date(formData.date).toISOString(),
-          createdBy: currentEvent?.createdBy
-        })
+        body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error("Failed to update event");
-      setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: formData.createdBy });
       reloadEvents();
       onClose();
     } catch (err: any) {
@@ -889,7 +1248,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", createdBy: formData.createdBy });
+    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: formData.createdBy });
     onClose();
   };
 
@@ -903,12 +1262,23 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     title: "",
     description: "",
     date: "",
+    time: "",
+    durationMinutes: 60,
+    roomId: null as number | null,
     createdBy: user?.userId,
   });
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
     const { name, value } = e.target;
-    setFormData((events) => ({ ...events, [name]: value }));
+    let processedValue: any = value;
+    
+    if (name === 'durationMinutes') {
+      processedValue = value === '' ? 60 : Number(value);
+    } else if (name === 'roomId') {
+      processedValue = value === '' ? null : Number(value);
+    }
+    
+    setFormData((events) => ({ ...events, [name]: processedValue }));
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
@@ -931,6 +1301,14 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
       alert("Date cannot be empty");
       return;
     }
+    if (!formData.time.trim()) {
+      alert("Time cannot be empty");
+      return;
+    }
+    if (!formData.durationMinutes || formData.durationMinutes <= 0) {
+      alert("Duration must be greater than 0");
+      return;
+    }
     const selectedDate = new Date(formData.date);
     const today = new Date();
 
@@ -943,14 +1321,19 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     }
 
     try {
+      // Combine date and time into a single DateTime
+      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      
       const response = await apiFetch("/api/events", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({
           event_id: null,
           title: formData.title,
-          description: formData.description,
-          eventDate: new Date(formData.date).toISOString(),
+          description: formData.description || "",
+          eventDate: eventDateTime.toISOString(),
+          durationMinutes: formData.durationMinutes || 60,
+          roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
           createdBy: user.userId,
         }),
       });
@@ -964,7 +1347,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
       const result = await response.json();
       console.log("Event created:", result);
 
-      setFormData({ title: "", description: "", date: "", createdBy: user.userId });
+      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: user.userId });
       reloadEvents();
       onClose();
     } catch (err: any) {
@@ -974,14 +1357,12 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", createdBy: user?.userId });
+    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: user?.userId });
     onClose();
   };
 
   return { formData, handleChange, handleSubmit, handleCancel };
 };
-
-
 
 export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -1018,53 +1399,6 @@ export const useViewAttendees = (event: EventItem | undefined, onClose: () => vo
 
   return { employees, handleCancel };
 };
-/**
- * Custom hook for managing hidden events with localStorage persistence
- */
-// const HIDDEN_EVENTS_KEY = 'hiddenEventIds';
-
-// export const useHiddenEvents = () => {
-//   const [hiddenEventIds, setHiddenEventIds] = useState<number[]>(() => {
-//     // Initialize state from localStorage
-//     const stored = localStorage.getItem(HIDDEN_EVENTS_KEY);
-//     if (stored) {
-//       try {
-//         const parsed = JSON.parse(stored);
-//         return Array.isArray(parsed) ? parsed : [];
-//       } catch {
-//         return [];
-//       }
-//     }
-//     return [];
-//   });
-
-//   // Persist hidden events to localStorage on change
-//   useEffect(() => {
-//     localStorage.setItem(HIDDEN_EVENTS_KEY, JSON.stringify(hiddenEventIds));
-//   }, [hiddenEventIds]);
-
-//   // Pure function to hide an event
-//   const hideEvent = useCallback((eventId: number): void => {
-//     setHiddenEventIds(prev => [...prev, eventId]);
-//   }, []);
-
-//   // Pure function to restore all hidden events
-//   const restoreAllEvents = useCallback((): void => {
-//     setHiddenEventIds([]);
-//   }, []);
-
-//   // Pure function to filter out hidden events
-//   const filterHiddenEvents = useCallback((events: CalendarEvent[]): CalendarEvent[] => {
-//     return events.filter(event => !hiddenEventIds.includes(event.eventId));
-//   }, [hiddenEventIds]);
-
-//   return {
-//     hiddenEventIds,
-//     hideEvent,
-//     restoreAllEvents,
-//     filterHiddenEvents,
-//   };
-// };
 
 /*
  Types for calendar events and participants (shared)
@@ -1081,6 +1415,8 @@ export interface CalendarEvent {
   title: string;
   description?: string;
   eventDate: Date;
+  durationMinutes: number;
+  roomId?: number;
   createdBy: number;
   participants: CalendarParticipant[];
 }
@@ -1185,6 +1521,9 @@ export const useReminders = () => {
   };
 };
 // _________________________________________
+// end functions reminders
+// _________________________________________
+// _________________________________________
 // functions home
 // _________________________________________
 
@@ -1199,7 +1538,9 @@ export const useHomeDashboard = () => {
     error: roomBookingsError,
   } = useUserRoomBookings(user?.userId);
 
-  const { upcomingEvents, totalEvents, acceptedEventsForUser } = useMemo(() => {
+  const [roomsById, setRoomsById] = useState<Record<number, RoomDto>>({});
+
+  const { upcomingEvents, totalEvents, acceptedEventsForUser, weekEventsAttending } = useMemo(() => {
     const now = new Date();
     const sorted = [...events].sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
     let acceptedForUser = 0;
@@ -1213,14 +1554,48 @@ export const useHomeDashboard = () => {
       }
     });
 
-    const upcoming = sorted.filter(ev => ev.eventDate >= now);
+    // Only show events attended by the user for the week calendar
+    const weekEventsAttending = sorted.filter(ev => {
+      if (ev.eventDate < now) return false;
+      if (!user?.userId) return false;
+      const me = ev.participants.find(p => p.userId === user.userId);
+      return me && me.status === 'Accepted';
+    });
+
+    // Filter to show only upcoming events that the user hasn't attended yet
+    const upcoming = sorted.filter(ev => {
+      if (ev.eventDate < now) return false;
+      if (!user?.userId) return true;
+      const me = ev.participants.find(p => p.userId === user.userId);
+      return !me || me.status !== 'Accepted';
+    });
 
     return {
       upcomingEvents: upcoming,
       totalEvents: events.length,
       acceptedEventsForUser: acceptedForUser,
+      weekEventsAttending,
     };
   }, [events, user?.userId]);
+
+  // Fetch room details for events with roomId
+  useEffect(() => {
+    const roomIds = Array.from(new Set(upcomingEvents.map(ev => ev.roomId).filter((id): id is number => id != null)));
+    
+    roomIds.forEach(async (roomId) => {
+      if (!roomsById[roomId]) {
+        try {
+          const response = await apiFetch(`/api/rooms/${roomId}`);
+          if (response.ok) {
+            const room: RoomDto = await response.json();
+            setRoomsById(prev => ({ ...prev, [roomId]: room }));
+          }
+        } catch (error) {
+          console.error(`Failed to fetch room ${roomId}:`, error);
+        }
+      }
+    });
+  }, [upcomingEvents, roomsById]);
 
   const attendanceRate = totalEvents > 0
     ? Math.round((acceptedEventsForUser / totalEvents) * 100)
@@ -1284,6 +1659,24 @@ export const useHomeDashboard = () => {
     setSelectedDateForDialog(null);
   };
 
+    const handleAttend = useCallback(async (eventId: number) => {
+      if (!user?.userId || !user?.name) return;
+      try {
+        const res = await apiFetch('/api/event-participation', {
+          method: 'POST',
+          body: JSON.stringify({ eventId, userId: user.userId, status: 1 }),
+        });
+        if (!res.ok) throw new Error('Failed to register for event');
+
+        // Reload events to refresh the list
+        await reload();
+        alert('You have successfully registered for this event.');
+      } catch (e) {
+        console.error(e);
+        alert('Unable to register for this event. Please try again.');
+      }
+    }, [user, reload]);
+
   return {
     user,
     loading,
@@ -1305,6 +1698,9 @@ export const useHomeDashboard = () => {
     roomBookings,
     roomBookingsLoading,
     roomBookingsError,
+    handleAttend,
+    roomsById,
+    weekEventsAttending,
   };
 };
 
@@ -1342,3 +1738,812 @@ export const formatTimeOnly = (dateString: string) => {
 // end functions home
 // _________________________________________
 
+// _________________________________________
+// functions rooms
+// _________________________________________
+
+export interface RoomDto {
+  id: number;
+  roomName: string;
+  capacity?: number | null;
+  location: string;
+}
+
+export interface RoomFormState {
+  id?: number | null;
+  roomName: string;
+  location: string;
+  capacity: string;
+}
+
+export const useRoomsAdmin = () => {
+  const [rooms, setRooms] = useState<RoomDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState<Omit<RoomFormState, 'id'>>({
+    roomName: '',
+    location: '',
+    capacity: ''
+  });
+
+  const [editForm, setEditForm] = useState<RoomFormState>({
+    id: null,
+    roomName: '',
+    location: '',
+    capacity: ''
+  });
+
+
+  const loadRooms = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/api/rooms');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to load rooms');
+      }
+      const data = await res.json();
+      const mapped: RoomDto[] = (data || []).map((r: any) => ({
+        id: r.room_id ?? r.id ?? r.roomId ?? r.RoomId ?? 0,
+        roomName: r.room_name ?? r.roomName ?? r.RoomName ?? 'Room',
+        capacity: r.capacity ?? r.Capacity ?? null,
+        location: r.location ?? r.Location ?? '',
+      }));
+      setRooms(mapped);
+    } catch (e: any) {
+      console.error('Error loading rooms', e);
+      setError(e.message ?? 'Failed to load rooms');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRooms();
+  }, [loadRooms]);
+
+  const isEditing = editForm.id != null;
+
+  const resetCreateForm = () => {
+    setCreateForm({ roomName: '', location: '', capacity: '' });
+  };
+
+  const resetEditForm = () => {
+    setEditForm({ id: null, roomName: '', location: '', capacity: '' });
+  };
+
+  const startEdit = (room: RoomDto) => {
+    setEditForm({
+      id: room.id,
+      roomName: room.roomName,
+      location: (room as any).location ?? (room as any).Location ?? '',
+      capacity: room.capacity != null ? String(room.capacity) : '',
+    });
+  };
+
+  const updateCreateField = (field: keyof Omit<RoomFormState, 'id'>, value: string) => {
+    setCreateForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateEditField = (field: keyof RoomFormState, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveRoom = async (
+    mode: 'create' | 'edit',
+    e?: React.FormEvent
+  ): Promise<boolean> => {
+    if (e) e.preventDefault();
+
+    const form = mode === 'create'
+      ? { ...createForm, id: null }
+      : editForm;
+
+    const fail = (reason: string) => {
+      const action = mode === 'create' ? 'create' : 'edit';
+      setError(`Couldn't ${action} because ${reason}`);
+      return false;
+    };
+
+    if (!form.roomName.trim()) {
+      return fail('room name is required');
+    }
+
+    if (!form.location.trim()) {
+      return fail('room location is required');
+    }
+
+    if (!form.capacity.trim()) {
+      return fail('room capacity is required');
+    }
+
+    const capacityNumber = form.capacity.trim() ? Number(form.capacity) : null;
+
+    if (capacityNumber != null && (Number.isNaN(capacityNumber) || capacityNumber < 1)) {
+      return fail('room capacity must be at least 1');
+    }
+
+    const payload: any = {
+      roomName: form.roomName.trim(),
+      location: form.location.trim(),
+      capacity: capacityNumber,
+    };
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let res: Response;
+      if (mode === 'edit' && form.id != null) {
+        res = await apiFetch(`/api/rooms/${form.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: form.id, ...payload }),
+        });
+      } else {
+        res = await apiFetch('/api/rooms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to save room');
+      }
+
+      await loadRooms();
+      if (mode === 'create') {
+        resetCreateForm();
+      } else {
+        resetEditForm();
+      }
+      return true;
+    } catch (e: any) {
+      console.error('Error saving room', e);
+      const reason = e?.message || 'failed to save room';
+      return fail(reason);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteRoom = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/rooms/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to delete room');
+      }
+      await loadRooms();
+    } catch (e: any) {
+      console.error('Error deleting room', e);
+      setError(e.message ?? 'Failed to delete room');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    rooms,
+    loading,
+    error,
+    setError,
+    createForm,
+    editForm,
+    isEditing,
+    loadRooms,
+    resetCreateForm,
+    resetEditForm,
+    startEdit,
+    updateCreateField,
+    updateEditField,
+    saveRoom,
+    deleteRoom,
+  };
+};
+
+// _________________________________________
+// end functions rooms
+
+// Employee management types
+interface EmployeeDto {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface EmployeeFormState {
+  id: number | null;
+  name: string;
+  email: string;
+  role: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+/**
+ * Hook for managing employees in the admin panel
+ */
+export const useEmployeesAdmin = () => {
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState<EmployeeDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState<Omit<EmployeeFormState, 'id'>>({
+    name: '',
+    email: '',
+    role: 'User',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const [editForm, setEditForm] = useState<EmployeeFormState>({
+    id: null,
+    name: '',
+    email: '',
+    role: 'User',
+    password: '',
+  });
+
+  const canAssignAdminRole = user?.role === 'SuperAdmin';
+
+  const loadEmployees = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/api/employees');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to load employees');
+      }
+      const data = await res.json();
+      const mapped: EmployeeDto[] = (data || []).map((emp: any) => ({
+        id: emp.user_id ?? emp.Id ?? emp.id ?? 0,
+        name: emp.name ?? emp.Name ?? 'Unknown',
+        email: emp.email ?? emp.Email ?? '',
+        role: emp.role ?? emp.Role ?? 'User',
+      }));
+      setEmployees(mapped);
+    } catch (e: any) {
+      console.error('Error loading employees', e);
+      setError(e.message ?? 'Failed to load employees');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
+
+  const isEditing = editForm.id != null;
+
+  const resetCreateForm = () => {
+    setCreateForm({
+      name: '',
+      email: '',
+      role: 'User',
+      password: '',
+      confirmPassword: '',
+    });
+  };
+
+  const resetEditForm = () => {
+    setEditForm({
+      id: null,
+      name: '',
+      email: '',
+      role: 'User',
+      password: '',
+    });
+  };
+
+  const startEdit = (employee: EmployeeDto) => {
+    setEditForm({
+      id: employee.id,
+      name: employee.name,
+      email: employee.email,
+      role: employee.role,
+      password: '',
+    });
+  };
+
+  const updateCreateField = (
+    field: keyof Omit<EmployeeFormState, 'id'>,
+    value: string
+  ) => {
+    setCreateForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateEditField = (field: keyof EmployeeFormState, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEmployee = async (mode: 'create' | 'edit', e?: React.FormEvent): Promise<boolean> => {
+    if (e) e.preventDefault();
+
+    const form = mode === 'create' ? { ...createForm, id: null } : editForm;
+
+    const fail = (reason: string) => {
+      const action = mode === 'create' ? 'create' : 'edit';
+      setError(`Couldn't ${action} because ${reason}`);
+      return false;
+    };
+
+    if (!form.name.trim()) {
+      return fail('full name is required');
+    }
+
+    if (!form.email.trim()) {
+      return fail('email is required');
+    }
+    // Validate email format
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      return fail('the email address is invalid');
+    }
+    if (mode === 'create') {
+      if (!form.password || form.password.length < 8) {
+        return fail('password must be at least 8 characters');
+      }
+
+      if (form.password !== form.confirmPassword) {
+        return fail('passwords do not match');
+      }
+    }
+
+    const payload: any = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      role: form.role || 'User',
+    };
+
+    if (mode === 'create') {
+      payload.password = form.password;
+    } else if (mode === 'edit' && form.password && form.password.trim()) {
+      payload.password = form.password.trim();
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let res: Response;
+      if (mode === 'edit' && form.id != null) {
+        res = await apiFetch(`/api/employees/${form.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: form.id, ...payload }),
+        });
+      } else {
+        res = await apiFetch('/api/employees', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to save employee');
+      }
+
+      await loadEmployees();
+      if (mode === 'create') {
+        resetCreateForm();
+      } else {
+        resetEditForm();
+      }
+      return true;
+    } catch (e: any) {
+      console.error('Error saving employee', e);
+      const reason = e?.message || 'failed to save employee';
+      return fail(reason);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteEmployee = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this employee?')) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/employees/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to delete employee');
+      }
+      await loadEmployees();
+    } catch (e: any) {
+      console.error('Error deleting employee', e);
+      setError(e.message ?? 'Failed to delete employee');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    employees,
+    loading,
+    error,
+    setError,
+    createForm,
+    editForm,
+    isEditing,
+    canAssignAdminRole,
+    loadEmployees,
+    resetCreateForm,
+    resetEditForm,
+    startEdit,
+    updateCreateField,
+    updateEditField,
+    saveEmployee,
+    deleteEmployee,
+  };
+};
+
+// _________________________________________
+// end functions employees
+// _________________________________________
+// _________________________________________
+// _________________________________________
+// start functions roombooking
+// _________________________________________
+export type Room = {
+  room_id: number;
+  roomName: string;
+  capacity: number;
+  location: string;
+};
+
+export type RoomBooking = {
+  booking_id?: number;
+  roomId: number;
+  userId: number;
+  bookingDate: string;
+  startTime: string;
+  endTime: string;
+  purpose: string;
+  eventId?: number | null;
+};
+
+export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Date, reloadBookings: () => void) => {
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [bookings, setBookings] = useState<RoomBooking[]>([]);
+  const [roomId, setRoomId] = useState<number | null>(null);
+  const [startTime, setStartTime] = useState("");
+  const [endTime, setEndTime] = useState("");
+  const [capacity, setCapacity] = useState<number>(1);
+  const [purpose, setPurpose] = useState("");
+  const [message, setMessage] = useState("");
+  const [eventId, setEventId] = useState(0);
+  const { user } = useAuth()
+
+  useEffect(() => {
+    if (selectedDate && startTime && endTime && capacity > 0) {
+      loadAvailableRooms();
+    } else {
+      setRooms([]);
+    }
+  }, [selectedDate, startTime, endTime, capacity]);
+
+  const loadAvailableRooms = async () => {
+    try {
+      const start = selectedDate.toLocaleDateString("en-GB") + "T" + startTime + ":00";
+      const end = selectedDate.toLocaleDateString("en-GB") + "T" + endTime + ":00";
+      const result = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${start}&endtime=${end}&capacity=${capacity}`);
+      if (!result.ok) throw new Error("Failed to fetch available rooms");
+
+      const data = await result.json();
+      setRooms(data);
+    } catch (err) {
+      setRooms([]);
+    }
+  };
+
+  const checkConflict = (start: string, end: string) => {
+    const toMinutes = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    const newStart = toMinutes(start);
+    const newEnd = toMinutes(end);
+
+    return bookings.some(
+      (b) => toMinutes(b.startTime) < newEnd && toMinutes(b.endTime) > newStart
+    );
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setMessage("");
+
+    if (!user?.userId) {
+      alert("User is not logged in.");
+      return;
+    }
+
+    if (!startTime || !endTime || !purpose) {
+      setMessage("Please fill all required fields.");
+      return;
+    }
+
+    if (checkConflict(startTime, endTime)) {
+      setMessage("Time slot already booked for this room.");
+      return;
+    }
+
+    if (endTime <= startTime) {
+      setMessage("End time must be after start time.");
+      return;
+    }
+
+    if (rooms.length < 1 || !roomId) {
+      setMessage("There are no rooms. Please create a room first.")
+      return;
+    }
+
+    if (rooms.every(r => r.capacity < capacity)) {
+      setMessage("There are no rooms with enough capacity.")
+      return;
+    }
+
+    selectedDate.setDate(selectedDate.getDate() + 1);
+
+    const payload = {
+      roomId,
+      userId: user?.userId,
+      bookingDate: selectedDate.toISOString().split("T")[0] + "T00:00:00",
+      startTime: startTime,
+      endTime: endTime,
+      purpose: purpose,
+      eventId: null
+    };
+
+    selectedDate.setDate(selectedDate.getDate() - 1);
+
+    try {
+      const res = await apiFetch("/api/room-bookings", {
+        method: "POST",
+        body: JSON.stringify(payload),
+      });
+
+      if (res.status === 409) {
+        setMessage("This room is already booked for the selected time.");
+        return;
+      }
+
+      if (!res.ok) throw new Error("Failed to create booking");
+
+      reloadBookings()
+      onClose()
+
+      setRoomId(null);
+      setStartTime("");
+      setEndTime("");
+      setCapacity(1);
+      setPurpose("");
+    } catch (err) {
+      console.error("Error creating booking:", err);
+      setMessage("Error adding booking.");
+    }
+  };
+
+  const generateTime = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 0 && m === 0) continue;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
+  return {
+    rooms, 
+    bookings, 
+    roomId,
+    startTime,
+    endTime,
+    capacity,
+    purpose,
+    message,
+    eventId,
+
+    setRoomId,
+    setStartTime,
+    setEndTime,
+    setCapacity,
+    setPurpose,
+    handleSubmit,
+    generateTime
+  };
+};
+
+export const useRoomBooking = () => {
+  const { user } = useAuth()
+  const [roomBookings, setRoomBookings] = useState<RoomBooking[]>([]);
+  const [roomBookingsOnDay, setRoomBookingsOnDay] = useState<RoomBooking[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const fetchRoomBookings = async () => {
+    if (!user) return;
+    try {
+      const response = await apiFetch(`/api/room-bookings/user/${user.userId}`);
+
+      if (!response.ok) throw new Error("Failed to fetch roombookings");
+
+      const data: RoomBooking[] = await response.json();
+      setRoomBookings(data);
+    } catch (err) {
+      console.error("Fetching roombookings failed: ", err);
+      setRoomBookings([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoomBookings();
+  }, [user]);
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const goToCurrentDate = () => {
+    setCurrentDate(new Date());
+  };
+
+  return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, 
+    currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
+}
+
+export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: RoomBooking[], reloadBookings: () => void) => {
+  const [editingBooking, setEditingBooking] = useState<RoomBooking | null>(null);
+  const [capacityFilter, setCapacityFilter] = useState<number | "">("");
+  const [rooms, setRooms] = useState<Room[]>([]);
+  const [allRooms, setAllRooms] = useState<Room[]>([]);
+
+  const allFieldsFilled =
+    editingBooking?.purpose &&
+    editingBooking?.startTime &&
+    editingBooking?.endTime &&
+    capacityFilter !== "";
+
+
+  const getRoomName = (roomId: number | undefined) => {
+    if (!roomId) return "-";
+    const room = allRooms.find(r => r.room_id === roomId);
+    return room ? room.roomName : "-";
+  };
+
+  useEffect(() => {
+    const fetchAllRooms = async () => {
+      const data = await apiFetch("/api/Rooms");
+      const result: Room[] = await data.json();
+      setAllRooms(result);
+    };
+    fetchAllRooms();
+  }, []);
+
+  useEffect(() => {
+    if (!allFieldsFilled) return;
+
+    const fetchRooms = async () => {
+      const data = await apiFetch("/api/Rooms");
+      const result: Room[] = await data.json()
+      setRooms(result.filter(r => r.capacity >= Number(capacityFilter)));
+    };
+
+    fetchRooms();
+  }, [allFieldsFilled, capacityFilter]);
+
+  const checkConflict = (start: string, end: string, currentId?: number) => {
+    const toMin = (t: string) => {
+      const [h, m] = t.split(":").map(Number);
+      return h * 60 + m;
+    };
+
+    return roomBookings.some(
+      b =>
+        b.booking_id !== currentId &&
+        toMin(b.startTime) < toMin(end) &&
+        toMin(b.endTime) > toMin(start)
+    );
+  };
+
+  const handleSaveEdit = async () => {
+    if (!editingBooking || capacityFilter === "") return;
+
+    if (editingBooking.endTime <= editingBooking.startTime) {
+      alert("End time must be after start time");
+      return;
+    }
+
+    if (checkConflict(editingBooking.startTime, editingBooking.endTime, editingBooking.booking_id)) {
+      alert("Time slot already booked");
+      return;
+    }
+
+    await apiFetch(`/api/room-bookings/${editingBooking.booking_id}`, {
+      method: "PUT",
+      body: JSON.stringify({
+        booking_id: editingBooking.booking_id,
+        roomId: editingBooking.roomId,
+        userId: editingBooking.userId,
+        bookingDate: editingBooking.bookingDate,
+        startTime: editingBooking.startTime.slice(0, 5),
+        endTime: editingBooking.endTime.slice(0, 5),
+        eventId: null,
+        purpose: editingBooking.purpose,
+      }),
+    });
+
+    setEditingBooking(null);
+    reloadBookings();
+    onClose();
+  };
+
+  const handleDelete = async (booking: RoomBooking) => {
+    if (!window.confirm("Delete this booking?")) return;
+
+    await apiFetch(`/api/room-bookings`, {
+      method: "DELETE",
+      body: JSON.stringify({
+        roomId: booking.roomId,
+        userId: booking.userId,
+        bookingDate: booking.bookingDate,
+        startTime: booking.startTime,
+        endTime: booking.endTime,
+      }),
+    });
+
+    reloadBookings()
+    onClose();
+  };
+
+  const generateTime = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        if (h === 0 && m === 0) continue;
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}:00`);
+      }
+    }
+    return options;
+  };
+
+  return {
+    editingBooking,
+    setEditingBooking,
+    handleSaveEdit,
+    capacityFilter,
+    setCapacityFilter,
+    rooms,
+    handleDelete,
+    getRoomName,
+    generateTime
+  };
+};
+
+// _________________________________________
+// end functions roombooking
+// _________________________________________

@@ -5,7 +5,7 @@ export interface User {
   userId?: number;
   name?: string;
   email: string;
-  role: 'Admin' | 'User';
+  role: 'Admin' | 'User'| 'SuperAdmin';
   isSuperAdmin?: boolean;
   token?: string;
 }
