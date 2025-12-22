@@ -73,7 +73,7 @@ const AdministrativeDashboard: React.FC = () => {
               ))}
             </tbody>
           </table>
-          ) : <h2>There are no events. Create an event first</h2>}
+          ) : <p className="muted">There are no events. Create an event first</p>}
         </div>
       </div>
       {showCreateDialog && (
