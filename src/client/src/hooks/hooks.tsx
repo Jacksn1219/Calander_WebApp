@@ -1217,14 +1217,14 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     }
 
     try {
-      // Combine date and time into a single DateTime
-      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      // Combine date and time into a single DateTime string WITHOUT timezone conversion
+      const eventDateTimeString = `${formData.date}T${formData.time}:00`;
       
       const payload = {
         event_id: currentEvent?.event_id,
         title: formData.title,
         description: formData.description || "",
-        eventDate: eventDateTime.toISOString(),
+        eventDate: eventDateTimeString,
         durationMinutes: formData.durationMinutes || 60,
         roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
         createdBy: currentEvent?.createdBy
@@ -1321,8 +1321,8 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     }
 
     try {
-      // Combine date and time into a single DateTime
-      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      // Combine date and time into a single DateTime string WITHOUT timezone conversion
+      const eventDateTimeString = `${formData.date}T${formData.time}:00`;
       
       const response = await apiFetch("/api/events", {
         method: "POST",
@@ -1331,7 +1331,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
           event_id: null,
           title: formData.title,
           description: formData.description || "",
-          eventDate: eventDateTime.toISOString(),
+          eventDate: eventDateTimeString,
           durationMinutes: formData.durationMinutes || 60,
           roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
           createdBy: user.userId,
