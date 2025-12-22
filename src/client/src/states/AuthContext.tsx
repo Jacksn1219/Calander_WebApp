@@ -61,7 +61,8 @@ export const AuthProvider = ({ children }: AuthProviderProps) => {
         const normalizedUser: User = {
           userId: apiUser.userId,
           email: apiUser.email,
-          role: apiUser.role
+          role: apiUser.role,
+          name: apiUser.name
         };
 
         setUser(normalizedUser);
