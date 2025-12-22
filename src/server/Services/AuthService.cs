@@ -58,5 +58,32 @@ namespace Calender_WebApp.Services
 
             return new JwtSecurityTokenHandler().WriteToken(token);
         }
+
+        public ClaimsPrincipal? ValidateToken(string token)
+        {
+            var tokenHandler = new JwtSecurityTokenHandler();
+            var key = Encoding.UTF8.GetBytes(_config["Jwt:Key"]!);
+
+            try
+            {
+                var principal = tokenHandler.ValidateToken(token, new TokenValidationParameters
+                {
+                    ValidateIssuer = true,
+                    ValidIssuer = _config["Jwt:Issuer"],
+                    ValidateAudience = true,
+                    ValidAudience = _config["Jwt:Audience"],
+                    ValidateLifetime = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(key),
+                    ValidateIssuerSigningKey = true,
+                    ClockSkew = TimeSpan.Zero // no expiration grace period
+                }, out _);
+
+                return principal;
+            }
+            catch
+            {
+                return null;
+            }
+        }
     }
 }

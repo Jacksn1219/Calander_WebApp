@@ -1,0 +1,287 @@
+/* Employee Panel styles - all scoped under .employee-panel-page */
+
+.employee-panel-page .events-header {
+  margin-bottom: 24px;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.employee-panel-page .events-header-left {
+  flex: 1;
+}
+
+.employee-panel-page .muted {
+  color: #6b7280;
+  font-size: 0.95rem;
+}
+
+.employee-panel-page .calendar-status.error {
+  color: #b91c1c;
+  background: #fee2e2;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-top: 8px;
+  font-size: 0.95rem;
+}
+
+
+/* Employee panel main row layout (was .home-row) */
+.employee-panel-page .home-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+
+.employee-panel-page .blurred-background {
+  filter: blur(2px);
+  pointer-events: none;
+}
+
+.employee-panel-page .calendar-container {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  padding: 12px;
+  /* max-width removed to allow side-by-side layout */
+}
+
+.employee-panel-page .calendar-grid {
+  width: 100%;
+  padding: 0;
+}
+
+.employee-panel-page .section-title {
+  font-size: 1.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.employee-panel-page .banner.banner-error {
+  background: #fee2e2;
+  color: #b91c1c;
+  border-radius: 6px;
+  padding: 8px 12px;
+  margin-bottom: 12px;
+  font-size: 0.95rem;
+}
+
+.employee-panel-page .login-form label {
+  font-weight: 500;
+  margin-top: 0.5rem;
+  margin-bottom: 0.2rem;
+  display: block;
+}
+
+.employee-panel-page .login-form input,
+.employee-panel-page .login-form textarea,
+.employee-panel-page .login-form select {
+  width: 100%;
+  padding: 8px;
+  border: 1px solid #e5e7eb;
+  border-radius: 4px;
+  margin-bottom: 0.7rem;
+  font-size: 1rem;
+}
+
+.employee-panel-page .password-input-container {
+  position: relative;
+  display: flex;
+  align-items: center;
+}
+
+.employee-panel-page .password-input-container input {
+  padding-right: 2.5rem;
+}
+
+.employee-panel-page .password-toggle {
+  position: absolute;
+  right: 0.5rem;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  padding: 0.25rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #6b7280;
+  transition: color 0.2s;
+}
+
+.employee-panel-page .password-toggle:hover {
+  color: #374151;
+}
+
+.employee-panel-page .form-actions {
+  display: flex;
+  gap: 10px;
+  justify-content: flex-end;
+  margin-top: 1rem;
+}
+
+.employee-panel-page .primary-btn {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.employee-panel-page .primary-btn:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.employee-panel-page .btn-today {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.employee-panel-page .btn-today:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.employee-panel-page .employee-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.employee-panel-page .employee-row {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  align-items: center;
+  column-gap: 16px;
+  padding: 8px 4px;
+}
+
+.employee-panel-page .employee-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+}
+
+.employee-panel-page .employee-name {
+  font-size: 0.95rem;
+  font-weight: 600;
+}
+
+.employee-panel-page .employee-email {
+  font-size: 0.9rem;
+  color: #666;
+}
+
+.employee-panel-page .employee-role {
+  font-size: 0.85rem;
+  color: #888;
+}
+
+.employee-panel-page .employee-edit-button {
+  margin-left: auto;
+}
+
+.employee-panel-page .employee-modal-overlay {
+  position: fixed;
+  inset: 0;
+  background: rgba(15, 23, 42, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 50;
+}
+
+.employee-panel-page .employee-modal {
+  background: #ffffff;
+  border-radius: 8px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.25);
+  padding: 24px;
+  width: 100%;
+  max-width: 480px;
+}
+
+.employee-panel-page .btn-green {
+  background: #16a34a;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.employee-panel-page .btn-green:hover:not(:disabled) {
+  background: #15803d;
+}
+.employee-panel-page .btn-green:disabled {
+  background: #bbf7d0;
+  cursor: not-allowed;
+}
+
+.employee-panel-page .btn-blue {
+  background: #2563eb;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.5rem 1.2rem;
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.employee-panel-page .btn-blue:disabled {
+  background: #a5b4fc;
+  cursor: not-allowed;
+}
+
+.employee-panel-page .btn-red {
+  background: #dc2626;
+  color: #fff;
+  border: none;
+  border-radius: 6px;
+  padding: 0.35rem 0.9rem;
+  font-size: 1rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.employee-panel-page .btn-red:disabled {
+  background: #fecaca;
+  cursor: not-allowed;
+}
+
+/* Pagination button styles */
+.employee-panel-page .btn-icon {
+  background: #f0f0f0;
+  border: none;
+  border-radius: 50%;
+  width: 36px;
+  height: 36px;
+  font-size: 1rem;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background 0.2s, color 0.2s;
+}
+
+.employee-panel-page .btn-icon.primary {
+  background: #1f6feb;
+  color: white;
+}
+
+.employee-panel-page .btn-icon:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}

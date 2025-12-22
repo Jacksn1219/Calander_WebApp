@@ -25,6 +25,45 @@ namespace Calender_WebApp.Services
                 .ToListAsync();
         }
 
+        public override async Task<EmployeesModel> Put(int id, EmployeesModel item)
+        {
+            if (item == null)
+                throw new ArgumentNullException(nameof(item));
+            
+            var existingEmployee = await _dbSet
+                .FirstOrDefaultAsync(e => e.Id == id)
+                .ConfigureAwait(false);
+            if (existingEmployee == null)
+                throw new InvalidOperationException("Employee not found.");
+
+            // Check for unique email
+            var emailOwner = await _dbSet
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Email == item.Email && e.Id != id)
+                .ConfigureAwait(false);
+            if (emailOwner != null)
+                throw new InvalidOperationException("An employee with the same email already exists.");
+
+            // Update fields
+            existingEmployee.Name = item.Name;
+            existingEmployee.Email = item.Email;
+            existingEmployee.Role = item.Role;
+
+            // Update password only if a non-empty new password is provided and it's different
+            if (!string.IsNullOrWhiteSpace(item.Password))
+            {
+
+                if (!BCrypt.Net.BCrypt.Verify(item.Password, existingEmployee.Password))
+                {
+                    existingEmployee.Password = BCrypt.Net.BCrypt.HashPassword(item.Password);
+                }
+            }
+            
+            _dbSet.Update(existingEmployee);
+            await _context.SaveChangesAsync().ConfigureAwait(false);
+            return existingEmployee;
+        }
+
         // Add additional services that are not related to CRUD here
         public override async Task<EmployeesModel> Post(EmployeesModel entity)
         {

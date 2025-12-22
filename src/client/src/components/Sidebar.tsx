@@ -44,19 +44,7 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && <span>Roombooking</span>}
         </Link>
       </li>
-      <li className={location.pathname === '/administrative-dashboard' ? 'active' : ''}>
-        <Link to="/administrative-dashboard" title="administrative-dashboard">
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
-          <g id="SVGRepo_bgCarrier" stroke-width="0"></g><g id="SVGRepo_tracerCarrier" stroke-linecap="round" stroke-linejoin="round"></g>
-          <g id="SVGRepo_iconCarrier">
-            <path opacity="0.1" d="M8.976 3C4.05476 3 3 4.05476 3 8.976V15.024C3 19.9452 4.05476 21 8.976 21H9V9H21V8.976C21 4.05476 19.9452 3 15.024 3H8.976Z" fill="currentColor"></path>
-            <path d="M3 8.976C3 4.05476 4.05476 3 8.976 3H15.024C19.9452 3 21 4.05476 21 8.976V15.024C21 19.9452 19.9452 21 15.024 21H8.976C4.05476 21 3 19.9452 3 15.024V8.976Z" stroke="currentColor" stroke-width="2"></path>
-            <path d="M21 9L3 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path> <path d="M9 21L9 9" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"></path>
-          </g>
-        </svg>
-          {!isCollapsed && <span>Administrative Dashboard</span>}
-        </Link>
-      </li>
+      
       <li className={location.pathname === '/calendar' ? 'active' : ''}>
         <Link to="/calendar" title="Calendar">
           <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -68,16 +56,16 @@ const Sidebar: React.FC = () => {
           {!isCollapsed && <span>Calendar</span>}
         </Link>
       </li>
-      {user?.role === 'Admin' && (
-        <li className={location.pathname === '/add-emp' ? 'active' : ''}>
-          <Link to="/add-emp" title="Add Employee">
+
+      {(user?.role === 'SuperAdmin' || user?.role === 'Admin') && (
+        <li className={['/admin-panel','/admin-panel/Room-Panel','/admin-panel/add-emp','/admin-panel/administrative-dashboard'].includes(location.pathname) ? 'active' : ''}>
+          <Link to="/admin-panel" title="Admin Panel">
             <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <path d="M16 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/>
-              <circle cx="8.5" cy="7" r="4"/>
-              <line x1="20" y1="8" x2="20" y2="14"/>
-              <line x1="23" y1="11" x2="17" y2="11"/>
+              <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/>
+              <line x1="3" y1="10" x2="21" y2="10"/>
+              <line x1="9" y1="4" x2="9" y2="20"/>
             </svg>
-            {!isCollapsed && <span>Add Employee</span>}
+            {!isCollapsed && <span>Admin Panel</span>}
           </Link>
         </li>
       )}

@@ -99,6 +99,8 @@ class Program
                 IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwt["Key"]!))
             };
         });
+        builder.Services.AddAuthorization();
+
 
 
         var app = builder.Build();
@@ -124,15 +126,17 @@ class Program
         // Enable Swagger middleware
         app.UseSwagger();
         app.UseSwaggerUI();
-        app.UseAuthentication();
-        app.UseAuthorization();
+
 
         app.UseHttpsRedirection();
         app.UseStaticFiles();
         app.UseRouting();
         app.UseCors("AllowReactApp");
-        app.UseSession();
+
+        app.UseAuthentication();
         app.UseAuthorization();
+
+        app.UseSession();
 
         app.MapControllers();
 

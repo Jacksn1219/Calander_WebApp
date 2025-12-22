@@ -19,7 +19,7 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose, onStat
     formatTime,
     handleAttend,
     handleUnattend,
-  } = useEventDialog(events, onStatusChange);
+  } = useEventDialog(events, onStatusChange, onClose);
   const { user } = useAuth();
   const [viewMode, setViewMode] = useState<'list' | 'detail'>(events.length > 1 ? 'list' : 'detail');
 

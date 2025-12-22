@@ -1,6 +1,7 @@
 import React, { useState } from "react";
 import "../styles/administrative-dashboard.css";
 import Sidebar from "./Sidebar";
+import { useNavigate } from "react-router-dom";
 import { useAdministrativeDashboard } from "../hooks/hooks";
 import CreateEventDialog from "./CreateEventDialog";
 import EditEventDialog from "./EditEventDialog";
@@ -11,15 +12,24 @@ const AdministrativeDashboard: React.FC = () => {
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [showEditDialog, setShowEditDialog] = useState(false);
   const [showViewDialog, setShowViewDialog] = useState(false);
+  const navigate = useNavigate();
 
   return (
     <div className="administrative-layout">
       <Sidebar />
       <div className="administrative-dashboard">
         <div className="events-section">
+          <div style={{ marginBottom: 16 }}>
+            <button
+              className="btn-today"
+              style={{ minWidth: 180, height: 40 }}
+              onClick={() => navigate('/admin-panel')}
+            >
+              Go Back to Admin Panel
+            </button>
+          </div>
           <h1>Administrative Dashboard</h1>
           <h2>Events</h2>
-
           <button className="create-button" onClick={() => setShowCreateDialog(true)}>Create new event</button>
 
           { events.length != 0 ? (
@@ -73,7 +83,7 @@ const AdministrativeDashboard: React.FC = () => {
               ))}
             </tbody>
           </table>
-          ) : <h2>There are no events. Create an event first</h2>}
+          ) : <p className="muted">There are no events. Create an event first</p>}
         </div>
       </div>
       {showCreateDialog && (
