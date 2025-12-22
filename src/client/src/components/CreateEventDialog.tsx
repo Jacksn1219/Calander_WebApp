@@ -50,6 +50,30 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
                 value={formData.date}
                 onChange={handleChange}
               />
+              <label>Time:</label>
+              <input
+                type="time"
+                name="time"
+                value={formData.time}
+                onChange={handleChange}
+              />
+              <label>Duration (minutes):</label>
+              <input
+                type="number"
+                name="durationMinutes"
+                value={formData.durationMinutes}
+                onChange={handleChange}
+                min="1"
+                placeholder="Duration in minutes"
+              />
+              <label>Room ID (optional):</label>
+              <input
+                type="number"
+                name="roomId"
+                value={formData.roomId || ''}
+                onChange={handleChange}
+                placeholder="Enter room ID (optional)"
+              />
               <div className="create-event-buttons">
                 <button className="create-event-save" onClick={(e) => handleSubmit(e)}>
                   CREATE

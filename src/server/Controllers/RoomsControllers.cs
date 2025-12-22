@@ -76,6 +76,12 @@ public class RoomsController : ControllerBase
             return NotFound();
         }
     }
+    [HttpGet("available-by-capacity")]
+	public async Task<ActionResult<IEnumerable<RoomsModel>>> GetAvailableRoomsByCapacity([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int capacity)
+	{
+		var rooms = await _roomsService.GetAvailableRoomsByCapacityAsync(start, end, capacity).ConfigureAwait(false);
+		return Ok(rooms);
+	}
     [HttpPost]
     public async Task<ActionResult<RoomsModel>> Create([FromBody] RoomsModel room)
     {
