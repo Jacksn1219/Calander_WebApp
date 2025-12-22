@@ -51,10 +51,32 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         // Get the old event before updating
         var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         
+        if (!updatedEntity.RoomId.HasValue || updatedEntity.RoomId == 0) {
+            updatedEntity.RoomId = null;
+        } else {
+            // Validate that the room exists if a RoomId is provided
+            var roomExists = await _context.Set<RoomsModel>()
+                .AnyAsync(r => r.Id == updatedEntity.RoomId.Value);
+            
+            if (!roomExists)
+            {
+                throw new InvalidOperationException($"Room with ID {updatedEntity.RoomId.Value} does not exist.");
+            }
+        }
+
         var updatedEvent =  await base.Put(id, updatedEntity);
 
-        // Update related reminders with old and new event data
-        await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
+        // Update related reminders
+        try
+        {
+            // Update related reminders with old and new event data
+            await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
+        }
+        catch (Exception ex)
+        {
+            // Log the exception or handle it as needed
+            Console.WriteLine($"Failed to update event reminders: {ex.Message}");
+        }
 
         // Update related roombookings
         if (updatedEntity.RoomId.HasValue)

@@ -11,7 +11,8 @@ namespace Calender_WebApp.Models
     public enum UserRole
     {
         Admin,
-        User
+        User,
+        SuperAdmin
     }
 
     /// <summary>

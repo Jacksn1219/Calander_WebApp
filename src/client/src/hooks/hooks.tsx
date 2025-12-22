@@ -24,6 +24,7 @@ interface CalendarDayCell {
   isToday?: boolean;
   hasEvents?: boolean;
   eventCount?: number;
+  isPast?: boolean;
 }
 
 interface UpcomingEventSummary {
@@ -213,7 +214,17 @@ export type RoomBookingSummary = {
   roomName: string;
   startTime: string; // ISO string
   endTime: string;   // ISO string
+  bookingDate: string; // ISO string (optional)
+  purpose: string; // optional
 };
+
+export type RoomToFindName = {
+  id: number;
+  name: string;
+  location: string;
+  capacity: number;
+};
+
 
 export const useUserRoomBookings = (userId?: number) => {
   const [bookings, setBookings] = useState<RoomBookingSummary[]>([]);
@@ -237,27 +248,43 @@ export const useUserRoomBookings = (userId?: number) => {
       }
 
       const data = await response.json();
-      // Expect an array of bookings with room and time info.
-      // Backend sends BookingDate (DateTime) and StartTime/EndTime (TimeSpan),
-      // so we compose full ISO strings for the frontend Date constructor.
-      const mapped: RoomBookingSummary[] = (data || []).map((b: any) => {
-        const bookingDateRaw: string | undefined = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
-        const startTimeRaw: string | undefined = b.startTime;
-        const endTimeRaw: string | undefined = b.endTime;
 
-        const buildDateTime = (date: string | undefined, time: string | undefined): string => {
-          if (!date || !time) return '';
+      // Fetch room details for each booking if roomId is defined
+      const mapped: RoomBookingSummary[] = await Promise.all((data || []).map(async (b: any) => {
+        const bookingDateRaw: string  = b.bookingDate ?? b.bookingDateUtc ?? b.bookingDateLocal;
+        const startTimeRaw: string  = b.startTime;
+        const endTimeRaw: string  = b.endTime;
+
+        const buildDateTime = (date: string, time: string): string => {
+          if (!date || !time) return '2000-01-01T00:00:00Z'; // Fallback
           const datePart = date.split('T')[0];
           return `${datePart}T${time}`;
         };
 
+        let roomName = "TEST";
+        if (b.roomId !== undefined && b.roomId !== null) {
+          try {
+            const resp = await apiFetch(`/api/rooms/${b.roomId}`);
+            if (resp.ok) {
+              const roomData = await resp.json();
+              if (roomData && (roomData.roomName || roomData.name)) {
+                roomName = roomData.roomName || roomData.name;
+              }
+            }
+          } catch (e) {
+            // ignore room fetch error, fallback to existing roomName
+          }
+        }
+
         return {
           id: b.id ?? b.roomBookingId ?? 0,
-          roomName: b.room?.name ?? b.roomName ?? 'Room',
+          roomName,
           startTime: buildDateTime(bookingDateRaw, startTimeRaw),
           endTime: buildDateTime(bookingDateRaw, endTimeRaw),
+          bookingDate: bookingDateRaw || '',
+          purpose: b.purpose ?? '',
         };
-      });
+      }));
 
       setBookings(mapped);
     } catch (err: any) {
@@ -288,7 +315,7 @@ export const useCreateEmployeeForm = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [confirmPassword, setConfirmPassword] = useState('');
-  const [role, setRoleState] = useState<'Admin' | 'User'>('User');
+  const [role, setRoleState] = useState<string>('User');
   const [success, setSuccess] = useState<string | null>(null);
   const [loading, setLoading] = useState(false);
   
@@ -305,8 +332,8 @@ export const useCreateEmployeeForm = () => {
     }
   }, [canAssignAdminRole]);
 
-  const setRole = useCallback((newRole: 'Admin' | 'User') => {
-    if (!canAssignAdminRole) {
+  const setRole = useCallback((newRole: string) => {
+    if (!canAssignAdminRole && newRole !== 'User') {
       setRoleState('User');
       return;
     }
@@ -471,6 +498,10 @@ export const useSidebar = () => {
     }
   }, [logout, navigate]);
 
+  useEffect(() => {
+    document.body.classList.toggle('sidebar-collapsed', isCollapsed);
+  }, [isCollapsed]);
+
   return {
     isCollapsed,
     toggleSidebar,
@@ -512,7 +543,7 @@ EVENT DIALOG & CALENDAR HOOKS
 /**
  Custom hook for event dialog state and actions
  */
-export const useEventDialog = (events: any[]) => {
+export const useEventDialog = (events: any[], onStatusChange?: () => void,onClose?: () => void) => {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
   const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
   const { user } = useAuth();
@@ -524,8 +555,8 @@ export const useEventDialog = (events: any[]) => {
       return;
     }
     const me = (selectedEvent.participants || []).find((p: any) => p.userId === user.userId);
-    // Support both string and possible numeric enum values (0 Pending,1 Accepted,2 Declined)
-    if (me && (me.status === 'Accepted' || me.status === 'accepted' || me.status === 1)) {
+    // Status is already normalized to string 'Accepted', 'Pending', or 'Declined' from the fetch
+    if (me && me.status === 'Accepted') {
       setUserParticipationStatus('accepted');
     } else {
       setUserParticipationStatus('not-registered');
@@ -585,12 +616,15 @@ export const useEventDialog = (events: any[]) => {
       }
 
       setUserParticipationStatus('accepted');
+      onStatusChange?.();
       alert('You have successfully registered for this event.');
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       alert('Unable to register for this event. Please try again.');
+      if (onClose) onClose();
     }
-  }, [events, user]);
+  }, [events, user, onClose]);
 
   const handleUnattend = useCallback(async (eventId: number) => {
     if (!user?.userId) return;
@@ -614,12 +648,15 @@ export const useEventDialog = (events: any[]) => {
       }
 
       setUserParticipationStatus('not-registered');
+      onStatusChange?.();
       alert('Your registration has been cancelled.');
+      if (onClose) onClose();
     } catch (e) {
       console.error(e);
       alert('Unable to cancel your registration. Please try again.');
+      if (onClose) onClose();
     }
-  }, [events, user]);
+  }, [events, user, onClose]);
 
   return {
     selectedEvent,
@@ -646,6 +683,7 @@ export const useCalendar = () => {
   const { loading, error, events: roleScopedEvents, getEventsForDate, reload } = useCalendarEvents(user);
 
   const [selectedDate, setSelectedDate] = useState<Date | null>(null);
+  const [selectedDateSource, setSelectedDateSource] = useState<'calendar' | 'upcoming'>('calendar');
   const [currentMonth, setCurrentMonth] = useState(new Date());
   const [listMonthOffset, setListMonthOffset] = useState(0);
   const [eventPage, setEventPage] = useState(0);
@@ -653,6 +691,17 @@ export const useCalendar = () => {
 
   const calendarGridRef = useRef<HTMLDivElement>(null);
   const upcomingHeaderRef = useRef<HTMLDivElement>(null);
+
+  const isAcceptedByUser = useCallback((event: any): boolean => {
+    const userId = user?.userId;
+    if (!userId) return false;
+    const participants = event?.participants ?? [];
+    return participants.some((p: any) => {
+      if (p.userId !== userId) return false;
+      const status = typeof p.status === 'string' ? p.status.toLowerCase() : p.status;
+      return status === 'accepted' || status === 1;
+    });
+  }, [user?.userId]);
 
   const timeFormatter = useMemo(() => new Intl.DateTimeFormat(undefined, {
     hour: '2-digit',
@@ -737,12 +786,13 @@ export const useCalendar = () => {
 
     for (let day = 1; day <= totalDays; day++) {
       const date = new Date(year, month, day);
-      const dayEvents = getEventsForDate(date);
+      const dayEvents = getEventsForDate(date).filter(isAcceptedByUser);
       cells.push({
         key: `day-${day}`,
         isEmpty: false,
         dayNumber: day,
         date,
+        isPast: date.getTime() < today.getTime(),
         isToday: date.getTime() === today.getTime(),
         hasEvents: dayEvents.length > 0,
         eventCount: dayEvents.length
@@ -750,7 +800,7 @@ export const useCalendar = () => {
     }
 
     return cells;
-  }, [currentMonth, getEventsForDate, today]);
+  }, [currentMonth, getEventsForDate, isAcceptedByUser, today]);
 
   const monthlyEvents = useMemo(() => {
     const monthStart = new Date(listMonth.getFullYear(), listMonth.getMonth(), 1);
@@ -760,10 +810,11 @@ export const useCalendar = () => {
         const normalizedEventDate = new Date(eventDate.getFullYear(), eventDate.getMonth(), eventDate.getDate());
         const matchesMonth = eventDate.getMonth() === monthStart.getMonth() && eventDate.getFullYear() === monthStart.getFullYear();
         const isFuture = normalizedEventDate >= today;
-        return matchesMonth && isFuture;
+        const notAlreadyAccepted = !isAcceptedByUser(event);
+        return matchesMonth && isFuture && notAlreadyAccepted;
       })
       .sort((a, b) => new Date(a.eventDate).getTime() - new Date(b.eventDate).getTime());
-  }, [roleScopedEvents, listMonth, today]);
+  }, [roleScopedEvents, listMonth, isAcceptedByUser, today]);
 
   useEffect(() => {
     const totalPages = Math.ceil(monthlyEvents.length / maxUpcomingEvents);
@@ -792,7 +843,7 @@ export const useCalendar = () => {
         acceptedCount,
       };
     });
-  }, [pagedEvents, timeFormatter]);
+  }, [pagedEvents, timeFormatter, isAcceptedByUser]);
 
   const listMonthLabel = useMemo(() => (
     `${MONTH_NAMES[listMonth.getMonth()]} ${listMonth.getFullYear()}`
@@ -827,6 +878,7 @@ export const useCalendar = () => {
 
   const handleSelectDate = useCallback((date: Date) => {
     setSelectedDate(date);
+    setSelectedDateSource('calendar');
   }, []);
 
   const handleCloseDialog = useCallback(() => {
@@ -853,12 +905,17 @@ export const useCalendar = () => {
     const monthStart = new Date(eventDate.getFullYear(), eventDate.getMonth(), 1);
     setCurrentMonth(monthStart);
     setSelectedDate(new Date(eventDate));
+    setSelectedDateSource('upcoming');
   }, []);
 
   const selectedDateEvents = useMemo(() => {
     if (!selectedDate) return [];
-    return getEventsForDate(selectedDate);
-  }, [selectedDate, getEventsForDate]);
+    const eventsForDay = getEventsForDate(selectedDate);
+    if (selectedDateSource === 'calendar') {
+      return eventsForDay.filter(isAcceptedByUser);
+    }
+    return eventsForDay;
+  }, [selectedDate, selectedDateSource, getEventsForDate, isAcceptedByUser]);
 
   return {
     loading,
@@ -1640,7 +1697,9 @@ export const useHomeDashboard = () => {
     error: roomBookingsError,
   } = useUserRoomBookings(user?.userId);
 
-  const { upcomingEvents, totalEvents, acceptedEventsForUser } = useMemo(() => {
+  const [roomsById, setRoomsById] = useState<Record<number, RoomDto>>({});
+
+  const { upcomingEvents, totalEvents, acceptedEventsForUser, weekEventsAttending } = useMemo(() => {
     const now = new Date();
     const sorted = [...events].sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
     let acceptedForUser = 0;
@@ -1654,14 +1713,48 @@ export const useHomeDashboard = () => {
       }
     });
 
-    const upcoming = sorted.filter(ev => ev.eventDate >= now);
+    // Only show events attended by the user for the week calendar
+    const weekEventsAttending = sorted.filter(ev => {
+      if (ev.eventDate < now) return false;
+      if (!user?.userId) return false;
+      const me = ev.participants.find(p => p.userId === user.userId);
+      return me && me.status === 'Accepted';
+    });
+
+    // Filter to show only upcoming events that the user hasn't attended yet
+    const upcoming = sorted.filter(ev => {
+      if (ev.eventDate < now) return false;
+      if (!user?.userId) return true;
+      const me = ev.participants.find(p => p.userId === user.userId);
+      return !me || me.status !== 'Accepted';
+    });
 
     return {
       upcomingEvents: upcoming,
       totalEvents: events.length,
       acceptedEventsForUser: acceptedForUser,
+      weekEventsAttending,
     };
   }, [events, user?.userId]);
+
+  // Fetch room details for events with roomId
+  useEffect(() => {
+    const roomIds = Array.from(new Set(upcomingEvents.map(ev => ev.roomId).filter((id): id is number => id != null)));
+    
+    roomIds.forEach(async (roomId) => {
+      if (!roomsById[roomId]) {
+        try {
+          const response = await apiFetch(`/api/rooms/${roomId}`);
+          if (response.ok) {
+            const room: RoomDto = await response.json();
+            setRoomsById(prev => ({ ...prev, [roomId]: room }));
+          }
+        } catch (error) {
+          console.error(`Failed to fetch room ${roomId}:`, error);
+        }
+      }
+    });
+  }, [upcomingEvents, roomsById]);
 
   const attendanceRate = totalEvents > 0
     ? Math.round((acceptedEventsForUser / totalEvents) * 100)
@@ -1725,6 +1818,24 @@ export const useHomeDashboard = () => {
     setSelectedDateForDialog(null);
   };
 
+    const handleAttend = useCallback(async (eventId: number) => {
+      if (!user?.userId || !user?.name) return;
+      try {
+        const res = await apiFetch('/api/event-participation', {
+          method: 'POST',
+          body: JSON.stringify({ eventId, userId: user.userId, status: 1 }),
+        });
+        if (!res.ok) throw new Error('Failed to register for event');
+
+        // Reload events to refresh the list
+        await reload();
+        alert('You have successfully registered for this event.');
+      } catch (e) {
+        console.error(e);
+        alert('Unable to register for this event. Please try again.');
+      }
+    }, [user, reload]);
+
   return {
     user,
     loading,
@@ -1746,6 +1857,9 @@ export const useHomeDashboard = () => {
     roomBookings,
     roomBookingsLoading,
     roomBookingsError,
+    handleAttend,
+    roomsById,
+    weekEventsAttending,
   };
 };
 
@@ -1783,6 +1897,462 @@ export const formatTimeOnly = (dateString: string) => {
 // end functions home
 // _________________________________________
 
+// _________________________________________
+// functions rooms
+// _________________________________________
+
+export interface RoomDto {
+  id: number;
+  roomName: string;
+  capacity?: number | null;
+  location: string;
+}
+
+export interface RoomFormState {
+  id?: number | null;
+  roomName: string;
+  location: string;
+  capacity: string;
+}
+
+export const useRoomsAdmin = () => {
+  const [rooms, setRooms] = useState<RoomDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState<Omit<RoomFormState, 'id'>>({
+    roomName: '',
+    location: '',
+    capacity: ''
+  });
+
+  const [editForm, setEditForm] = useState<RoomFormState>({
+    id: null,
+    roomName: '',
+    location: '',
+    capacity: ''
+  });
+
+
+  const loadRooms = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/api/rooms');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to load rooms');
+      }
+      const data = await res.json();
+      const mapped: RoomDto[] = (data || []).map((r: any) => ({
+        id: r.room_id ?? r.id ?? r.roomId ?? r.RoomId ?? 0,
+        roomName: r.room_name ?? r.roomName ?? r.RoomName ?? 'Room',
+        capacity: r.capacity ?? r.Capacity ?? null,
+        location: r.location ?? r.Location ?? '',
+      }));
+      setRooms(mapped);
+    } catch (e: any) {
+      console.error('Error loading rooms', e);
+      setError(e.message ?? 'Failed to load rooms');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadRooms();
+  }, [loadRooms]);
+
+  const isEditing = editForm.id != null;
+
+  const resetCreateForm = () => {
+    setCreateForm({ roomName: '', location: '', capacity: '' });
+  };
+
+  const resetEditForm = () => {
+    setEditForm({ id: null, roomName: '', location: '', capacity: '' });
+  };
+
+  const startEdit = (room: RoomDto) => {
+    setEditForm({
+      id: room.id,
+      roomName: room.roomName,
+      location: (room as any).location ?? (room as any).Location ?? '',
+      capacity: room.capacity != null ? String(room.capacity) : '',
+    });
+  };
+
+  const updateCreateField = (field: keyof Omit<RoomFormState, 'id'>, value: string) => {
+    setCreateForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateEditField = (field: keyof RoomFormState, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveRoom = async (
+    mode: 'create' | 'edit',
+    e?: React.FormEvent
+  ): Promise<boolean> => {
+    if (e) e.preventDefault();
+
+    const form = mode === 'create'
+      ? { ...createForm, id: null }
+      : editForm;
+
+    const fail = (reason: string) => {
+      const action = mode === 'create' ? 'create' : 'edit';
+      setError(`Couldn't ${action} because ${reason}`);
+      return false;
+    };
+
+    if (!form.roomName.trim()) {
+      return fail('room name is required');
+    }
+
+    if (!form.location.trim()) {
+      return fail('room location is required');
+    }
+
+    if (!form.capacity.trim()) {
+      return fail('room capacity is required');
+    }
+
+    const capacityNumber = form.capacity.trim() ? Number(form.capacity) : null;
+
+    if (capacityNumber != null && (Number.isNaN(capacityNumber) || capacityNumber < 1)) {
+      return fail('room capacity must be at least 1');
+    }
+
+    const payload: any = {
+      roomName: form.roomName.trim(),
+      location: form.location.trim(),
+      capacity: capacityNumber,
+    };
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let res: Response;
+      if (mode === 'edit' && form.id != null) {
+        res = await apiFetch(`/api/rooms/${form.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: form.id, ...payload }),
+        });
+      } else {
+        res = await apiFetch('/api/rooms', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to save room');
+      }
+
+      await loadRooms();
+      if (mode === 'create') {
+        resetCreateForm();
+      } else {
+        resetEditForm();
+      }
+      return true;
+    } catch (e: any) {
+      console.error('Error saving room', e);
+      const reason = e?.message || 'failed to save room';
+      return fail(reason);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteRoom = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this room?')) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/rooms/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to delete room');
+      }
+      await loadRooms();
+    } catch (e: any) {
+      console.error('Error deleting room', e);
+      setError(e.message ?? 'Failed to delete room');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    rooms,
+    loading,
+    error,
+    setError,
+    createForm,
+    editForm,
+    isEditing,
+    loadRooms,
+    resetCreateForm,
+    resetEditForm,
+    startEdit,
+    updateCreateField,
+    updateEditField,
+    saveRoom,
+    deleteRoom,
+  };
+};
+
+// _________________________________________
+// end functions rooms
+
+// Employee management types
+interface EmployeeDto {
+  id: number;
+  name: string;
+  email: string;
+  role: string;
+}
+
+interface EmployeeFormState {
+  id: number | null;
+  name: string;
+  email: string;
+  role: string;
+  password?: string;
+  confirmPassword?: string;
+}
+
+/**
+ * Hook for managing employees in the admin panel
+ */
+export const useEmployeesAdmin = () => {
+  const { user } = useAuth();
+  const [employees, setEmployees] = useState<EmployeeDto[]>([]);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const [createForm, setCreateForm] = useState<Omit<EmployeeFormState, 'id'>>({
+    name: '',
+    email: '',
+    role: 'User',
+    password: '',
+    confirmPassword: '',
+  });
+
+  const [editForm, setEditForm] = useState<EmployeeFormState>({
+    id: null,
+    name: '',
+    email: '',
+    role: 'User',
+    password: '',
+  });
+
+  const canAssignAdminRole = user?.role === 'SuperAdmin';
+
+  const loadEmployees = useCallback(async () => {
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch('/api/employees');
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to load employees');
+      }
+      const data = await res.json();
+      const mapped: EmployeeDto[] = (data || []).map((emp: any) => ({
+        id: emp.user_id ?? emp.Id ?? emp.id ?? 0,
+        name: emp.name ?? emp.Name ?? 'Unknown',
+        email: emp.email ?? emp.Email ?? '',
+        role: emp.role ?? emp.Role ?? 'User',
+      }));
+      setEmployees(mapped);
+    } catch (e: any) {
+      console.error('Error loading employees', e);
+      setError(e.message ?? 'Failed to load employees');
+    } finally {
+      setLoading(false);
+    }
+  }, []);
+
+  useEffect(() => {
+    loadEmployees();
+  }, [loadEmployees]);
+
+  const isEditing = editForm.id != null;
+
+  const resetCreateForm = () => {
+    setCreateForm({
+      name: '',
+      email: '',
+      role: 'User',
+      password: '',
+      confirmPassword: '',
+    });
+  };
+
+  const resetEditForm = () => {
+    setEditForm({
+      id: null,
+      name: '',
+      email: '',
+      role: 'User',
+      password: '',
+    });
+  };
+
+  const startEdit = (employee: EmployeeDto) => {
+    setEditForm({
+      id: employee.id,
+      name: employee.name,
+      email: employee.email,
+      role: employee.role,
+      password: '',
+    });
+  };
+
+  const updateCreateField = (
+    field: keyof Omit<EmployeeFormState, 'id'>,
+    value: string
+  ) => {
+    setCreateForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const updateEditField = (field: keyof EmployeeFormState, value: string) => {
+    setEditForm(prev => ({ ...prev, [field]: value }));
+  };
+
+  const saveEmployee = async (mode: 'create' | 'edit', e?: React.FormEvent): Promise<boolean> => {
+    if (e) e.preventDefault();
+
+    const form = mode === 'create' ? { ...createForm, id: null } : editForm;
+
+    const fail = (reason: string) => {
+      const action = mode === 'create' ? 'create' : 'edit';
+      setError(`Couldn't ${action} because ${reason}`);
+      return false;
+    };
+
+    if (!form.name.trim()) {
+      return fail('full name is required');
+    }
+
+    if (!form.email.trim()) {
+      return fail('email is required');
+    }
+    // Validate email format
+    const emailRegex = /^[^@\s]+@[^@\s]+\.[^@\s]+$/;
+    if (!emailRegex.test(form.email.trim())) {
+      return fail('the email address is invalid');
+    }
+    if (mode === 'create') {
+      if (!form.password || form.password.length < 8) {
+        return fail('password must be at least 8 characters');
+      }
+
+      if (form.password !== form.confirmPassword) {
+        return fail('passwords do not match');
+      }
+    }
+
+    const payload: any = {
+      name: form.name.trim(),
+      email: form.email.trim(),
+      role: form.role || 'User',
+    };
+
+    if (mode === 'create') {
+      payload.password = form.password;
+    } else if (mode === 'edit' && form.password && form.password.trim()) {
+      payload.password = form.password.trim();
+    }
+
+    try {
+      setLoading(true);
+      setError(null);
+
+      let res: Response;
+      if (mode === 'edit' && form.id != null) {
+        res = await apiFetch(`/api/employees/${form.id}`, {
+          method: 'PUT',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ id: form.id, ...payload }),
+        });
+      } else {
+        res = await apiFetch('/api/employees', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload),
+        });
+      }
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to save employee');
+      }
+
+      await loadEmployees();
+      if (mode === 'create') {
+        resetCreateForm();
+      } else {
+        resetEditForm();
+      }
+      return true;
+    } catch (e: any) {
+      console.error('Error saving employee', e);
+      const reason = e?.message || 'failed to save employee';
+      return fail(reason);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const deleteEmployee = async (id: number) => {
+    if (!window.confirm('Are you sure you want to delete this employee?')) return;
+    setLoading(true);
+    setError(null);
+    try {
+      const res = await apiFetch(`/api/employees/${id}`, { method: 'DELETE' });
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(text || 'Failed to delete employee');
+      }
+      await loadEmployees();
+    } catch (e: any) {
+      console.error('Error deleting employee', e);
+      setError(e.message ?? 'Failed to delete employee');
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    employees,
+    loading,
+    error,
+    setError,
+    createForm,
+    editForm,
+    isEditing,
+    canAssignAdminRole,
+    loadEmployees,
+    resetCreateForm,
+    resetEditForm,
+    startEdit,
+    updateCreateField,
+    updateEditField,
+    saveEmployee,
+    deleteEmployee,
+  };
+};
+
+// _________________________________________
+// end functions employees
+// _________________________________________
+// _________________________________________
 // _________________________________________
 // start functions roombooking
 // _________________________________________

@@ -2,12 +2,14 @@ using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
 
 
 namespace Calender_WebApp.Controllers
 {
     [ApiController]
     [Route("api/events")]
+    [Authorize]
     public class EventsController : ControllerBase
     {
         private readonly IEventsService _eventService;
@@ -59,6 +61,9 @@ namespace Calender_WebApp.Controllers
 
         // POST /api/events
         [HttpPost]
+        [Authorize(Roles = "Admin , SuperAdmin")]
+
+
         public async Task<ActionResult<EventsModel>> CreateEvent([FromBody] EventsModel newEvent)
         {
             if (newEvent == null)
@@ -88,6 +93,9 @@ namespace Calender_WebApp.Controllers
 
         // PUT /api/events/{id}
         [HttpPut("{id}")]
+        [Authorize(Roles = "Admin , SuperAdmin")]
+
+
         public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventsModel updatedEvent)
         {
             if (updatedEvent == null)
@@ -117,6 +125,7 @@ namespace Calender_WebApp.Controllers
 
         // DELETE /api/events/{id}
         [HttpDelete("{id}")]
+        [Authorize(Roles = "Admin , SuperAdmin")]
         public async Task<IActionResult> DeleteEvent(int id)
         {
            try
