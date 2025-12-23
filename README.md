@@ -113,8 +113,20 @@ docker compose logs -f backend
 docker compose logs -f frontend
 
 # View database through copy
-# Copy the database from container to your local machine
+# Copy the database from container to your local machine (including WAL and SHM files)
+
+# For Mac:
+docker cp calendar-backend:/app/data/app.db ./app.db && \
+docker cp calendar-backend:/app/data/app.db-wal ./app.db-wal && \
+docker cp calendar-backend:/app/data/app.db-shm ./app.db-shm
+
+
+#For Windows:
 docker cp calendar-backend:/app/data/app.db ./app.db
+docker cp calendar-backend:/app/data/app.db-wal ./app.db-wal
+docker cp calendar-backend:/app/data/app.db-shm ./app.db-shm
+
+# Now you can view it with: sqlite3 ./app.db
 ```
 
 ### Troubleshooting
