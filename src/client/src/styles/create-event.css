@@ -1,3 +1,4 @@
+/* Scoped to standalone create event page */
 .create-event-layout {
   display: flex;
   min-height: 100vh;
@@ -5,7 +6,7 @@
   font-family: "Inter", system-ui, sans-serif;
 }
 
-.create-event-dashboard {
+.create-event-layout .create-event-dashboard {
   flex: 1;
   padding: 1rem;
   display: flex;
@@ -13,7 +14,7 @@
   align-items: center;
 }
 
-.create-event-section {
+.create-event-layout .create-event-section {
   background: #ffffff;
   border-radius: 12px;
   box-shadow: 0 4px 12px rgba(0, 0, 0, 0.05);
@@ -22,16 +23,17 @@
   margin: 1rem auto;
 }
 
-.create-event-section h1 {
+.create-event-layout .create-event-section h1 {
   font-size: 1.8rem;
   font-weight: 600;
   margin-bottom: 1.5rem;
-  color: #2d3748;
+  color: #35482d;
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 0.5rem;
   text-align: center;
 }
 
+/* Shared form styles (used by EditEventDialog) */
 .create-event-form {
   display: flex;
   flex-direction: column;
@@ -58,6 +60,10 @@
   background-color: #edf2f7;
   cursor: not-allowed;
   color: #718096;
+  padding: 0.7rem;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  font-size: 1rem;
 }
 
 .create-event-form input:focus,
@@ -66,14 +72,15 @@
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
 }
 
-.create-event-buttons {
+/* Scoped to CreateEventDialog (uses booking-card) */
+.dialog-content .booking-card .create-event-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 
-.create-event-buttons button {
+.dialog-content .booking-card .create-event-buttons button {
   align-self: flex-end;
   border: 1px solid #a3e4b1;
   color: white;
@@ -86,57 +93,59 @@
   border: none;
 }
 
-.create-event-save {
+.dialog-content .booking-card .create-event-save {
   background: #1f6feb;
 }
 
-.create-event-cancel {
+.dialog-content .booking-card .create-event-cancel {
   background: #e21818;
 }
 
-.create-event-save:hover {
+.dialog-content .booking-card .create-event-save:hover {
   background: #1557c0;
 }
 
-.create-event-cancel:hover {
+.dialog-content .booking-card .create-event-cancel:hover {
   background: #b10000;
 }
 
+/* Responsive styles for standalone page */
 @media (max-width: 1024px) {
-  .create-event-section {
+  .create-event-layout .create-event-section {
     max-width: 500px;
     padding: 1.5rem;
   }
 }
 
 @media (max-width: 768px) {
-  html, body {
-    overflow:hidden;
+  .create-event-layout html,
+  .create-event-layout body {
+    overflow: hidden;
   }
 
-  .create-event-dashboard {
+  .create-event-layout .create-event-dashboard {
     padding: 0rem;
-    flex:none;
-    display:initial;
-    justify-content:unset;
+    flex: none;
+    display: initial;
+    justify-content: unset;
     width: 120%;
   }
 
-  .create-event-section {
+  .create-event-layout .create-event-section {
     padding: 1.25rem;
     margin: 1rem;
   }
 
-  .create-event-buttons {
+  .dialog-content .booking-card .create-event-buttons {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .create-event-buttons button {
+  .dialog-content .booking-card .create-event-buttons button {
     width: 100%;
   }
 
-  .create-event-section h1 {
+  .create-event-layout .create-event-section h1 {
     font-size: 1.5rem;
   }
 
@@ -147,12 +156,12 @@
 }
 
 @media (min-width: 1440px) {
-  .create-event-section {
+  .create-event-layout .create-event-section {
     max-width: 800px;
     padding: 2.5rem 3rem;
   }
 
-  .create-event-section h1 {
+  .create-event-layout .create-event-section h1 {
     font-size: 2rem;
   }
 
