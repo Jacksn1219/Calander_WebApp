@@ -1,0 +1,53 @@
+version: "3.9"
+
+services:
+  backend:
+    build:
+      context: ./src/server
+    container_name: calendar-backend
+    ports:
+      - "${BACKEND_PORT:-3001}:3001"
+    environment:
+      - ASPNETCORE_ENVIRONMENT=Development
+      - ASPNETCORE_URLS=http://0.0.0.0:3001
+      - DOTNET_USE_POLLING_FILE_WATCHER=1
+      # Use env override for SQLite location inside container
+      - ConnectionStrings__Default=${DB_CONNECTION_STRING:-Data Source=/app/data/app.db}
+      # JWT config
+      - Jwt__Key=${JWT_SECRET_KEY:-change_me}
+      - Jwt__Issuer=CalendarWebApp
+      - Jwt__Audience=CalendarUsers
+      # CORS origins
+      - FrontendUrl=${FRONTEND_URL:-http://localhost:3000}
+      - FrontendUrl2=${FRONTEND_URL2:-http://frontend:3000}
+    volumes:
+      - ./src/server:/app
+      - backend-db:/app/data
+    networks:
+      - calendar-network
+
+  frontend:
+    build:
+      context: ./src/client
+    container_name: calendar-frontend
+    ports:
+      - "${FRONTEND_PORT:-3000}:3000"
+    environment:
+      - REACT_APP_API_URL=${REACT_APP_API_URL:-http://localhost:3001}
+      - CHOKIDAR_USEPOLLING=1
+      - WATCHPACK_POLLING=true
+      - HOST=0.0.0.0
+      - PORT=3000
+    volumes:
+      - ./src/client:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    networks:
+      - calendar-network
+
+volumes:
+  backend-db:
+
+networks:
+  calendar-network:

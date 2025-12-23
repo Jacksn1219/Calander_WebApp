@@ -69,11 +69,13 @@ class Program
                         options.Cookie.HttpOnly = true;                
                         options.Cookie.IsEssential = true;             
                     });
+        var frontendUrl1 = builder.Configuration["FrontendUrl"] ?? "http://localhost:3000";
+        var frontendUrl2 = builder.Configuration["FrontendUrl2"] ?? "http://frontend:3000";
         builder.Services.AddCors(options =>
             {
                 options.AddPolicy("AllowReactApp", corsBuilder =>
                 {
-                    corsBuilder.WithOrigins("http://localhost:3000")
+                    corsBuilder.WithOrigins(frontendUrl1, frontendUrl2)
                             .AllowAnyHeader()
                             .AllowAnyMethod()
                             .AllowCredentials();
@@ -111,7 +113,7 @@ class Program
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
             db.Database.Migrate();
         }
-        app.Urls.Add("http://localhost:3001");
+        app.Urls.Add("http://0.0.0.0:3001");
         
         // Redirect root URL to Swagger
         app.MapGet("/", () => Results.Redirect("/swagger")).ExcludeFromDescription();
@@ -127,8 +129,10 @@ class Program
         app.UseSwagger();
         app.UseSwaggerUI();
 
-
-        app.UseHttpsRedirection();
+        if (!app.Environment.IsDevelopment())
+        {
+            app.UseHttpsRedirection();
+        }
         app.UseStaticFiles();
         app.UseRouting();
         app.UseCors("AllowReactApp");
