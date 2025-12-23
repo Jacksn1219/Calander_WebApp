@@ -68,14 +68,15 @@ namespace Calender_WebApp.Controllers
             var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
             var email = principal.FindFirst(ClaimTypes.Email)?.Value;
             var role = principal.FindFirst(ClaimTypes.Role)?.Value;
-
+            var name = principal.FindFirst(ClaimTypes.Name)?.Value;
             return Ok(new
             {
                 user = new
                 {
                     userId,
                     email,
-                    role
+                    role,
+                    name
                 }
             });
         }

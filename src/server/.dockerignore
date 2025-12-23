@@ -1,0 +1,8 @@
+bin/
+obj/
+.vs/
+.vscode/
+**/*.db*
+**/*.log
+node_modules/
+Dockerfile*
