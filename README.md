@@ -70,7 +70,7 @@ cp .env.example .env
 
 2. Start both services (frontend + backend):
 ```bash
-docker compose up --build
+docker compose --profile public up --build
 ```
 
 3. Access the apps:
