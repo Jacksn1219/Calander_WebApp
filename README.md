@@ -111,6 +111,10 @@ docker compose down -v
 # View logs
 docker compose logs -f backend
 docker compose logs -f frontend
+
+# View database through copy
+# Copy the database from container to your local machine
+docker cp calendar-backend:/app/data/app.db ./app.db
 ```
 
 ### Troubleshooting
