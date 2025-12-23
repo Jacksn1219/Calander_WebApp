@@ -1176,7 +1176,19 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     });
   }, [currentEvent]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const processedValue = (name === 'durationMinutes' || name === 'roomId') 
       ? (value === '' ? undefined : Number(value))
@@ -1252,7 +1264,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     onClose();
   };
 
-  return { formData, handleChange, handleSave, handleCancel };
+  return { formData, handleChange, handleSave, handleCancel, generateTimeOptions };
 };
 
 export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) => {
@@ -1268,7 +1280,19 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     createdBy: user?.userId,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let processedValue: any = value;
     
@@ -1361,7 +1385,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     onClose();
   };
 
-  return { formData, handleChange, handleSubmit, handleCancel };
+  return { formData, handleChange, handleSubmit, handleCancel, generateTimeOptions };
 };
 
 export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {

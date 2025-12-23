@@ -9,7 +9,9 @@ interface CreateEventDialogProps {
 }
 
 const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEvents }) => {
-  const { formData, handleChange, handleSubmit, handleCancel } = useCreateEvent(onClose, reloadEvents);
+  const { formData, handleChange, handleSubmit, handleCancel, generateTimeOptions } = useCreateEvent(onClose, reloadEvents);
+  
+  const timeOptions = generateTimeOptions();
 
   const handleBackdropClick = (e: React.MouseEvent) => {
     if (e.target === e.currentTarget) {
@@ -51,12 +53,16 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
                 onChange={handleChange}
               />
               <label>Time:</label>
-              <input
-                type="time"
+              <select
                 name="time"
                 value={formData.time}
                 onChange={handleChange}
-              />
+              >
+                <option value="">Select time</option>
+                {timeOptions.map((t) => (
+                  <option key={t} value={t}>{t}</option>
+                ))}
+              </select>
               <label>Duration (minutes):</label>
               <input
                 type="number"
