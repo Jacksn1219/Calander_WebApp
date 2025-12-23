@@ -27,17 +27,17 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
           <button className="btn-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="dialog-body">
-          <div className="event-details">
-            <div className="create-event-form">
-              <label>Title:</label>
-              <input
-                type="text"
-                name="title"
-                value={formData.title}
-                onChange={handleChange}
-                placeholder="Enter event title"
-              />
-              <label>Description:</label>
+          <form className="booking-card" onSubmit={handleSubmit}>
+            <label>Title</label>
+            <input
+              type="text"
+              name="title"
+              value={formData.title}
+              onChange={handleChange}
+              placeholder="Enter event title"
+            />
+            
+            <label>Description:</label>
               <textarea
                 name="description"
                 rows={4}
@@ -45,51 +45,56 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
                 onChange={handleChange}
                 placeholder="Enter event description"
               />
-              <label>Date:</label>
-              <input
-                type="date"
-                name="date"
-                value={formData.date}
-                onChange={handleChange}
-              />
-              <label>Time:</label>
-              <select
-                name="time"
-                value={formData.time}
-                onChange={handleChange}
-              >
-                <option value="">Select time</option>
-                {timeOptions.map((t) => (
-                  <option key={t} value={t}>{t}</option>
-                ))}
-              </select>
-              <label>Duration (minutes):</label>
-              <input
-                type="number"
-                name="durationMinutes"
-                value={formData.durationMinutes}
-                onChange={handleChange}
-                min="1"
-                placeholder="Duration in minutes"
-              />
-              <label>Room ID (optional):</label>
-              <input
-                type="number"
-                name="roomId"
-                value={formData.roomId || ''}
-                onChange={handleChange}
-                placeholder="Enter room ID (optional)"
-              />
-              <div className="create-event-buttons">
-                <button className="create-event-save" onClick={(e) => handleSubmit(e)}>
-                  CREATE
-                </button>
-                <button className="create-event-cancel" onClick={handleCancel}>
-                  CANCEL
-                </button>
-              </div>
+            
+            <label>Date</label>
+            <input
+              type="date"
+              name="date"
+              value={formData.date}
+              onChange={handleChange}
+            />
+            
+            <label>Time</label>
+            <select
+              name="time"
+              value={formData.time}
+              onChange={handleChange}
+            >
+              <option value="">Select time</option>
+              {timeOptions.map((t) => (
+                <option key={t} value={t}>{t}</option>
+              ))}
+            </select>
+            
+            <label>Duration (minutes)</label>
+            <input
+              type="number"
+              name="durationMinutes"
+              value={formData.durationMinutes}
+              onChange={handleChange}
+              min="1"
+              placeholder="Duration in minutes"
+            />
+            
+            <label>Room ID (optional)</label>
+            <input
+              type="number"
+              name="roomId"
+              value={formData.roomId || ''}
+              onChange={handleChange}
+              placeholder="Enter room ID (optional)"
+            />
+            
+            <div className="create-event-buttons">
+              <button type="submit" className="create-event-save">
+                CREATE
+              </button>
+              <button type="button" className="create-event-cancel" onClick={handleCancel}>
+                CANCEL
+              </button>
             </div>
-          </div>
+          </form>
+          
         </div>
       </div>
     </div>
