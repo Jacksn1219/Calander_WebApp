@@ -1579,6 +1579,25 @@ export interface ReminderPreferences {
   reminderAdvanceMinutes: string; // TimeSpan as string from API
 }
 
+export const getRoomById = async (roomId: number): Promise<RoomDto | null> => {
+  try {
+    const response = await apiFetch(`/api/rooms/${roomId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch room');
+    }
+    const data = await response.json();
+    return {
+      id: data.room_id ?? data.id ?? data.roomId ?? data.RoomId ?? 0,
+      roomName: data.room_name ?? data.roomName ?? data.RoomName ?? 'Room',
+      capacity: data.capacity ?? data.Capacity ?? null,
+      location: data.location ?? data.Location ?? '',
+    };
+  } catch (err) {
+    console.error('Error fetching room:', err);
+    return null;
+  }
+};
+
 export const useUserSettings = () => {
   const [preferences, setPreferences] = useState<ReminderPreferences | null>(null);
   const [loading, setLoading] = useState(false);
