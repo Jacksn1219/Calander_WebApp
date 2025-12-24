@@ -228,6 +228,37 @@
   display: block;
 }
 
+.day-plus-button {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 20px;
+  height: 20px;
+  border-radius: 50%;
+  border: 1px solid #01a211;
+  background: #01a211;
+  color: white;
+  font-size: 16px;
+  line-height: 1;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0;
+  transition: opacity 0.2s, transform 0.2s;
+  padding: 0;
+}
+
+.calendar-day:hover .day-plus-button {
+  opacity: 1;
+}
+
+.day-plus-button:hover {
+  background: #006e0b;
+  color: white;
+  transform: scale(1.1);
+}
+
 .upcoming-panel {
   width: 320px;
   border-left: 1px solid #e6e9f2;

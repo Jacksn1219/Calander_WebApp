@@ -1,10 +1,15 @@
-import React from 'react';
+import React, { useState } from 'react';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
+import CreateEventDialog from './CreateEventDialog';
 import { useCalendar } from '../hooks/hooks';
+import { useAuth } from '../states/AuthContext';
 import '../styles/calendar.css';
 
 const Calendar: React.FC = () => {
+  const { user } = useAuth();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createDialogDate, setCreateDialogDate] = useState<Date | undefined>(undefined);
   const {
     loading,
     error,
@@ -30,6 +35,18 @@ const Calendar: React.FC = () => {
     calendarGridRef,
     upcomingHeaderRef,
   } = useCalendar();
+
+
+  const handleCreateEvent = (date?: Date) => {
+    closeDialog();
+    setCreateDialogDate(date);
+    setShowCreateDialog(true);
+  };
+
+  const closeCreateDialog = () => {
+    setShowCreateDialog(false);
+    setCreateDialogDate(undefined);
+  };
 
   return (
     <div className="app-layout">
@@ -88,6 +105,13 @@ const Calendar: React.FC = () => {
                         }
                       : undefined;
 
+                    const handlePlusClick = (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      if (day.date) {
+                        handleCreateEvent(day.date);
+                      }
+                    };
+
                     return (
                       <div
                         key={day.key}
@@ -101,6 +125,16 @@ const Calendar: React.FC = () => {
                               <div className="event-indicator">
                                 <span className="event-count">{day.eventCount}</span>
                               </div>
+                            )}
+                            {!day.isPast && (
+                              <button
+                                className="day-plus-button"
+                                onClick={handlePlusClick}
+                                aria-label="Create event"
+                                title="Create event for this day"
+                              >
+                                +
+                              </button>
                             )}
                           </>
                         )}
@@ -160,6 +194,14 @@ const Calendar: React.FC = () => {
                           <p className="upcoming-description">{event.description}</p>
                         )}
                         <span className="upcoming-meta">{event.acceptedCount} attending</span>
+
+        {showCreateDialog && (
+          <CreateEventDialog
+            onClose={closeCreateDialog}
+            reloadEvents={reload}
+            defaultDate={createDialogDate}
+          />
+        )}
                       </div>
                     </button>
                   ))
@@ -169,12 +211,20 @@ const Calendar: React.FC = () => {
           </div>
         </div>
 
-        {selectedDate && (
+        {selectedDate && !showCreateDialog && (
           <EventDialog
             date={selectedDate}
             events={selectedDateEvents}
             onClose={closeDialog}
             onStatusChange={reload}
+          />
+        )}
+
+        {showCreateDialog && (
+          <CreateEventDialog
+            onClose={closeCreateDialog}
+            reloadEvents={reload}
+            defaultDate={createDialogDate}
           />
         )}
       </main>

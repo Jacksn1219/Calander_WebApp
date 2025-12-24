@@ -256,7 +256,7 @@ const Home: React.FC = () => {
                 ) : (
                   displayedUpcoming.map(ev => {
                     const start = ev.eventDate;
-                    const end = new Date(start.getTime() + ev.durationMinutes * 60000);
+                    const end = ev.endTime;
                     const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
                     return (
                       <button

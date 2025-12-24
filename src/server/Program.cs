@@ -4,6 +4,7 @@ using Calender_WebApp.Services;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Diagnostics;
 using Microsoft.IdentityModel.Tokens;
 using System.Text;
 
@@ -16,7 +17,8 @@ class Program
         var builder = WebApplication.CreateBuilder(args);
 
         builder.Services.AddDbContext<AppDbContext>(options =>
-            options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
+            options.UseSqlite(builder.Configuration.GetConnectionString("Default"))
+                   .ConfigureWarnings(w => w.Ignore(RelationalEventId.PendingModelChangesWarning)));
 
         // Add services to the container.
         builder.Services.AddControllersWithViews();

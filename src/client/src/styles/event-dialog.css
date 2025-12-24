@@ -138,6 +138,14 @@
   margin-bottom: 12px;
 }
 
+.event-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
 .event-description {
   color: #333;
   line-height: 1.6;

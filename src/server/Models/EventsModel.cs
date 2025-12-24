@@ -33,31 +33,37 @@ namespace Calender_WebApp.Models
         public string? Description { get; set; }
 
         /// <summary>
-        /// Date and time when the event occurs.
+        /// Date and time when the event starts.
         /// </summary>
         [Required]
         [Column("event_date", Order = 3)]
         public DateTime EventDate { get; set; }
 
         /// <summary>
-        /// Duration of the event in minutes.
+        /// Date and time when the event ends.
         /// </summary>
         [Required]
-        [Column("duration_minutes", Order = 4)]
-        public int DurationMinutes { get; set; }
+        [Column("end_time", Order = 4)]
+        public DateTime EndTime { get; set; }
 
         /// <summary>
-        /// ID of the room where the event takes place.
+        /// Location of the event. Can be a free-text address or derived from a room selection.
         /// </summary>
-        [Column("room_id", Order = 5)]
+        [Column("location", Order = 5)]
+        public string? Location { get; set; }
+
+        /// <summary>
+        /// ID of the room where the event takes place (optional).
+        /// </summary>
+        [Column("room_id", Order = 6)]
         [ForeignKey(nameof(Room))]
         public int? RoomId { get; set; }
 
-        /// <summary>
+        /// <summary>=
         /// ID of the user who created the event.
         /// </summary>
         [Required]
-        [Column("created_by", Order = 6)]
+        [Column("created_by", Order = 7)]
         [ForeignKey(nameof(CreatedByUser))]
         public int CreatedBy { get; set; }
 
