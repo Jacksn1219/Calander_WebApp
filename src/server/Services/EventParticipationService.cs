@@ -120,7 +120,9 @@ public class EventParticipationService : IEventParticipationService
             RelatedEventId = participation.EventId,
             ReminderTime = eventDetails,
             Title = $"Event {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"} participation",
-            Message = $"You are participating in {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"} starting at {eventDetails}." + (eventModel != null && eventModel.RoomId.HasValue ? $" in room {eventModel.RoomId}" : string.Empty),
+            Message = $"You are participating in {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"}" +
+                      $" starting at {eventDetails.ToString("dd MMM", new System.Globalization.CultureInfo("nl-NL"))} {eventDetails.ToString("HH:mm", new System.Globalization.CultureInfo("nl-NL"))}" +
+                      (eventModel != null && eventModel.RoomId.HasValue ? $" in room {eventModel.RoomId}" : string.Empty),
         }).ConfigureAwait(false);
         
         await _context.SaveChangesAsync().ConfigureAwait(false);

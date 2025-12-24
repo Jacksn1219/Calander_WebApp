@@ -152,7 +152,8 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         if (userPreference != null)
         {
             // Subtract the advance time from the reminder time
-            model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
+            // This is to be implemented when we start using the advance time in the RemindersModel for notification view. For now just have it be the event time.
+            // model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
 
             // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = model.ReminderType switch

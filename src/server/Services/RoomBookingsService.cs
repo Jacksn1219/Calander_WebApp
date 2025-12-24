@@ -229,7 +229,7 @@ public class RoomBookingsService : IRoomBookingsService
             RelatedEventId = model.EventId ?? 0,
             ReminderTime = model.BookingDate.Add(model.StartTime),
             Title = $"Room {model.RoomId} Booking",
-            Message = $"You have a room booking for Room {model.RoomId} starting at {model.BookingDate.Add(model.StartTime):yyyy-MM-dd HH:mm}.",
+            Message = $"You have a room booking for Room {model.RoomId} starting at {model.BookingDate.ToString("dd MMM", new System.Globalization.CultureInfo("nl-NL"))} {model.BookingDate.Add(model.StartTime).ToString("HH:mm", new System.Globalization.CultureInfo("nl-NL"))}.",
         }).ConfigureAwait(false);
 
         await _context.SaveChangesAsync().ConfigureAwait(false);
