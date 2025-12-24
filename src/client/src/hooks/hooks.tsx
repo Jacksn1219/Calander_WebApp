@@ -1482,14 +1482,24 @@ export const useReminders = () => {
     setError(null);
 
     try {
+      // Helper to format date as YYYY-MM-DDTHH:mm:ss in local time if we ever implement reminder time like the bydate filter
+      const formatLocalDateTime = (date: Date): string => {
+        const year = date.getFullYear();
+        const month = String(date.getMonth() + 1).padStart(2, '0');
+        const day = String(date.getDate()).padStart(2, '0');
+        const hours = String(date.getHours()).padStart(2, '0');
+        const minutes = String(date.getMinutes()).padStart(2, '0');
+        const seconds = String(date.getSeconds()).padStart(2, '0');
+        return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      };
+
       // Fetch only reminders that are due (ReminderTime <= now)
       const now = new Date();
       const fromTime = new Date(0); // Start from epoch
       const toTime = now; // Up to current time
       
       const response = await apiFetch(
-        `/api/reminders/user/${user.userId}/bydate?fromTime=${fromTime.toISOString()}&toTime=${toTime.toISOString()}`,
-        {
+        `/api/reminders/user/${user.userId}`,{
           method: 'GET',
         }
       );
