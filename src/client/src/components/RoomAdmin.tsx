@@ -138,7 +138,7 @@ const RoomAdmin: React.FC = () => {
                 <>
                   <div className="room-booking-list">
                     {pagedRooms.map(room => (
-                      <div key={room.id} className="room-booking-row">
+                      <div key={room.room_id} className="room-booking-row">
                       <div className="room-booking-details">
                         <div className="room-booking-room">
                           Room: {room.roomName} <span style={{color:'#888',fontSize:'0.95em'}}> </span>
@@ -164,7 +164,7 @@ const RoomAdmin: React.FC = () => {
                           type="button"
                           className="btn-red room-delete-button"
                           style={{ minWidth: 60, padding: '0.4rem 0.8rem' }}
-                          onClick={() => deleteRoom(room.id)}
+                          onClick={() => deleteRoom(room.room_id)}
                         >
                           Delete
                         </button>

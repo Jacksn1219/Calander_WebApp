@@ -65,13 +65,26 @@ public class RoomBookingsService : IRoomBookingsService
         => await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
     
     /// <summary>
-    /// Getting a room booking by its ID is not supported. Use GetBookingsForRoomAsync instead.
+    /// Gets a room booking by its ID.
     /// </summary>
-    /// <param name="id"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Thrown when attempting to get a room booking by ID.</exception>
-    public Task<RoomBookingsModel> GetById(int id)
-        => throw new NotSupportedException("Direct access by ID is not supported for RoomBookings. Use GetBookingsForRoomAsync instead.");
+    /// <param name="id">Booking identifier.</param>
+    /// <returns>The booking.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
+    public async Task<RoomBookingsModel> GetById(int id)
+    {
+        var booking = await _dbSet.AsNoTracking().FirstOrDefaultAsync(rb => rb.Id == id).ConfigureAwait(false);
+        return booking ?? throw new InvalidOperationException("Booking not found.");
+    }
+
+    /// <summary>
+    /// Fetch a room booking by its primary key (nullable variant).
+    /// </summary>
+    /// <param name="id">Booking identifier.</param>
+    /// <returns>The booking or null when not found.</returns>
+    public async Task<RoomBookingsModel?> GetByIdAsync(int id)
+    {
+        return await _dbSet.AsNoTracking().FirstOrDefaultAsync(rb => rb.Id == id).ConfigureAwait(false);
+    }
 
     public virtual async Task<RoomBookingsModel> Put(int id, RoomBookingsModel newNewRoombooking)
     {

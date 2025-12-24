@@ -1078,6 +1078,7 @@ export interface EventItem {
   endTime: string;   // end date-time ISO
   location?: string | null;
   roomId?: number;
+  bookingId?: number | null;
   createdBy: number;
 }
 
@@ -1162,6 +1163,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     endTime: "",
     location: "",
     roomId: null as number | null,
+    bookingId: null as number | null,
     attendeeCount: 0,
     createdBy: "",
   });
@@ -1183,6 +1185,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       endTime: end.toTimeString().slice(0, 5),
       location: event.location ?? '',
       roomId: event.roomId ?? null,
+      bookingId: event.bookingId ?? null,
       attendeeCount: 0,
       createdBy: event.createdBy.toString(),
     });
@@ -1222,7 +1225,8 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     
     if (name === 'location') {
       const newValue = value;
-      setFormData(prev => ({ ...prev, location: newValue, roomId: null }));
+      // Preserve roomId unless the location is cleared
+      setFormData(prev => ({ ...prev, location: newValue, roomId: newValue === '' ? null : prev.roomId }));
       setShowRoomDropdown(newValue === '');
       return;
     }
@@ -1231,7 +1235,8 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
   };
 
   const selectRoom = (room: RoomDto) => {
-    setFormData(prev => ({ ...prev, location: room.roomName, roomId: room.id }));
+    setFormData(prev => ({ ...prev, location: room.roomName, roomId: room.room_id }));
+    console.log('Selected room:', room);
     setShowRoomDropdown(false);
   };
 
@@ -1245,6 +1250,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     const start = new Date(`${formData.date}T${formData.startTime}:00`);
     const end = new Date(`${formData.date}T${formData.endTime}:00`);
     if (end <= start) return 'End time must be after start time';
+    if (!formData.roomId) return 'Please select a room before saving.';
     return '';
   };
 
@@ -1257,18 +1263,60 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
 
     const startIso = `${formData.date}T${formData.startTime}:00`;
     const endIso = `${formData.date}T${formData.endTime}:00`;
-    const payload = {
-      event_id: event?.event_id,
-      title: formData.title,
-      description: formData.description || "",
-      eventDate: startIso,
-      endTime: endIso,
+    const bookingOwner = Number.parseInt(formData.createdBy || "0", 10) || event?.createdBy || 0;
+    const bookingPayload = {
       roomId: formData.roomId,
-      location: formData.location || undefined,
-      createdBy: event?.createdBy,
+      userId: bookingOwner,
+      bookingDate: `${formData.date}T00:00:00`,
+      startTime: `${formData.startTime}:00`,
+      endTime: `${formData.endTime}:00`,
+      eventId: event?.event_id ?? null,
+      purpose: formData.title,
     };
 
     try {
+      let bookingId = formData.bookingId ?? event?.bookingId ?? null;
+
+      if (bookingId) {
+        const updateBookingRes = await apiFetch(`/api/room-bookings/${bookingId}`, {
+          method: "PUT",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(bookingPayload),
+        });
+        if (!updateBookingRes.ok) {
+          const text = await updateBookingRes.text();
+          throw new Error(text || "Failed to update booking");
+        }
+      } else {
+        const createBookingRes = await apiFetch('/api/room-bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingPayload),
+        });
+        if (!createBookingRes.ok) {
+          const text = await createBookingRes.text();
+          throw new Error(text || 'Failed to create booking');
+        }
+        const createdBooking = await createBookingRes.json();
+        bookingId = createdBooking?.booking_id ?? createdBooking?.bookingId ?? createdBooking?.id;
+        if (bookingId) {
+          setFormData(prev => ({ ...prev, bookingId }));
+        }
+      }
+
+      if (!bookingId) throw new Error('Booking id missing after booking step.');
+
+      const payload = {
+        event_id: event?.event_id,
+        title: formData.title,
+        description: formData.description || "",
+        eventDate: startIso,
+        endTime: endIso,
+        bookingId,
+        location: formData.location || undefined,
+        createdBy: event?.createdBy,
+      };
+
       const response = await apiFetch(`/api/events/${event?.event_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
@@ -1361,7 +1409,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
   };
 
   const selectRoom = (room: RoomDto) => {
-    setFormData(prev => ({ ...prev, location: room.roomName, roomId: room.id }));
+    setFormData(prev => ({ ...prev, location: room.roomName, roomId: room.room_id }));
     setShowRoomDropdown(false);
   };
 
@@ -1372,6 +1420,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
     if (!formData.startTime) return 'Start time cannot be empty';
     if (!formData.endTime) return 'End time cannot be empty';
     if (formData.attendeeCount <= 0) return 'Attendee count must be at least 1';
+    if (!formData.roomId) return 'Please select a room from the available rooms list';
     const start = new Date(`${formData.date}T${formData.startTime}:00`);
     const end = new Date(`${formData.date}T${formData.endTime}:00`);
     if (end <= start) return 'End time must be after start time';
@@ -1393,18 +1442,46 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
 
     const startIso = `${formData.date}T${formData.startTime}:00`;
     const endIso = `${formData.date}T${formData.endTime}:00`;
-    const payload = {
-      event_id: null,
-      title: formData.title,
-      description: formData.description || '',
-      eventDate: startIso,
-      endTime: endIso,
+    const bookingPayload = {
       roomId: formData.roomId,
-      location: formData.location || undefined,
-      createdBy: user.userId,
+      userId: user.userId,
+      bookingDate: `${formData.date}T00:00:00`,
+      startTime: `${formData.startTime}:00`,
+      endTime: `${formData.endTime}:00`,
+      eventId: null,
+      purpose: formData.title,
     };
 
     try {
+
+      const bookingRes = await apiFetch('/api/room-bookings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(bookingPayload),
+      });
+
+      if (!bookingRes.ok) {
+        const text = await bookingRes.text();
+        throw new Error(text || 'Failed to create room booking');
+      }
+
+      const createdBooking = await bookingRes.json();
+      const bookingId = createdBooking?.booking_id ?? createdBooking?.bookingId ?? createdBooking?.id;
+      if (!bookingId) {
+        throw new Error('Booking id missing after booking creation.');
+      }
+
+      const payload = {
+        event_id: null,
+        title: formData.title,
+        description: formData.description || '',
+        eventDate: startIso,
+        endTime: endIso,
+        bookingId,
+        location: formData.location || undefined,
+        createdBy: user.userId,
+      };
+
       const response = await apiFetch('/api/events', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -1811,7 +1888,7 @@ export const formatTimeOnly = (dateString: string) => {
 // _________________________________________
 
 export interface RoomDto {
-  id: number;
+  room_id: number;
   roomName: string;
   capacity?: number | null;
   location: string;
@@ -1883,7 +1960,7 @@ export const useRoomsAdmin = () => {
 
   const startEdit = (room: RoomDto) => {
     setEditForm({
-      id: room.id,
+      id: room.room_id,
       roomName: room.roomName,
       location: (room as any).location ?? (room as any).Location ?? '',
       capacity: room.capacity != null ? String(room.capacity) : '',

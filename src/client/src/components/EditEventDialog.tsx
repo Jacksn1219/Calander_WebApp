@@ -125,7 +125,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
                 }}>
                   {availableRooms.map((room) => (
                     <div
-                      key={room.id}
+                      key={room.room_id}
                       onClick={() => selectRoom(room)}
                       style={{
                         padding: '8px 12px',

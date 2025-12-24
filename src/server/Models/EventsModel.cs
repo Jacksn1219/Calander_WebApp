@@ -59,11 +59,17 @@ namespace Calender_WebApp.Models
         [ForeignKey(nameof(Room))]
         public int? RoomId { get; set; }
 
+        /// <summary>
+        /// ID of the room booking associated with this event (optional).
+        /// </summary>
+        [Column("booking_id", Order = 7)]
+        public int? BookingId { get; set; }
+
         /// <summary>=
         /// ID of the user who created the event.
         /// </summary>
         [Required]
-        [Column("created_by", Order = 7)]
+        [Column("created_by", Order = 8)]
         [ForeignKey(nameof(CreatedByUser))]
         public int CreatedBy { get; set; }
 

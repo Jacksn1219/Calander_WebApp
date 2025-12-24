@@ -46,6 +46,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
+        await ApplyBookingToEventAsync(updatedEntity).ConfigureAwait(false);
         NormalizeLocation(updatedEntity);
         ValidateEventTimes(updatedEntity.EventDate, updatedEntity.EndTime);
 
@@ -69,6 +70,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
+        await ApplyBookingToEventAsync(newEntity).ConfigureAwait(false);
         NormalizeLocation(newEntity);
         ValidateEventTimes(newEntity.EventDate, newEntity.EndTime);
 
@@ -99,66 +101,79 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         }
     }
 
+    private async Task<RoomBookingsModel?> ApplyBookingToEventAsync(EventsModel entity)
+    {
+        if (!entity.BookingId.HasValue)
+        {
+            entity.RoomId = null;
+            return null;
+        }
+
+        var booking = await _roombookingsService.GetByIdAsync(entity.BookingId.Value).ConfigureAwait(false);
+        if (booking == null)
+        {
+            throw new InvalidOperationException("Booking not found for the provided bookingId.");
+        }
+
+        var bookingStart = booking.BookingDate.Date.Add(booking.StartTime);
+        var bookingEnd = booking.BookingDate.Date.Add(booking.EndTime);
+        if (bookingStart != entity.EventDate || bookingEnd != entity.EndTime)
+        {
+            throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
+        }
+
+        entity.RoomId = booking.RoomId;
+
+        if (string.IsNullOrWhiteSpace(entity.Location))
+        {
+            entity.Location = $"Room {booking.RoomId}";
+        }
+
+        return booking;
+    }
+
     private async Task SyncRoomBookingAsync(EventsModel persistedEvent, EventsModel payload)
     {
-        // Remove booking if no room selected
-        if (!payload.RoomId.HasValue)
+        // If no booking is provided, detach any existing booking linked to this event.
+        if (!payload.BookingId.HasValue)
         {
-            var existingBooking = (await _roombookingsService.Get().ConfigureAwait(false))
+            var existing = (await _roombookingsService.Get().ConfigureAwait(false))
                 .FirstOrDefault(rb => rb.EventId == persistedEvent.Id);
 
-            if (existingBooking != null)
+            if (existing != null)
             {
-                await _roombookingsService.Delete(existingBooking).ConfigureAwait(false);
+                await _roombookingsService.Delete(existing).ConfigureAwait(false);
             }
             return;
         }
 
-        var roomId = payload.RoomId.Value;
-        var start = payload.EventDate;
-        var end = payload.EndTime;
-
-        var bookingDate = start.Date;
-        var startTime = start.TimeOfDay;
-        var endTime = end.TimeOfDay;
-
-        // Availability check ignoring the current event's booking
-        var dayBookings = (await _roombookingsService.Get().ConfigureAwait(false))
-            .Where(rb => rb.RoomId == roomId && rb.BookingDate == bookingDate && rb.EventId != persistedEvent.Id)
-            .ToList();
-
-        var hasOverlap = dayBookings.Any(rb => rb.StartTime < endTime && rb.EndTime > startTime);
-        if (hasOverlap)
+        var booking = await _roombookingsService.GetByIdAsync(payload.BookingId.Value).ConfigureAwait(false);
+        if (booking == null)
         {
-            throw new InvalidOperationException("Room is not available for the selected time range.");
+            throw new InvalidOperationException("Booking not found for the provided bookingId.");
         }
 
-        var existing = (await _roombookingsService.Get().ConfigureAwait(false))
-            .FirstOrDefault(rb => rb.EventId == persistedEvent.Id);
-
-        if (existing != null)
+        if (booking.EventId.HasValue && booking.EventId != persistedEvent.Id)
         {
-            existing.RoomId = roomId;
-            existing.BookingDate = bookingDate;
-            existing.StartTime = startTime;
-            existing.EndTime = endTime;
-
-            await _roombookingsService.Put(existing.Id, existing).ConfigureAwait(false);
+            throw new InvalidOperationException("The provided booking is already linked to another event.");
         }
-        else
-        {
-            var newBooking = new RoomBookingsModel
-            {
-                RoomId = roomId,
-                UserId = payload.CreatedBy,
-                BookingDate = bookingDate,
-                StartTime = startTime,
-                EndTime = endTime,
-                EventId = persistedEvent.Id,
-                Purpose = $"Event Booking {persistedEvent.Title}"
-            };
 
-            await _roombookingsService.Post(newBooking).ConfigureAwait(false);
+        var bookingStart = booking.BookingDate.Date.Add(booking.StartTime);
+        var bookingEnd = booking.BookingDate.Date.Add(booking.EndTime);
+        if (bookingStart != payload.EventDate || bookingEnd != payload.EndTime)
+        {
+            throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
+        }
+
+        // Link booking to event and sync room on the event for consistency
+        booking.EventId = persistedEvent.Id;
+        await _roombookingsService.Put(booking.Id, booking).ConfigureAwait(false);
+
+        if (!persistedEvent.RoomId.HasValue || persistedEvent.RoomId.Value != booking.RoomId)
+        {
+            persistedEvent.RoomId = booking.RoomId;
+            _context.Entry(persistedEvent).Property(e => e.RoomId).IsModified = true;
+            await _context.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 
