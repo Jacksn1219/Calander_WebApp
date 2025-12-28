@@ -137,7 +137,10 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose, onStat
                       aria-label={`View details for ${event.title}`}
                     >
                       <div className="event-item-time">{formatTime(new Date(event.eventDate))}</div>
-                      <div className="event-item-title">{event.title}</div>
+                      <div className="event-item-title">
+                        {event.title}
+                        {event.bookingId && <span className="room-booking-badge-list" title="Room booking">🏢</span>}
+                      </div>
                       <div className="event-meta">
                         <span className="event-badge participants" title="Attendees">👥 {event.participants.length}</span>
                         {userIsParticipant && <span className="event-badge joined" title="You are attending">✓ Joined</span>}
@@ -156,7 +159,12 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose, onStat
                 <button className="btn-back" type="button" onClick={backToList} aria-label="Back to events list">← Back</button>
               )}
               <div className="event-info">
-                <h3>{selectedEvent.title}</h3>
+                <div className="event-title-row">
+                  <h3>{selectedEvent.title}</h3>
+                  {selectedEvent.bookingId && (
+                    <span className="room-booking-badge" title="This event has a room booking">🏢</span>
+                  )}
+                </div>
                 <div className="event-time">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                     <circle cx="12" cy="12" r="10"/>

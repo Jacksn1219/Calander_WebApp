@@ -281,10 +281,10 @@ const Home: React.FC = () => {
                                 : ev.description}
                             </p>
                           )}
-                          {ev.roomId != null && roomsById[ev.roomId] && (
+                          {ev.bookingId != null && roomsById[ev.bookingId] && (
                             <p className="upcoming-location">
-                              {roomsById[ev.roomId].roomName}
-                              {roomsById[ev.roomId].location && ` — ${roomsById[ev.roomId].location}`}
+                              {roomsById[ev.bookingId].roomName}
+                              {roomsById[ev.bookingId].location && ` — ${roomsById[ev.bookingId].location}`}
                             </p>
                           )}
                         </div>

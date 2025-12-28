@@ -83,11 +83,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     private static void NormalizeLocation(EventsModel entity)
     {
-        if (entity.RoomId.HasValue && string.IsNullOrWhiteSpace(entity.Location))
-        {
-            entity.Location = $"Room {entity.RoomId.Value}";
-        }
-        else if (entity.Location != null)
+        if (entity.Location != null)
         {
             entity.Location = entity.Location.Trim();
         }
@@ -105,7 +101,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     {
         if (!entity.BookingId.HasValue)
         {
-            entity.RoomId = null;
             return null;
         }
 
@@ -120,13 +115,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         if (bookingStart != entity.EventDate || bookingEnd != entity.EndTime)
         {
             throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
-        }
-
-        entity.RoomId = booking.RoomId;
-
-        if (string.IsNullOrWhiteSpace(entity.Location))
-        {
-            entity.Location = $"Room {booking.RoomId}";
         }
 
         return booking;
@@ -165,16 +153,9 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
         }
 
-        // Link booking to event and sync room on the event for consistency
+        // Link booking to event
         booking.EventId = persistedEvent.Id;
         await _roombookingsService.Put(booking.Id, booking).ConfigureAwait(false);
-
-        if (!persistedEvent.RoomId.HasValue || persistedEvent.RoomId.Value != booking.RoomId)
-        {
-            persistedEvent.RoomId = booking.RoomId;
-            _context.Entry(persistedEvent).Property(e => e.RoomId).IsModified = true;
-            await _context.SaveChangesAsync().ConfigureAwait(false);
-        }
     }
 
     // Add additional services that are not related to CRUD here
