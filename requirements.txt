@@ -1,0 +1,7 @@
+# Prerequisites for running this project with Docker
+docker>=24.0
+docker-compose>=2.20
+
+# Notes:
+# - Install Docker Desktop (macOS/Windows) or Docker Engine (Linux)
+# - Ensure compose v2 is available (`docker compose version` to check current version)

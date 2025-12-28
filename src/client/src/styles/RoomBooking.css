@@ -29,7 +29,8 @@
 }
 
 .booking-card input,
-.booking-card select {
+.booking-card select,
+.booking-card textarea {
   padding: 0.7rem;
   border: 1px solid #ccc;
   border-radius: 8px;

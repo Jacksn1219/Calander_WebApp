@@ -66,14 +66,15 @@
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
 }
 
-.edit-event-buttons {
+/* Scoped button styles for Edit Event Dialog (uses booking-card) */
+.dialog-content .booking-card .edit-event-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 
-.edit-event-buttons button {
+.dialog-content .booking-card .edit-event-buttons button {
   align-self: flex-end;
   border: 1px solid #a3e4b1;
   color: white;
@@ -86,19 +87,19 @@
   border: none;
 }
 
-.edit-event-save {
+.dialog-content .booking-card .edit-event-save {
   background: #1f6feb;
 }
 
-.edit-event-cancel {
+.dialog-content .booking-card .edit-event-cancel {
   background: #e21818;
 }
 
-.edit-event-save:hover {
+.dialog-content .booking-card .edit-event-save:hover {
   background: #1557c0;
 }
 
-.edit-event-cancel:hover {
+.dialog-content .booking-card .edit-event-cancel:hover {
   background: #b10000;
 }
 
