@@ -3,7 +3,6 @@ using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
-using System.Security.Claims;
 
 namespace Calender_WebApp.Controllers;
 
@@ -17,18 +16,6 @@ public class OfficeAttendanceController : ControllerBase
     {
         _officeAttendanceService = officeAttendanceService ?? throw new ArgumentNullException(nameof(officeAttendanceService));
     }
-    private int GetCurrentUserId()
-    {
-        var userIdClaim =
-            User.FindFirst(ClaimTypes.NameIdentifier) ??
-            User.FindFirst("sub");
-
-        if (userIdClaim == null)
-            throw new UnauthorizedAccessException("User ID not found in token.");
-
-        return int.Parse(userIdClaim.Value);
-    }
-
 
     [HttpGet]
     public async Task<ActionResult<IEnumerable<OfficeAttendanceModel>>> GetAll()
@@ -55,11 +42,10 @@ public class OfficeAttendanceController : ControllerBase
     {
         try
         {
-            var currentUserId = GetCurrentUserId();
             var today = DateTime.Today;
 
             var record = await _officeAttendanceService
-                .GetAttendanceByUserAndDateAsync(currentUserId, today)
+                .GetAttendanceByUserAndDateAsync(userId, today)
                 .ConfigureAwait(false);
 
             return Ok(record);
@@ -116,12 +102,11 @@ public class OfficeAttendanceController : ControllerBase
             return Conflict(ex.Message);
         }
     }
-    [HttpGet("today")]
-    public async Task<ActionResult<OfficeAttendanceModel>> GetToday()
+    [HttpGet("today/{userId}")]
+    public async Task<ActionResult<OfficeAttendanceModel>> GetToday(int userId)
     {
         try
         {
-            var userId = GetCurrentUserId();
             var today = DateTime.Today;
 
             var record = await _officeAttendanceService
@@ -135,14 +120,14 @@ public class OfficeAttendanceController : ControllerBase
         }
     }
 
-    [HttpPut("today")]
+    [HttpPut("today/{userId}")]
     public async Task<ActionResult<OfficeAttendanceModel>> Update(
+        int userId,
         [FromBody] UpdateAttendanceRequest request)
     {
         if (!Enum.IsDefined(typeof(AttendanceStatus), request.Status))
             return BadRequest("Invalid attendance status.");
 
-        var userId = GetCurrentUserId();
         var today = DateTime.Today;
         var status = (AttendanceStatus)request.Status;
 

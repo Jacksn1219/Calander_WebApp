@@ -2572,6 +2572,9 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
 // end functions roombooking
 // _________________________________________
 
+// _________________________________________
+// start functions office attendance
+// _________________________________________
 
 const STATUS_TO_INT = {
   Present: 0,
@@ -2588,6 +2591,7 @@ const INT_TO_STATUS = {
 export type AttendanceStatus = 'Present' | 'Absent' | 'Remote';
 
 export const useOfficeAttendance = () => {
+  const { user } = useAuth();
   const [status, setStatus] = useState<AttendanceStatus | null>(null);
   const [loading, setLoading] = useState(false);
 
@@ -2596,8 +2600,10 @@ export const useOfficeAttendance = () => {
    */
   useEffect(() => {
     const loadTodayAttendance = async () => {
+      if (!user?.userId) return;
+      
       try {
-        const res = await apiFetch('/api/office-attendance/today');
+        const res = await apiFetch(`/api/office-attendance/today/${user.userId}`);
 
         if (res.ok) {
           const data: { status: number } = await res.json();
@@ -2621,10 +2627,12 @@ export const useOfficeAttendance = () => {
    * Set or update today's attendance (UPSERT)
    */
   const setTodayAttendance = async (newStatus: AttendanceStatus) => {
+    if (!user?.userId) return;
+    
     setLoading(true);
 
     try {
-      const res = await apiFetch('/api/office-attendance/today', {
+      const res = await apiFetch(`/api/office-attendance/today/${user.userId}`, {
         method: 'PUT',
         body: JSON.stringify({
           status: STATUS_TO_INT[newStatus],
@@ -2651,3 +2659,6 @@ export const useOfficeAttendance = () => {
     setTodayAttendance,
   };
 };
+// _________________________________________
+// end functions office attendance
+// _________________________________________ 
