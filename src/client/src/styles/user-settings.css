@@ -1,0 +1,219 @@
+.user-settings-container {
+  position: relative;
+  width: 100%;
+}
+
+.user-settings-button {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid #444;
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.user-settings-button:hover {
+  border-color: #d0d0d0;
+
+}
+
+.user-settings-container .user-avatar {
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: #22c55e;
+  color: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 600;
+  font-size: 14px;
+}
+
+.user-settings-container .user-details {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  background: transparent;
+  padding: 4px 0;
+  margin: 0;
+  gap: 4px;
+}
+
+.user-settings-container .user-name {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+}
+
+.user-settings-container .user-role {
+  font-size: 0.75rem;
+}
+
+.user-settings-dropdown {
+  position: absolute;
+  top: 100%;
+  right: 0;
+  margin-top: 8px;
+  background-color: white;
+  border: 1px solid #ddd;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  min-width: 320px;
+  max-width: 400px;
+  z-index: 1000;
+}
+
+/* When used from the left sidebar: open to the right, outside the sidebar */
+.user-settings-container.dropdown-right .user-settings-dropdown {
+  top: auto;
+  bottom: 0;
+  left: 100%;
+  right: auto;
+  margin-top: 0;
+  margin-left: 12px;
+}
+
+.user-settings-header {
+  padding: 15px;
+  border-bottom: 1px solid #eee;
+}
+
+.user-settings-title {
+  margin: 0;
+  font-size: 16px;
+  font-weight: 600;
+}
+
+.user-settings-loading,
+.user-settings-error,
+.user-settings-empty {
+  padding: 20px;
+  text-align: center;
+  color: #666;
+}
+
+.user-settings-error {
+  color: #dc3545;
+}
+
+.user-settings-content {
+  padding: 12px;
+}
+
+.settings-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.settings-section-title {
+  margin: 0 0 8px 0;
+  font-size: 13px;
+  font-weight: 600;
+  color: #666;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.settings-item {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+}
+
+.settings-item-label {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.settings-item-label span {
+  font-size: 14px;
+  color: #333;
+}
+
+.toggle-button {
+  position: relative;
+  width: 44px;
+  height: 24px;
+  background-color: #ccc;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  transition: background-color 0.3s;
+  padding: 0;
+}
+
+.toggle-button.active {
+  background-color: #007bff;
+}
+
+.toggle-slider {
+  position: absolute;
+  top: 2px;
+  left: 2px;
+  width: 20px;
+  height: 20px;
+  background-color: white;
+  border-radius: 50%;
+  transition: transform 0.3s;
+  display: block;
+}
+
+.toggle-button.active .toggle-slider {
+  transform: translateX(20px);
+}
+
+.advance-minutes-input {
+  width: 80px;
+  padding: 6px 10px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+  text-align: center;
+}
+
+.advance-minutes-input:focus {
+  outline: none;
+  border-color: #007bff;
+}
+
+.settings-divider {
+  height: 1px;
+  background-color: #eee;
+  margin: 12px 0;
+}
+
+.settings-actions {
+  padding: 8px 0;
+}
+
+.user-settings-container .logout-button {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  padding: 10px 16px;
+  background-color: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 5px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: background-color 0.2s;
+}
+
+.user-settings-container .logout-button:hover {
+  background-color: #c82333;
+}
+
+.user-settings-container .logout-button svg {
+  flex-shrink: 0;
+}

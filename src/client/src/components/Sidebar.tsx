@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { useSidebar } from '../hooks/hooks';
 import '../styles/sidebar.css';
+import UserSettings from './UserSettings';
 
 const Sidebar: React.FC = () => {
   const { isCollapsed, toggleSidebar, handleLogout } = useSidebar();
@@ -87,42 +88,7 @@ const Sidebar: React.FC = () => {
       </li>
     );
   };
-
-  const renderUserSection = () => {
-    if (!isAuthenticated) return null;
-    const roleLabel = user?.isSuperAdmin ? 'Super Admin' : (user?.role || 'User');
-
-    return (
-      <div className="sidebar-user-section">
-        <div className="user-info">
-          <div className="user-avatar">
-            <PersonIcon />
-          </div>
-          {!isCollapsed && (
-            <div className="user-details">
-              <span className="user-name">{user?.name || 'User'}</span>
-              <span className="user-role">{roleLabel}</span>
-            </div>
-          )}
-        </div>
-        
-        <button 
-          className="logout-button"
-          onClick={handleLogout}
-          aria-label="Logout"
-          title="Logout"
-        >
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/>
-            <polyline points="16,17 21,12 16,7"/>
-            <line x1="21" y1="12" x2="9" y2="12"/>
-          </svg>
-          {!isCollapsed && <span>Logout</span>}
-        </button>
-      </div>
-    );
-  };
-
+  
   return (
     <nav className={`sidebar ${isCollapsed ? 'collapsed' : ''}`} aria-label="Main navigation">
       <div className="sidebar-header">
@@ -143,8 +109,30 @@ const Sidebar: React.FC = () => {
             : renderUnauthenticatedSidebar()
           }
         </ul>
-        
-        {renderUserSection()}
+
+        {isAuthenticated && (
+          <div className="sidebar-user-section">
+            <UserSettings
+              dropdownPlacement="right"
+              showLogoutAction={false}
+              showLabel={!isCollapsed}
+            />
+
+            <button
+              type="button"
+              className="logout-button"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10,17 15,12 10,7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+              </svg>
+              {!isCollapsed && <span>Logout</span>}
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );

@@ -4,8 +4,8 @@
 
 .reminder-notification-button {
   padding: 0;
-  width: 40px;
-  height: 40px;
+  width: 44px;
+  height: 44px;
   background-color: transparent;
   color: #666;
   border: 1px solid #e0e0e0;
@@ -107,7 +107,7 @@
 
 .reminder-item {
   padding: 0;
-  background-color: #e8e8e8;
+  background-color: #eeeeee;
   border-radius: 6px;
   overflow: hidden;
 }
@@ -117,7 +117,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background-color: #e8e8e8;
+  background-color: #eeeeee;
   margin-bottom: -10px;
 }
 
