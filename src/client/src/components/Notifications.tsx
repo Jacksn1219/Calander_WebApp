@@ -1,11 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
-import { useReminders } from '../hooks/hooks';
+import { useReminders, getRoomById, RoomDto } from '../hooks/hooks';
 import '../styles/index.css';
+import '../styles/reminder-notification.css';
 
 const Notifications: React.FC = () => {
   const { reminders, loading, error, markAsRead, markAllAsRead } = useReminders();
   const [filter, setFilter] = useState<'all' | 'unread' | 'read'>('all');
+  const [roomsCache, setRoomsCache] = useState<Record<number, RoomDto>>({});
+
+  // Fetch room details for reminders with room IDs
+  useEffect(() => {
+    const roomIds = Array.from(new Set(
+      reminders
+        .filter(r => r.relatedRoomId !== 0)
+        .map(r => r.relatedRoomId)
+    ));
+
+    roomIds.forEach(async (roomId) => {
+      if (!roomsCache[roomId]) {
+        try {
+          const room = await getRoomById(roomId);
+          if (room) {
+            setRoomsCache(prev => ({ ...prev, [roomId]: room }));
+          }
+        } catch (error) {
+          console.error(`Failed to fetch room ${roomId}:`, error);
+        }
+      }
+    });
+  }, [reminders]);
 
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
@@ -47,7 +71,7 @@ const Notifications: React.FC = () => {
     if (filter === 'unread') return !r.isRead;
     if (filter === 'read') return r.isRead;
     return true;
-  });
+  }).sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime());
 
   const unreadCount = reminders.filter(r => !r.isRead).length;
 
@@ -118,19 +142,8 @@ const Notifications: React.FC = () => {
                   textTransform: 'capitalize'
                 }}
               >
-                {filterOption}                {filterOption === 'all' && reminders.length > 0 && (
-                  <span style={{
-                    marginLeft: '8px',
-                    backgroundColor: '#6c757d',
-                    color: 'white',
-                    borderRadius: '10px',
-                    padding: '2px 8px',
-                    fontSize: '12px',
-                    fontWeight: 'bold'
-                  }}>
-                    {reminders.length}
-                  </span>
-                )}                {filterOption === 'unread' && unreadCount > 0 && (
+                {filterOption}
+                {filterOption === 'unread' && unreadCount > 0 && (
                   <span style={{
                     marginLeft: '8px',
                     backgroundColor: '#007bff',
@@ -263,91 +276,44 @@ const Notifications: React.FC = () => {
                             <span style={{ marginLeft: '6px', fontSize: '14px' }}>❌</span>
                           )}
                         </span>
-                        <span style={{ 
-                          fontSize: '15px', 
-                          fontWeight: '600',
-                          color: '#333'
-                        }}>
+                        <span className="reminder-item-title" style={{ fontSize: '18px', fontWeight: '600' }}>
                           {reminder.title}
                         </span>
                       </div>
-                      <button
-                        onClick={() => !reminder.isRead && handleMarkAsRead(reminder.reminder_id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: reminder.isRead ? 'default' : 'pointer',
-                          color: reminder.isRead ? 'transparent' : '#666',
-                          padding: '6px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          borderRadius: '4px',
-                          visibility: reminder.isRead ? 'hidden' : 'visible'
-                        }}
-                        onMouseEnter={(e) => {
-                          if (!reminder.isRead) {
-                            e.currentTarget.style.backgroundColor = '#d0d0d0';
-                            e.currentTarget.style.color = '#333';
-                          }
-                        }}
-                        onMouseLeave={(e) => {
-                          if (!reminder.isRead) {
-                            e.currentTarget.style.backgroundColor = 'transparent';
-                            e.currentTarget.style.color = '#666';
-                          }
-                        }}
-                        title={reminder.isRead ? '' : 'Mark as read'}
-                        disabled={reminder.isRead}
-                      >
-                        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
+                      {!reminder.isRead && (
+                        <button
+                          onClick={() => handleMarkAsRead(reminder.reminder_id)}
+                          className="reminder-mark-read-btn"
+                          title="Mark as read"
+                          style={{ width: '28px', height: '28px' }}
+                        >
+                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                            <line x1="18" y1="6" x2="6" y2="18" />
+                            <line x1="6" y1="6" x2="18" y2="18" />
+                          </svg>
+                        </button>
+                      )}
                     </div>
 
                     {/* Separator line under header */}
-                    <div style={{ padding: '0 15px' }}>
-                      <div style={{
-                        borderTop: '1px solid #c0c0c0',
-                        margin: '10px 0'
-                      }} />
+                    <div className="reminder-item-separator">
+                      <div className="reminder-item-separator-line" />
                     </div>
 
                     {/* Date and Time Row with IDs */}
-                    <div style={{ 
-                      fontSize: '14px',
-                      color: '#666',
-                      fontWeight: '500',
-                      marginBottom: '12px',
-                      padding: '0 15px',
-                      display: 'flex',
-                      gap: '12px',
-                      alignItems: 'center'
-                    }}>
-                      <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
-                      {reminder.relatedEventId !== 0 && (
+                    <div className="reminder-item-meta" style={{ fontSize: '15px', padding: '0 16px', marginBottom: '14px', gap: '10px' }}>
+                      <span style={{ fontSize: '15px' }}>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
+                      {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
                         <>
-                          <span style={{ color: '#999' }}>|</span>
-                          <span style={{ fontSize: '13px' }}>Event ID: {reminder.relatedEventId}</span>
-                        </>
-                      )}
-                      {reminder.relatedRoomId !== 0 && (
-                        <>
-                          <span style={{ color: '#999' }}>|</span>
-                          <span style={{ fontSize: '13px' }}>Room ID: {reminder.relatedRoomId}</span>
+                          <span className="reminder-item-meta-divider" style={{ fontSize: '15px' }}>|</span>
+                          <span className="reminder-item-meta-id" style={{ fontSize: '15px' }}>{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
                         </>
                       )}
                     </div>
 
                     {/* Content Row */}
-                    <div style={{ padding: '0 15px 12px 15px' }}>
-                      <div style={{ 
-                        fontSize: '14px', 
-                        color: '#666',
-                        lineHeight: '1.5'
-                      }}>
+                    <div className="reminder-item-content" style={{ padding: '0 16px 16px 16px' }}>
+                      <div className="reminder-item-message" style={{ fontSize: '15px', lineHeight: '1.6' }}>
                         {reminder.message}
                       </div>
                     </div>

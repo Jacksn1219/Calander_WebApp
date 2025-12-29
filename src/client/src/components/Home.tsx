@@ -123,7 +123,6 @@ const Home: React.FC = () => {
           </div>
           <div className="home-header-right">
             <ReminderNotification />
-            <UserSettings />
           </div>
         </div>
 

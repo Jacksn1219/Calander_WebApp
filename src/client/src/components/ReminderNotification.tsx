@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useReminders, formatDateOnly, formatTimeOnly, useCalendarEvents } from '../hooks/hooks';
+import { useReminders, formatDateOnly, formatTimeOnly, useCalendarEvents, getRoomById, RoomDto } from '../hooks/hooks';
 import { useAuth } from '../states/AuthContext';
 import '../styles/reminder-notification.css';
 
@@ -11,8 +11,31 @@ const ReminderNotification: React.FC = () => {
   const navigate = useNavigate();
   const { user } = useAuth();
   const { events } = useCalendarEvents(user);
+  const [roomsCache, setRoomsCache] = useState<Record<number, RoomDto>>({});
 
   const unsentReminders = reminders.filter(r => !r.isRead);
+
+  // Fetch room details for reminders with room IDs
+  useEffect(() => {
+    const roomIds = Array.from(new Set(
+      unsentReminders
+        .filter(r => r.relatedRoomId !== 0)
+        .map(r => r.relatedRoomId)
+    ));
+
+    roomIds.forEach(async (roomId) => {
+      if (!roomsCache[roomId]) {
+        try {
+          const room = await getRoomById(roomId);
+          if (room) {
+            setRoomsCache(prev => ({ ...prev, [roomId]: room }));
+          }
+        } catch (error) {
+          console.error(`Failed to fetch room ${roomId}:`, error);
+        }
+      }
+    });
+  }, [unsentReminders]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -28,6 +51,23 @@ const ReminderNotification: React.FC = () => {
 
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showReminders]);
+
+  // Close dropdown on Escape
+  useEffect(() => {
+    if (!showReminders) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShowReminders(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
     };
   }, [showReminders]);
 
@@ -83,7 +123,7 @@ const ReminderNotification: React.FC = () => {
             </div>
           ) : (
             <div>
-              {unsentReminders.slice(0, 5).map((reminder) => {
+              {unsentReminders.sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime()).slice(0, 5).map((reminder) => {
                 // Determine icon and color based on reminder type
                 const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
                 const isCanceled = reminder.reminderType === 4 || reminder.reminderType === 5;
@@ -149,16 +189,10 @@ const ReminderNotification: React.FC = () => {
                     {/* Date and Time Row with IDs */}
                     <div className="reminder-item-meta">
                       <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
-                      {reminder.relatedEventId !== 0 && (
+                      {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
                         <>
                           <span className="reminder-item-meta-divider">|</span>
-                          <span className="reminder-item-meta-id">Event ID: {reminder.relatedEventId}</span>
-                        </>
-                      )}
-                      {reminder.relatedRoomId !== 0 && (
-                        <>
-                          <span className="reminder-item-meta-divider">|</span>
-                          <span className="reminder-item-meta-id">Room ID: {reminder.relatedRoomId}</span>
+                          <span className="reminder-item-meta-id">{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
                         </>
                       )}
                     </div>

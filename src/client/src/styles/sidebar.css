@@ -141,6 +141,62 @@ code {
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid #1a2332;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.sidebar-user-section .user-settings-button {
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
+}
+
+.sidebar.collapsed .sidebar-user-section .user-settings-button {
+  justify-content: flex-start;
+  padding: 6px 3px;
+  gap: 0;
+}
+
+.sidebar.collapsed .sidebar-user-section .user-settings-button .user-details {
+  display: none;
+}
+
+.sidebar.collapsed .sidebar-user-section .user-settings-button .user-avatar {
+  width: 28px;
+  height: 28px;
+  font-size: 12px;
+}
+
+/* Settings trigger in the sidebar footer */
+.user-settings-sidebar-button {
+  width: 100%;
+  color: #cfe3ff;
+  background: none;
+  border: none;
+  text-decoration: none;
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border-radius: 6px;
+  transition: all 0.2s ease;
+  gap: 12px;
+  min-height: 20px;
+  cursor: pointer;
+}
+
+.user-settings-sidebar-button:hover {
+  background: #1a2332;
+  color: #ffffff;
+}
+
+.sidebar.collapsed .user-settings-sidebar-button span {
+  display: none;
+}
+
+.sidebar.collapsed .user-settings-sidebar-button {
+  justify-content: center;
+  padding: 12px 6px;
 }
 
 .user-info {

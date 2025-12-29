@@ -1176,7 +1176,19 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     });
   }, [currentEvent]);
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     const processedValue = (name === 'durationMinutes' || name === 'roomId') 
       ? (value === '' ? undefined : Number(value))
@@ -1217,14 +1229,14 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     }
 
     try {
-      // Combine date and time into a single DateTime
-      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      // Combine date and time into a single DateTime string WITHOUT timezone conversion
+      const eventDateTimeString = `${formData.date}T${formData.time}:00`;
       
       const payload = {
         event_id: currentEvent?.event_id,
         title: formData.title,
         description: formData.description || "",
-        eventDate: eventDateTime.toISOString(),
+        eventDate: eventDateTimeString,
         durationMinutes: formData.durationMinutes || 60,
         roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
         createdBy: currentEvent?.createdBy
@@ -1252,7 +1264,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     onClose();
   };
 
-  return { formData, handleChange, handleSave, handleCancel };
+  return { formData, handleChange, handleSave, handleCancel, generateTimeOptions };
 };
 
 export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) => {
@@ -1268,7 +1280,19 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     createdBy: user?.userId,
   });
 
-  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) => {
+  const generateTimeOptions = () => {
+    const options = [];
+    for (let h = 0; h < 24; h++) {
+      for (let m = 0; m < 60; m += 15) {
+        const hh = String(h).padStart(2, "0");
+        const mm = String(m).padStart(2, "0");
+        options.push(`${hh}:${mm}`);
+      }
+    }
+    return options;
+  };
+
+  const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     let processedValue: any = value;
     
@@ -1321,8 +1345,8 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     }
 
     try {
-      // Combine date and time into a single DateTime
-      const eventDateTime = new Date(`${formData.date}T${formData.time}`);
+      // Combine date and time into a single DateTime string WITHOUT timezone conversion
+      const eventDateTimeString = `${formData.date}T${formData.time}:00`;
       
       const response = await apiFetch("/api/events", {
         method: "POST",
@@ -1331,7 +1355,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
           event_id: null,
           title: formData.title,
           description: formData.description || "",
-          eventDate: eventDateTime.toISOString(),
+          eventDate: eventDateTimeString,
           durationMinutes: formData.durationMinutes || 60,
           roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
           createdBy: user.userId,
@@ -1361,7 +1385,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) =>
     onClose();
   };
 
-  return { formData, handleChange, handleSubmit, handleCancel };
+  return { formData, handleChange, handleSubmit, handleCancel, generateTimeOptions };
 };
 
 export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {
@@ -1462,9 +1486,35 @@ export const useReminders = () => {
     setError(null);
 
     try {
-      const response = await apiFetch(`/api/reminders/user/${user.userId}`, {
-        method: 'GET',
-      });
+      // Helper to format date as YYYY-MM-DDTHH:mm:ss in local time if we ever implement reminder time like the bydate filter
+      // const formatLocalDateTime = (date: Date): string => {
+      //   const year = date.getFullYear();
+      //   const month = String(date.getMonth() + 1).padStart(2, '0');
+      //   const day = String(date.getDate()).padStart(2, '0');
+      //   const hours = String(date.getHours()).padStart(2, '0');
+      //   const minutes = String(date.getMinutes()).padStart(2, '0');
+      //   const seconds = String(date.getSeconds()).padStart(2, '0');
+      //   return `${year}-${month}-${day}T${hours}:${minutes}:${seconds}`;
+      // };
+      // Fetch only reminders that are due (ReminderTime <= now)
+      // use the formatLocalDateTime if we implement fromTime/toTime filtering dont use isostring
+      // const now = formatLocalDateTime(new Date());
+      // const fromTime = formatLocalDateTime(new Date(0));
+      // const toTime = now;
+      // console.log('Fetching reminders from', fromTime, 'to', toTime);
+
+      //  const response = await apiFetch(
+      //   `/api/reminders/user/${user.userId}/bydate?fromTime=${(fromTime)}&toTime=${(toTime)}`,
+      //   {
+      //     method: 'GET',
+      //   }
+      // );
+  
+      const response = await apiFetch(
+        `/api/reminders/user/${user.userId}`,{
+          method: 'GET',
+        }
+      );
 
       if (!response.ok) {
         throw new Error(`Failed to fetch reminders: ${response.statusText}`);
@@ -1565,6 +1615,25 @@ export interface ReminderPreferences {
   bookingReminder: boolean;
   reminderAdvanceMinutes: string; // TimeSpan as string from API
 }
+
+export const getRoomById = async (roomId: number): Promise<RoomDto | null> => {
+  try {
+    const response = await apiFetch(`/api/rooms/${roomId}`);
+    if (!response.ok) {
+      throw new Error('Failed to fetch room');
+    }
+    const data = await response.json();
+    return {
+      id: data.room_id ?? data.id ?? data.roomId ?? data.RoomId ?? 0,
+      roomName: data.room_name ?? data.roomName ?? data.RoomName ?? 'Room',
+      capacity: data.capacity ?? data.Capacity ?? null,
+      location: data.location ?? data.Location ?? '',
+    };
+  } catch (err) {
+    console.error('Error fetching room:', err);
+    return null;
+  }
+};
 
 export const useUserSettings = () => {
   const [preferences, setPreferences] = useState<ReminderPreferences | null>(null);
@@ -1724,7 +1793,7 @@ export const useHomeDashboard = () => {
     // Filter to show only upcoming events that the user hasn't attended yet
     const upcoming = sorted.filter(ev => {
       if (ev.eventDate < now) return false;
-      if (!user?.userId) return true;
+      if (!user?.userId) return false; // Don't show any events if user not loaded
       const me = ev.participants.find(p => p.userId === user.userId);
       return !me || me.status !== 'Accepted';
     });

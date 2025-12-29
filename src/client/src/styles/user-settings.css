@@ -1,5 +1,6 @@
 .user-settings-container {
   position: relative;
+  width: 100%;
 }
 
 .user-settings-button {
@@ -7,7 +8,7 @@
   align-items: center;
   gap: 8px;
   background: transparent;
-  border: 1px solid #e0e0e0;
+  border: 1px solid #444;
   border-radius: 8px;
   padding: 6px 12px;
   cursor: pointer;
@@ -15,11 +16,11 @@
 }
 
 .user-settings-button:hover {
-  background-color: #f5f5f5;
   border-color: #d0d0d0;
+
 }
 
-.user-avatar {
+.user-settings-container .user-avatar {
   width: 32px;
   height: 32px;
   border-radius: 50%;
@@ -32,7 +33,7 @@
   font-size: 14px;
 }
 
-.user-info {
+.user-settings-container .user-details {
   display: flex;
   flex-direction: column;
   align-items: flex-start;
@@ -42,15 +43,14 @@
   gap: 4px;
 }
 
-.user-name {
+.user-settings-container .user-name {
   font-size: 0.9rem;
   font-weight: 600;
-  color: #333;
+  text-align: left;
 }
 
-.user-role {
+.user-settings-container .user-role {
   font-size: 0.75rem;
-  color: #6b7280;
 }
 
 .user-settings-dropdown {
@@ -65,6 +65,16 @@
   min-width: 320px;
   max-width: 400px;
   z-index: 1000;
+}
+
+/* When used from the left sidebar: open to the right, outside the sidebar */
+.user-settings-container.dropdown-right .user-settings-dropdown {
+  top: auto;
+  bottom: 0;
+  left: 100%;
+  right: auto;
+  margin-top: 0;
+  margin-left: 12px;
 }
 
 .user-settings-header {
@@ -183,7 +193,7 @@
   padding: 8px 0;
 }
 
-.logout-button {
+.user-settings-container .logout-button {
   width: 100%;
   display: flex;
   align-items: center;
@@ -200,10 +210,10 @@
   transition: background-color 0.2s;
 }
 
-.logout-button:hover {
+.user-settings-container .logout-button:hover {
   background-color: #c82333;
 }
 
-.logout-button svg {
+.user-settings-container .logout-button svg {
   flex-shrink: 0;
 }

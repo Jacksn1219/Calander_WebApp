@@ -48,6 +48,13 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
+        // Validate that the creator exists
+        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == updatedEntity.CreatedBy);
+        if (!creatorExists)
+        {
+            throw new ArgumentException($"Employee with ID {updatedEntity.CreatedBy} does not exist.");
+        }
+
         // Get the old event before updating
         var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         
@@ -60,7 +67,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             
             if (!roomExists)
             {
-                throw new InvalidOperationException($"Room with ID {updatedEntity.RoomId.Value} does not exist.");
+                throw new ArgumentException($"Room with ID {updatedEntity.RoomId.Value} does not exist.");
             }
         }
 
@@ -125,15 +132,21 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
-        // Validate that the room exists if a RoomId is provided
-        if (newEntity.RoomId.HasValue)
+        // Validate that the creator exists
+        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == newEntity.CreatedBy);
+        if (!creatorExists)
         {
-            var roomExists = await _context.Set<RoomsModel>()
-                .AnyAsync(r => r.Id == newEntity.RoomId.Value);
-            
+            throw new ArgumentException($"Employee with ID {newEntity.CreatedBy} does not exist.");
+        }
+
+        // Validate that the room exists if specified
+        if (newEntity.RoomId == 0) throw new ArgumentException("RoomId cannot be 0.");
+        else if (newEntity.RoomId.HasValue)
+        {
+            var roomExists = await _context.Set<RoomsModel>().AnyAsync(r => r.Id == newEntity.RoomId.Value);
             if (!roomExists)
             {
-                throw new InvalidOperationException($"Room with ID {newEntity.RoomId.Value} does not exist.");
+                throw new ArgumentException($"Room with ID {newEntity.RoomId.Value} does not exist.");
             }
         }
 

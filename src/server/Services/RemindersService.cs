@@ -11,10 +11,12 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 {
     private readonly IReminderPreferencesService _reminderPreferencesService;
 
-    public RemindersService(AppDbContext ctx, IReminderPreferencesService reminderPreferencesService) : base(ctx)
-    {
-        _reminderPreferencesService = reminderPreferencesService;
+    public RemindersService(AppDbContext ctx, IReminderPreferencesService reminderPreferencesService) : base(ctx) 
+    { 
+        _reminderPreferencesService = reminderPreferencesService ?? throw new ArgumentNullException(nameof(reminderPreferencesService));
     }
+
+    
 
     /// <summary>
     /// Retrieves all reminders for a specific user.
@@ -162,12 +164,12 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time (except for canceled reminders - they are immediate)
-            if (model.ReminderType != reminderType.EventParticipationCanceled && 
-                model.ReminderType != reminderType.RoomBookingCanceled)
-            {
-                model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
-            }
+            // Subtract the advance time from the reminder time
+            // This is to be implemented when we start using the advance time in the RemindersModel for notification view. For now just have it be the event time.
+            // if (model.ReminderType != reminderType.EventParticipationCanceled && 
+            //     model.ReminderType != reminderType.RoomBookingCanceled) {
+            //     model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
+            // }
 
             // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = model.ReminderType switch
