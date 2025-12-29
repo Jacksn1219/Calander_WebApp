@@ -61,27 +61,41 @@ const Calendar: React.FC = () => {
           </div>
 
           <div className="attendance-wrapper">
-            <button
-              className="attendance-button"
-              onClick={() => setAttendanceOpen(o => !o)}
-              disabled={attendanceLoading}
-            >
-              {attendanceLabel}
-              <span className="attendance-caret">▾</span>
-            </button>
+  <div className="attendance-control">
+    <p className="attendance-helper">
+      Tell your colleagues where you’re working from
+    </p>
+
+    <button
+      className="attendance-button"
+      onClick={() => setAttendanceOpen(o => !o)}
+      disabled={attendanceLoading}
+    >
+      {attendanceLabel}
+      <span className="attendance-caret">▾</span>
+    </button>
+  </div>
+
 
             {attendanceOpen && (
               <div className="attendance-dropdown">
-                {(['Present', 'Absent', 'Remote'] as const).map(option => (
+                {[  
+                  { key: 'Present', label: 'Office', icon: '🏢' },
+                  { key: 'Remote', label: 'Remote', icon: '🏠' },
+                  { key: 'Absent', label: 'Absent', icon: '⛔' },
+                ].map(option => (
                   <button
-                    key={option}
-                    className="attendance-option"
+                    key={option.key}
+                    className={`attendance-option ${
+                      attendanceStatus === option.key ? 'active' : ''
+                    }`}
                     onClick={() => {
-                      setTodayAttendance(option);
+                      setTodayAttendance(option.key as any);
                       setAttendanceOpen(false);
                     }}
                   >
-                    {option}
+                    <span className="attendance-icon">{option.icon}</span>
+                    <span className="attendance-text">{option.label}</span>
                   </button>
                 ))}
               </div>

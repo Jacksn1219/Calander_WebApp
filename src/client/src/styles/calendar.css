@@ -392,23 +392,26 @@
 }
 
 .attendance-button {
-  background: #f0f0f0;
-  border: none;
-  border-radius: 6px;
-  padding: 8px 12px;
+  background: white;
+  border: 1px solid #e1e4ea;
+  border-radius: 8px;
+  padding: 8px 14px;
   font-size: 0.85rem;
   font-weight: 500;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  gap: 6px;
-  transition: background 0.2s;
-  white-space: nowrap;
+  gap: 8px;
+  cursor: pointer;
+  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  transition: background 0.15s, box-shadow 0.15s;
 }
 
 .attendance-button:hover:not(:disabled) {
-  background: #e0e0e0;
+  background: #f9fafb;
+  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
 }
+
+
 
 .attendance-button:disabled {
   opacity: 0.6;
@@ -422,28 +425,64 @@
 .attendance-dropdown {
   position: absolute;
   right: 0;
-  top: calc(100% + 6px);
+  top: calc(100% + 8px);
   background: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.12);
-  min-width: 160px;
-  z-index: 10;
-  overflow: hidden;
+  border-radius: 10px;
+  box-shadow:
+    0 8px 24px rgba(0,0,0,0.12),
+    0 2px 6px rgba(0,0,0,0.08);
+  min-width: 220px;
+  padding: 6px;
+  z-index: 20;
 }
+
 
 .attendance-option {
   width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 12px;
   padding: 10px 12px;
   background: transparent;
   border: none;
-  text-align: left;
+  border-radius: 8px;
   font-size: 0.85rem;
   cursor: pointer;
   transition: background 0.15s;
 }
 
 .attendance-option:hover {
-  background: #f7f9fc;
+  background: #f3f6fb;
 }
 
+.attendance-option.active {
+  background: #e8f0fe;
+  font-weight: 600;
+}
+
+.attendance-icon {
+  width: 20px;
+  text-align: center;
+  font-size: 1rem;
+}
+
+.attendance-text {
+  flex: 1;
+}
+
+
+.attendance-control {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 6px;
+}
+
+.attendance-helper {
+  margin: 0;
+  font-size: 0.7rem;
+  color: #6b7280;
+  line-height: 1.2;
+  white-space: nowrap;
+  text-align: right;
+}
