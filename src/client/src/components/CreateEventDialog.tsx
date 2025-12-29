@@ -107,14 +107,14 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
               required
             />
 
-            <label>Number of Attendees *</label>
+            <label>Number of Invitees *</label>
             <input
               type="number"
               name="attendeeCount"
               value={formData.attendeeCount}
               onChange={handleChange}
               min="1"
-              placeholder="Enter number of attendees"
+              placeholder="1"
               required
             />
             

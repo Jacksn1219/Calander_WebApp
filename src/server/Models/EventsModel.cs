@@ -47,37 +47,24 @@ namespace Calender_WebApp.Models
         public DateTime EndTime { get; set; }
 
         /// <summary>
-        /// Location of the event. Can be a free-text address or derived from a room selection.
+        /// Location of the event. Can be a free-text address or room name.
         /// </summary>
         [Column("location", Order = 5)]
         public string? Location { get; set; }
 
         /// <summary>
-        /// ID of the room where the event takes place (optional).
-        /// </summary>
-        [Column("room_id", Order = 6)]
-        [ForeignKey(nameof(Room))]
-        public int? RoomId { get; set; }
-
-        /// <summary>
         /// ID of the room booking associated with this event (optional).
         /// </summary>
-        [Column("booking_id", Order = 7)]
+        [Column("booking_id", Order = 6)]
         public int? BookingId { get; set; }
 
-        /// <summary>=
+        /// <summary>
         /// ID of the user who created the event.
         /// </summary>
         [Required]
-        [Column("created_by", Order = 8)]
+        [Column("created_by", Order = 7)]
         [ForeignKey(nameof(CreatedByUser))]
         public int CreatedBy { get; set; }
-
-        /// <summary>
-        /// Navigation property for the room where the event takes place.
-        /// </summary>
-        [JsonIgnore]
-        public virtual RoomsModel? Room { get; set; }
 
         /// <summary>
         /// Navigation property for the employee who created the event.
