@@ -61,20 +61,20 @@ const Calendar: React.FC = () => {
           </div>
 
           <div className="attendance-wrapper">
-  <div className="attendance-control">
-    <p className="attendance-helper">
-      Tell your colleagues where you’re working from
-    </p>
+            <div className="attendance-control">
+              <p className="attendance-helper">
+                Tell your colleagues where you’re working from today
+              </p>
 
-    <button
-      className="attendance-button"
-      onClick={() => setAttendanceOpen(o => !o)}
-      disabled={attendanceLoading}
-    >
-      {attendanceLabel}
-      <span className="attendance-caret">▾</span>
-    </button>
-  </div>
+              <button
+              className="attendance-button"
+              onClick={() => setAttendanceOpen(o => !o)}
+              disabled={attendanceLoading}
+              >
+              {attendanceLabel}
+              <span className="attendance-caret">▾</span>
+            </button>
+          </div>
 
 
             {attendanceOpen && (
