@@ -71,7 +71,7 @@ const Notifications: React.FC = () => {
     if (filter === 'unread') return !r.isRead;
     if (filter === 'read') return r.isRead;
     return true;
-  });
+  }).sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime());
 
   const unreadCount = reminders.filter(r => !r.isRead).length;
 

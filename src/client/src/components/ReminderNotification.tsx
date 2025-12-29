@@ -103,7 +103,7 @@ const ReminderNotification: React.FC = () => {
             </div>
           ) : (
             <div>
-              {unsentReminders.slice(0, 5).map((reminder) => (
+              {unsentReminders.sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime()).slice(0, 5).map((reminder) => (
                 <div key={reminder.reminder_id} className="reminder-item-wrapper">
                   <div className="reminder-item">
                     {/* Header Bar with Cross */}
