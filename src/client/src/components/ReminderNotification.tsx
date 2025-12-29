@@ -51,6 +51,23 @@ const ReminderNotification: React.FC = () => {
     };
   }, [showReminders]);
 
+  // Close dropdown on Escape
+  useEffect(() => {
+    if (!showReminders) return;
+
+    const handleKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault();
+        setShowReminders(false);
+      }
+    };
+
+    window.addEventListener('keydown', handleKeyDown);
+    return () => {
+      window.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [showReminders]);
+
   const handleMarkAsRead = async (reminderId: number, e: React.MouseEvent) => {
     e.stopPropagation();
     try {

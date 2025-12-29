@@ -3,6 +3,7 @@ import { Link, useLocation } from 'react-router-dom';
 import { useAuth } from '../states/AuthContext';
 import { useSidebar } from '../hooks/hooks';
 import '../styles/sidebar.css';
+import UserSettings from './UserSettings';
 
 const Sidebar: React.FC = () => {
   const { isCollapsed, toggleSidebar, handleLogout } = useSidebar();
@@ -108,6 +109,30 @@ const Sidebar: React.FC = () => {
             : renderUnauthenticatedSidebar()
           }
         </ul>
+
+        {isAuthenticated && (
+          <div className="sidebar-user-section">
+            <UserSettings
+              dropdownPlacement="right"
+              showLogoutAction={false}
+              showLabel={!isCollapsed}
+            />
+
+            <button
+              type="button"
+              className="logout-button"
+              onClick={handleLogout}
+              title="Logout"
+            >
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <path d="M15 3h4a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2h-4"/>
+                <polyline points="10,17 15,12 10,7"/>
+                <line x1="15" y1="12" x2="3" y2="12"/>
+              </svg>
+              {!isCollapsed && <span>Logout</span>}
+            </button>
+          </div>
+        )}
       </div>
     </nav>
   );
