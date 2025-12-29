@@ -99,6 +99,26 @@ public class ReminderPreferencesController : ControllerBase
 		}
 	}
 
+	// Patch /api/reminderspreferences — Update advance minutes for a specific user
+	[HttpPatch("{id:int}/advance-minutes")]
+	public async Task<ActionResult<ReminderPreferencesModel>> UpdateAdvanceMinutes(int id, [FromBody] string advanceMinutes)
+	{
+		try
+		{
+			if (!TimeSpan.TryParse(advanceMinutes, out var timeSpan))
+			{
+				return BadRequest("Invalid time format");
+			}
+			
+			var updated = await _reminderPreferencesService.UpdateAdvanceMinutes(id, timeSpan).ConfigureAwait(false);
+			return Ok(updated);
+		}
+		catch (InvalidOperationException)
+		{
+			return NotFound();
+		}
+	}
+
 	// The ReminderPreferences should be deleted automatically when a user, event or roombooking is deleted //
 	// DELETE /api/reminderspreferences — Delete reminderpreference (body: reminderpreferences details)
 	// [HttpDelete("{id:int}")]

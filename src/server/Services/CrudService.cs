@@ -111,7 +111,7 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
     {
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
-        if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
+        if (dbTEntity == null) throw new InvalidOperationException($"Entity with ID {id} not found.");
 
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
 

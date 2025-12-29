@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
 import ReminderNotification from './ReminderNotification';
+import UserSettings from './UserSettings';
 import { useHomeDashboard } from '../hooks/hooks';
 import '../styles/home.css';
 import '../styles/login-page.css';
@@ -122,17 +123,6 @@ const Home: React.FC = () => {
           </div>
           <div className="home-header-right">
             <ReminderNotification />
-            {user && (
-              <div className="home-header-user">
-                <div className="home-header-avatar">
-                  {(user.name || user.email || '?').charAt(0).toUpperCase()}
-                </div>
-                <div className="home-header-user-text">
-                  <span className="home-header-user-name">{user.name || 'User'}</span>
-                  <span className="home-header-user-role">{user.role}</span>
-                </div>
-              </div>
-            )}
           </div>
         </div>
 
