@@ -1737,7 +1737,7 @@ export const getRoomById = async (roomId: number): Promise<RoomDto | null> => {
     }
     const data = await response.json();
     return {
-      id: data.room_id ?? data.id ?? data.roomId ?? data.RoomId ?? 0,
+      room_id: data.room_id ?? data.RoomId ?? data.id ?? data.Id,
       roomName: data.room_name ?? data.roomName ?? data.RoomName ?? 'Room',
       capacity: data.capacity ?? data.Capacity ?? null,
       location: data.location ?? data.Location ?? '',
