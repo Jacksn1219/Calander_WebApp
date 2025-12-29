@@ -123,7 +123,7 @@ const ReminderNotification: React.FC = () => {
             </div>
           ) : (
             <div>
-              {unsentReminders.sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime()).slice(0, 5).map((reminder) => {
+              {unsentReminders.sort((a, b) => b.reminder_id - a.reminder_id).slice(0, 5).map((reminder) => {
                 // Determine icon and color based on reminder type
                 const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
                 const isCanceled = reminder.reminderType === 4 || reminder.reminderType === 5;
