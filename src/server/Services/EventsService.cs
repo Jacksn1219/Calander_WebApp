@@ -193,7 +193,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             await _roombookingsService.Delete(booking).ConfigureAwait(false);
         }
 
-        // Delete related event participations using the service (generates canceled notifications)
+        // Delete related event participations using the service (generates "Event Canceled" notifications)
         var relatedParticipations = await _context.Set<EventParticipationModel>()
             .Where(ep => ep.EventId == id)
             .ToListAsync()
@@ -201,7 +201,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
         foreach (var participation in relatedParticipations)
         {
-            await _eventparticipationService.Delete(participation).ConfigureAwait(false);
+            await _eventparticipationService.Delete(participation, isEventCanceled: true).ConfigureAwait(false);
         }
 
         // Mark all existing reminders for this event as read (except the canceled reminders that were just created)

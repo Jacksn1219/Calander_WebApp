@@ -39,21 +39,48 @@ public class EventParticipationService : IEventParticipationService
     /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
     public async Task<EventParticipationModel> Delete(EventParticipationModel entity)
     {
+        return await Delete(entity, isEventCanceled: false);
+    }
+
+    /// <summary>
+    /// Removes a user's participation from an event based on the provided entity details.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="isEventCanceled">If true, sends "Event Canceled" notification. If false, sends "You are no longer participating" notification.</param>
+    /// <returns>The deleted participation record.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
+    public async Task<EventParticipationModel> Delete(EventParticipationModel entity, bool isEventCanceled)
+    {
         var participation = await _dbSet
             .FirstOrDefaultAsync(ep => ep.UserId == entity.UserId && ep.EventId == entity.EventId);
 
         if (participation == null)
             throw new InvalidOperationException("Participation record not found.");
     
-        // Get event details for the canceled reminder
+        // Get event details for the notification
         var eventModel = await _context.Set<EventsModel>()
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == participation.EventId)
             .ConfigureAwait(false);
 
-        // Send canceled reminder before deleting participation
+        // Send notification before deleting participation
         if (eventModel != null)
         {
+            string title, message;
+            
+            if (isEventCanceled)
+            {
+                // Entire event was canceled
+                title = $"Event Canceled: {eventModel.Title}";
+                message = $"The event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm} has been canceled.";
+            }
+            else
+            {
+                // User canceled their own participation
+                title = $"You are no longer participating: {eventModel.Title}";
+                message = $"You have canceled your participation for the event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm}.";
+            }
+
             await _remindersService.Post(new RemindersModel
             {
                 UserId = participation.UserId,
@@ -61,8 +88,8 @@ public class EventParticipationService : IEventParticipationService
                 RelatedEventId = participation.EventId,
                 RelatedRoomId = eventModel.RoomId ?? 0,
                 ReminderTime = DateTime.Now,
-                Title = $"Event Canceled: {eventModel.Title}",
-                Message = $"The event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm} has been canceled."
+                Title = title,
+                Message = message
             }).ConfigureAwait(false);
         }
 
@@ -125,6 +152,22 @@ public class EventParticipationService : IEventParticipationService
         }
 
         var entry = await _dbSet.AddAsync(participation).ConfigureAwait(false);
+        
+        // Mark any existing "no longer participating" notifications for this event as read
+        var canceledReminders = await _context.Set<RemindersModel>()
+            .Where(r => r.UserId == participation.UserId && 
+                       r.RelatedEventId == participation.EventId && 
+                       r.ReminderType == reminderType.EventParticipationCanceled &&
+                       !r.IsRead)
+            .ToListAsync()
+            .ConfigureAwait(false);
+        
+        foreach (var reminder in canceledReminders)
+        {
+            reminder.IsRead = true;
+        }
+        
+        await _context.SaveChangesAsync().ConfigureAwait(false);
         
         // Create reminder for the event participation
         DateTime eventDetails = await GetEventStartTimeAsync(participation.EventId).ConfigureAwait(false);
