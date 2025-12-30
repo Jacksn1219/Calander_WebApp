@@ -2713,47 +2713,6 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
   };
 };
 
-export const useRoomBooking = () => {
-  const { user } = useAuth()
-  const [roomBookings, setRoomBookings] = useState<RoomBooking[]>([]);
-  const [roomBookingsOnDay, setRoomBookingsOnDay] = useState<RoomBooking[]>([]);
-  const [currentDate, setCurrentDate] = useState(new Date());
-  const [selectedDate, setSelectedDate] = useState(new Date());
-
-  const fetchRoomBookings = async () => {
-    if (!user) return;
-    try {
-      const response = await apiFetch(`/api/room-bookings/user/${user.userId}`);
-
-      if (!response.ok) throw new Error("Failed to fetch roombookings");
-
-      const data: RoomBooking[] = await response.json();
-      setRoomBookings(data);
-    } catch (err) {
-      console.error("Fetching roombookings failed: ", err);
-      setRoomBookings([]);
-    }
-  };
-
-  useEffect(() => {
-    fetchRoomBookings();
-  }, [user]);
-
-  const goToPreviousMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
-  };
-
-  const goToNextMonth = () => {
-    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
-  };
-
-  const goToCurrentDate = () => {
-    setCurrentDate(new Date());
-  };
-
-  return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, 
-    currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
-}
 
 export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: RoomBooking[], reloadBookings: () => void) => {
   const [editingBooking, setEditingBooking] = useState<RoomBooking | null>(null);

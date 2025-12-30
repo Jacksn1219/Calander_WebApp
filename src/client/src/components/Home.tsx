@@ -170,65 +170,6 @@ const Home: React.FC = () => {
               </section>
             </div>
 
-            <div className="calendar-container">
-              <section className="calendar-grid">
-                <h2 className="section-title">Room Booking</h2>
-                {roomBookingsLoading && (
-                  <p className="muted">Loading your room bookings...</p>
-                )}
-                {roomBookingsError && (
-                  <p className="muted room-booking-error">
-                    {roomBookingsError}
-                  </p>
-                )}
-                {!roomBookingsLoading && !roomBookingsError && roomBookings.length === 0 && (
-                  <p className="muted">You have no room bookings yet.</p>
-                )}
-
-                {roomBookings.length > 0 && (
-                  <>
-                    <div className="upcoming-list">
-                      {[...roomBookings].reverse().slice(0, 3).map(b => {
-                        const start = new Date(b.startTime);
-                        const end = new Date(b.endTime);
-                        const bookingDate = start; // Use start time for the date badge
-                        const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
-                        return (
-                          <button
-                            type="button"
-                            key={b.id}
-                            className="upcoming-card home-upcoming-card"
-                          >
-                            <div className="upcoming-date">
-                              <span className="upcoming-date-day">{bookingDate.getDate()}</span>
-                              <span className="upcoming-date-month">{bookingDate.toLocaleDateString(undefined, { month: 'short' })}</span>
-                            </div>
-                            <div className="upcoming-details">
-                              <h4>{b.roomName || 'Room'}</h4>
-                              <p className="upcoming-time">{timeRange}</p>
-                              {b.purpose && (
-                                <p className="upcoming-description">
-                                  {b.purpose.length > 120 ? `${b.purpose.slice(0, 117)}...` : b.purpose}
-                                </p>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="home-see-more-wrapper">
-                      <button
-                        type="button"
-                        className="btn-today"
-                        onClick={() => navigate('/roombooking')}
-                      >
-                        See more...
-                      </button>
-                    </div>
-                  </>
-                )}
-              </section>
-            </div>
           </div>
 
           {/* Right column: Upcoming Events */}
