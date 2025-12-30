@@ -143,13 +143,7 @@ const ReminderNotification: React.FC = () => {
                         eventDate: eventDate.toISOString()
                       } 
                     });
-                  } else if (reminder.relatedRoomId !== 0) {
-                    navigate('/roombooking', { 
-                      state: { 
-                        bookingDate: new Date(reminder.reminderTime).toISOString()
-                      } 
-                    });
-                  }
+                  } 
                 };
                 
                 return (
