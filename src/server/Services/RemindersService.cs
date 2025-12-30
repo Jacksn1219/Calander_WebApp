@@ -105,7 +105,14 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         if (reminders.Count == 0)
             return null!;
 
-        _dbSet.RemoveRange(reminders);
+        
+        foreach (var reminder in reminders)
+        {
+            if (reminder.ReminderType != reminderType.EventParticipationCanceled)
+            {
+            reminder.IsRead = true;
+            }
+        }
         await _context.SaveChangesAsync();
 
         return reminders.First();
@@ -120,7 +127,13 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         if (reminders.Count == 0)
             return null!;
 
-        _dbSet.RemoveRange(reminders);
+        foreach (var reminder in reminders)
+        {
+            if (reminder.ReminderType != reminderType.EventParticipationCanceled)
+            {
+            reminder.IsRead = true;
+            }
+        }
         await _context.SaveChangesAsync();
 
         return reminders.First();
@@ -153,13 +166,20 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         {
             // Subtract the advance time from the reminder time
             // This is to be implemented when we start using the advance time in the RemindersModel for notification view. For now just have it be the event time.
-            // model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
+            // if (model.ReminderType != reminderType.EventParticipationCanceled && 
+            //     model.ReminderType != reminderType.RoomBookingCanceled) {
+            //     model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
+            // }
 
             // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = model.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
                 reminderType.RoomBooking => userPreference.BookingReminder,
+                reminderType.EventParticipationChanged => userPreference.EventReminder,
+                reminderType.RoomBookingChanged => userPreference.BookingReminder,
+                reminderType.EventParticipationCanceled => userPreference.EventReminder,
+                reminderType.RoomBookingCanceled => userPreference.BookingReminder,
                 _ => true
             };
 
