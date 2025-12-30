@@ -7,7 +7,7 @@
 
 .edit-event-dashboard {
   flex: 1;
-  padding: 1rem;
+  padding: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -64,6 +64,16 @@
 .edit-event-form textarea:focus {
   border-color: #3182ce;
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+}
+
+/* EditEventDialog modal-specific sizing tweaks (avoid tiny internal scroll) */
+.edit-dialog-backdrop .dialog-content {
+  max-height: 95vh;
+}
+
+.edit-dialog-backdrop .dialog-body {
+  padding: 16px;
+  padding-right: 10%;
 }
 
 /* Scoped button styles for Edit Event Dialog */

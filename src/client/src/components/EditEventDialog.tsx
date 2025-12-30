@@ -32,7 +32,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
   }, [showRoomDropdown, setShowRoomDropdown]);
 
   return (
-    <div className="dialog-backdrop" onClick={handleBackdropClick}>
+    <div className="dialog-backdrop edit-dialog-backdrop" onClick={handleBackdropClick}>
       <div className="dialog-content">
         <div className="dialog-header">
           <h2>Edit Event</h2>
