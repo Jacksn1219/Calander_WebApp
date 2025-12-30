@@ -1,4 +1,4 @@
-/* Home dashboard calendar styles: derived from calendar.css but scoped for compact use */
+  /* Home dashboard calendar styles: derived from calendar.css but scoped for compact use */
 
 /* Scope all styles under .home-page */
 .home-page .events-header {
@@ -100,6 +100,60 @@
   padding: 12px;
 }
 
+/* Give the Upcoming Events card extra left padding */
+.home-page .calendar-container.home-upcoming-events {
+  padding-left: 24px;
+}
+
+/* Today summary strip */
+.home-page .home-summary-strip {
+  margin-top: 12px;
+  width: 520px;
+  max-width: 100%;
+  border-radius: 10px;
+  border: 1px solid #e0e0e0;
+  background: #f9fafc;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  padding: 12px;
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: flex-start;
+  gap: 12px;
+}
+
+.home-page .home-summary-item {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 180px;
+}
+
+.home-page .home-summary-label {
+  font-size: 0.8rem;
+  color: #6b7280;
+  font-weight: 600;
+}
+
+.home-page .home-summary-value {
+  font-size: 0.95rem;
+  color: #111827;
+  font-weight: 600;
+}
+
+.home-page .home-summary-pill {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-width: 36px;
+  height: 28px;
+  padding: 0 10px;
+  border-radius: 999px;
+  background: #eff5ff;
+  border: 1px solid #cfe0ff;
+  color: #1f6feb;
+}
+
 /* Generic row wrapper for putting cards next to each other */
 .home-page .home-row {
   display: flex;
@@ -107,7 +161,8 @@
   gap: 16px;
 }
 
-.home-page .home-row > .calendar-container {
+.home-page .home-row > .calendar-container,
+.home-page .home-row > .home-left-column {
   flex: 1 1 0;
   min-width: 260px;
 }
@@ -118,7 +173,7 @@
 }
 .home-page .home-row .calendar-header {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 0;           /* remove gaps between weekday labels */
   margin: 0 0 2px;  /* minimal space just above the boxes */
 }
@@ -131,18 +186,18 @@
   padding: 0;
 }
 
-/* 5-column layout for Mon–Fri mini week - scoped to home page only */
+/* 7-column layout for Mon–Sun mini week - scoped to home page only */
 .home-page .home-row .calendar-container .calendar-grid .calendar-days {
   display: grid;
-  grid-template-columns: repeat(5, 1fr);
+  grid-template-columns: repeat(7, 1fr);
   gap: 0;           /* no extra horizontal gap vs header */
 }
 
 .home-page .home-row .calendar-day {
-  aspect-ratio: 4 / 3;
+  aspect-ratio: 2.5 / 2;
   border: 1px solid #e0e0e0;
   border-radius: 4px;
-  padding: 4px 3px;
+  padding: 1px 2px;
   cursor: pointer;
   position: relative;
   display: flex;
@@ -154,7 +209,7 @@
 }
 
 .home-page .home-row .weekday-label {
-  font-size: 0.7rem;
+  font-size: 0.65rem;
   font-weight: 600;
   color: #666;
 }
@@ -198,7 +253,7 @@
 }
 
 .home-page .home-row .day-number {
-  font-size: 0.75rem;
+  font-size: 0.7rem;
   font-weight: 500;
 }
 
@@ -208,7 +263,7 @@
   color: white;
   border-radius: 10px;
   padding: 0 3px;
-  font-size: 0.6rem;
+  font-size: 0.55rem;
   font-weight: 600;
 }
 
@@ -305,6 +360,38 @@
   display: flex;
   flex-direction: column;
   gap: 1.5rem;
+}
+
+/* Quick create event card */
+.home-page .home-quick-create {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.home-page .home-main-row {
+  margin-top: 16px;
+}
+
+.home-page .home-card-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.home-page .home-card-header h3 {
+  margin: 0;
+  font-size: 1rem;
+}
+
+.home-page .home-quick-create-text {
+  margin: 0;
+}
+
+.home-page .home-quick-create-actions {
+  display: flex;
+  justify-content: flex-end;
 }
 
 .home-page .home-calendar-section {
@@ -454,6 +541,7 @@
   color: #4b5563;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
