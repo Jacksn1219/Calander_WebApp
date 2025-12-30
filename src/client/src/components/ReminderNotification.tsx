@@ -198,7 +198,7 @@ const ReminderNotification: React.FC = () => {
                       </div>
                       {(reminder.relatedEventId !== 0 || reminder.relatedRoomId !== 0) && (
                         <div className="reminder-item-link">
-                          {reminder.relatedEventId !== 0 ? '→ View Event' : '→ View Booking'}
+                          {reminder.relatedEventId !== 0 ? '→ View Event' : ''}
                         </div>
                       )}
                     </div>
