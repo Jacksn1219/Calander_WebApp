@@ -39,7 +39,7 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
           <button className="btn-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="dialog-body">
-          <form className="booking-card" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+          <form className="edit-event-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <label>Title *</label>
             <input
               type="text"
