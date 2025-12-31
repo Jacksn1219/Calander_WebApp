@@ -2,9 +2,11 @@ import React, { useEffect } from 'react';
 import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { useCalendar, useCalendarEvents } from '../hooks/hooks';
+import { useCalendar, useCalendarEvents,useOfficeAttendance } from '../hooks/hooks';
 import '../styles/calendar.css';
 import { useAuth } from '../states/AuthContext';
+import { useState } from 'react';
+
 
 const Calendar: React.FC = () => {
   const location = useLocation();
@@ -49,6 +51,16 @@ const Calendar: React.FC = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location, onDaySelect, loading, roleScopedEvents]);
+  
+    const {
+    status: attendanceStatus,
+    setTodayAttendance,
+    loading: attendanceLoading,
+  } = useOfficeAttendance();
+
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const attendanceLabel = attendanceStatus ?? 'Set attendance';
+
 
   return (
     <div className="app-layout">
@@ -66,7 +78,50 @@ const Calendar: React.FC = () => {
               </div>
             )}
           </div>
+
+          <div className="attendance-wrapper">
+            <div className="attendance-control">
+              <p className="attendance-helper">
+                Tell your colleagues where you’re working from today
+              </p>
+
+              <button
+              className="attendance-button"
+              onClick={() => setAttendanceOpen(o => !o)}
+              disabled={attendanceLoading}
+              >
+              {attendanceLabel}
+              <span className="attendance-caret">▾</span>
+            </button>
+          </div>
+
+
+            {attendanceOpen && (
+              <div className="attendance-dropdown">
+                {[  
+                  { key: 'Present', label: 'Office', icon: '🏢' },
+                  { key: 'Remote', label: 'Remote', icon: '🏠' },
+                  { key: 'Absent', label: 'Absent', icon: '⛔' },
+                ].map(option => (
+                  <button
+                    key={option.key}
+                    className={`attendance-option ${
+                      attendanceStatus === option.key ? 'active' : ''
+                    }`}
+                    onClick={() => {
+                      setTodayAttendance(option.key as any);
+                      setAttendanceOpen(false);
+                    }}
+                  >
+                    <span className="attendance-icon">{option.icon}</span>
+                    <span className="attendance-text">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
 
         <div className="calendar-container">
           <div className="calendar-controls">
@@ -200,5 +255,4 @@ const Calendar: React.FC = () => {
     </div>
   );
 };
-
 export default Calendar;

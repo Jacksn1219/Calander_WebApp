@@ -3,7 +3,9 @@ using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
+
 namespace Calender_WebApp.Controllers;
+
 [ApiController]
 [Route("api/office-attendance")]
 public class OfficeAttendanceController : ControllerBase
@@ -36,10 +38,22 @@ public class OfficeAttendanceController : ControllerBase
         }
     }
     [HttpGet("user/{userId}")]
-    public async Task<ActionResult<IEnumerable<OfficeAttendanceModel>>> GetByUserId(int userId)
+    public async Task<ActionResult<OfficeAttendanceModel>> GetByUserId(int userId)
     {
-        var records = await _officeAttendanceService.GetAttendancesByUserIdAsync(userId).ConfigureAwait(false);
-        return Ok(records);
+        try
+        {
+            var today = DateTime.Today;
+
+            var record = await _officeAttendanceService
+                .GetAttendanceByUserAndDateAsync(userId, today)
+                .ConfigureAwait(false);
+
+            return Ok(record);
+        }
+        catch (InvalidOperationException)
+        {
+            return NotFound();
+        }
     }
     [HttpGet("user/{userId}/date/{date}")]
     public async Task<ActionResult<OfficeAttendanceModel>> GetByUserIdAndDate(int userId, DateTime date)
@@ -88,34 +102,42 @@ public class OfficeAttendanceController : ControllerBase
             return Conflict(ex.Message);
         }
     }
-    [HttpPut("{id:int}")]
-    public async Task<ActionResult<OfficeAttendanceModel>> Update(int id, [FromBody] OfficeAttendanceModel
-attendance)
+    [HttpGet("today/{userId}")]
+    public async Task<ActionResult<OfficeAttendanceModel>> GetToday(int userId)
     {
-        if (attendance == null)
-        {
-            return BadRequest("Attendance payload must be provided.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
         try
         {
-            var updatedRecord = await _officeAttendanceService.Put(id, attendance).ConfigureAwait(false);
-            return Ok(updatedRecord);
+            var today = DateTime.Today;
+
+            var record = await _officeAttendanceService
+                .GetAttendanceByUserAndDateAsync(userId, today);
+
+            return Ok(record);
         }
         catch (InvalidOperationException)
         {
             return NotFound();
         }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
     }
+
+    [HttpPut("today/{userId}")]
+    public async Task<ActionResult<OfficeAttendanceModel>> Update(
+        int userId,
+        [FromBody] UpdateAttendanceRequest request)
+    {
+        if (!Enum.IsDefined(typeof(AttendanceStatus), request.Status))
+            return BadRequest("Invalid attendance status.");
+
+        var today = DateTime.Today;
+        var status = (AttendanceStatus)request.Status;
+
+        var result = await _officeAttendanceService
+            .UpsertAttendanceAsync(userId, today, status);
+
+        return Ok(result);
+    }
+
+
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -128,5 +150,9 @@ attendance)
         {
             return NotFound();
         }
+    }
+    public class UpdateAttendanceRequest
+    {
+        public int Status { get; set; }
     }
 }
