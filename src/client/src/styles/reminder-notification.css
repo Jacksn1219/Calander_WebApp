@@ -7,8 +7,8 @@
   width: 44px;
   height: 44px;
   background-color: transparent;
-  color: #666;
-  border: 1px solid #e0e0e0;
+  color: var(--text-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   cursor: pointer;
   display: flex;
@@ -19,16 +19,16 @@
 }
 
 .reminder-notification-button:hover {
-  background-color: #f5f5f5;
-  border-color: #d0d0d0;
-  color: #333;
+  background-color: var(--bg-tertiary);
+  border-color: var(--border-hover);
+  color: var(--text-primary);
 }
 
 .reminder-notification-badge {
   position: absolute;
   top: -4px;
   right: -4px;
-  background-color: #dc3545;
+  background-color: var(--danger-color);
   color: white;
   border-radius: 50%;
   min-width: 18px;
@@ -39,7 +39,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 0px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .reminder-dropdown {
@@ -47,10 +47,10 @@
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--modal-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-md);
   min-width: 350px;
   max-width: 400px;
   max-height: 400px;
@@ -60,7 +60,7 @@
 
 .reminder-dropdown-header {
   padding: 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -70,10 +70,11 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .reminder-mark-all-btn {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -85,7 +86,7 @@
 }
 
 .reminder-mark-all-btn:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
 }
 
 .reminder-dropdown-loading,
@@ -93,21 +94,21 @@
 .reminder-dropdown-empty {
   padding: 20px;
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .reminder-dropdown-error {
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 .reminder-item-wrapper {
   padding: 8px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .reminder-item {
   padding: 0;
-  background-color: #eeeeee;
+  background-color: var(--bg-tertiary);
   border-radius: 6px;
   overflow: hidden;
 }
@@ -117,7 +118,7 @@
   justify-content: space-between;
   align-items: center;
   padding: 10px 15px;
-  background-color: #eeeeee;
+  background-color: var(--bg-tertiary);
   margin-bottom: -10px;
 }
 
@@ -134,14 +135,14 @@
 .reminder-item-title {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .reminder-mark-read-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   padding: 4px;
   display: flex;
   align-items: center;
@@ -151,8 +152,8 @@
 }
 
 .reminder-mark-read-btn:hover {
-  background-color: #d0d0d0;
-  color: #333;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
 }
 
 .reminder-item-separator {
@@ -160,13 +161,13 @@
 }
 
 .reminder-item-separator-line {
-  border-top: 1px solid #c0c0c0;
+  border-top: 1px solid var(--border-color);
   margin: 8px 0;
 }
 
 .reminder-item-meta {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
   margin-bottom: 8px;
   padding: 0 15px;
@@ -176,7 +177,7 @@
 }
 
 .reminder-item-meta-divider {
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .reminder-item-meta-id {
@@ -189,18 +190,18 @@
 
 .reminder-item-message {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
 }
 
 .reminder-dropdown-footer {
   padding: 12px;
   text-align: center;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .reminder-view-all-btn {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -212,5 +213,5 @@
 }
 
 .reminder-view-all-btn:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
 }

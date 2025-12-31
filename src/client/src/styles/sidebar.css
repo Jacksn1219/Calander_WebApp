@@ -9,6 +9,12 @@ body {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Disable transitions on initial load to prevent flash */
+html.preload body,
+html.preload .sidebar {
+  transition: none !important;
+}
+
 body.sidebar-collapsed {
   padding-left: 60px;
 }
@@ -31,13 +37,13 @@ code {
 /* sidebar styles */
 .sidebar {
   width: 220px;
-  background: #0b1220;
+  background: var(--sidebar-bg);
   color: #fff;
   box-sizing: border-box;
   display: flex;
   flex-direction: column;
   min-height: 100vh;
-  transition: width 0.3s ease;
+  transition: width 0.3s ease, background 0.3s ease;
   position: fixed;
   top: 0;
   left: 0;
@@ -52,14 +58,14 @@ code {
   display: flex;
   align-items: center;
   padding: 16px 12px;
-  border-bottom: 1px solid #1a2332;
+  border-bottom: 1px solid var(--sidebar-border-color);
   gap: 12px;
 }
 
 .sidebar-toggle {
   background: none;
   border: none;
-  color: #cfe3ff;
+  color: #fff;
   cursor: pointer;
   padding: 8px;
   border-radius: 6px;
@@ -72,8 +78,8 @@ code {
 }
 
 .sidebar-toggle:hover {
-  background: #1a2332;
-  color: #ffffff;
+  background: var(--sidebar-hover);
+  color: #fff;
 }
 
 .sidebar-toggle:focus {
@@ -106,7 +112,7 @@ code {
 }
 
 .sidebar-nav a {
-  color: #cfe3ff;
+  color: #fff;
   text-decoration: none;
   display: flex;
   align-items: center;
@@ -118,12 +124,16 @@ code {
 }
 
 .sidebar-nav a:hover {
-  background: #1a2332;
-  color: #ffffff;
+  background: var(--sidebar-hover);
+  color: #fff;
+}
+
+.sidebar-nav span {
+  color: #fff;
 }
 
 .sidebar-nav li.active a {
-  background: #1f6feb;
+  background: var(--primary-color);
   color: white;
 }
 
@@ -140,7 +150,7 @@ code {
 .sidebar-user-section {
   margin-top: auto;
   padding-top: 16px;
-  border-top: 1px solid #1a2332;
+  border-top: 1px solid var(--sidebar-border-color);
   display: flex;
   flex-direction: column;
   gap: 8px;
@@ -171,7 +181,7 @@ code {
 /* Settings trigger in the sidebar footer */
 .user-settings-sidebar-button {
   width: 100%;
-  color: #cfe3ff;
+  color: #fff;
   background: none;
   border: none;
   text-decoration: none;
@@ -186,8 +196,8 @@ code {
 }
 
 .user-settings-sidebar-button:hover {
-  background: #1a2332;
-  color: #ffffff;
+  background: var(--sidebar-hover);
+  color: #fff;
 }
 
 .sidebar.collapsed .user-settings-sidebar-button span {
@@ -205,7 +215,7 @@ code {
   gap: 12px;
   padding: 12px 8px;
   margin-bottom: 12px;
-  background: #151b26;
+  background: var(--bg-tertiary);
   border-radius: 8px;
   transition: all 0.2s ease;
 }
@@ -221,7 +231,7 @@ code {
   justify-content: center;
   width: 36px;
   height: 36px;
-  background: #1f6feb;
+  background: var(--primary-color);
   border-radius: 50%;
   color: white;
   flex-shrink: 0;
@@ -241,7 +251,7 @@ code {
 .user-name {
   font-weight: 600;
   font-size: 0.9rem;
-  color: #ffffff;
+  color: #fff;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
@@ -257,7 +267,7 @@ code {
 .logout-button {
   width: 100%;
   padding: 10px 12px;
-  background: #da3633;
+  background: var(--danger-color);
   color: white;
   border: none;
   border-radius: 6px;
@@ -280,7 +290,7 @@ code {
 }
 
 .logout-button:hover {
-  background: #c92a2a;
+  background: var(--danger-hover);
 }
 
 .logout-button:active {

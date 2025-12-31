@@ -2,7 +2,6 @@ import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import { useReminders, getRoomById, RoomDto } from '../hooks/hooks';
 import '../styles/index.css';
-import '../styles/reminder-notification.css';
 
 const Notifications: React.FC = () => {
   const { reminders, loading, error, markAsRead, markAllAsRead } = useReminders();
@@ -90,8 +89,8 @@ const Notifications: React.FC = () => {
             gap: '15px'
           }}>
             <div>
-              <h1 style={{ margin: '0 0 5px 0', fontSize: '28px' }}>Notifications</h1>
-              <p style={{ margin: 0, color: '#666', fontSize: '14px' }}>
+              <h1 style={{ margin: '0 0 5px 0', fontSize: '28px', color: 'var(--text-primary)' }}>Notifications</h1>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '14px' }}>
                 {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
               </p>
             </div>
@@ -99,18 +98,15 @@ const Notifications: React.FC = () => {
               <button
                 onClick={markAllAsRead}
                 style={{
-                  padding: '10px 20px',
                   backgroundColor: '#007bff',
                   color: 'white',
                   border: 'none',
-                  borderRadius: '5px',
+                  padding: '10px 20px',
+                  borderRadius: '8px',
                   cursor: 'pointer',
                   fontSize: '14px',
-                  fontWeight: '500',
-                  transition: 'background-color 0.2s'
+                  fontWeight: '500'
                 }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#0056b3'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#007bff'}
               >
                 Mark all as read
               </button>
@@ -118,40 +114,41 @@ const Notifications: React.FC = () => {
           </div>
 
           {/* Filter Tabs */}
-          <div style={{ 
-            marginBottom: '20px',
-            borderBottom: '2px solid #e9ecef',
+          <div style={{
             display: 'flex',
-            gap: '20px'
+            gap: '10px',
+            marginBottom: '25px',
+            backgroundColor: 'var(--bg-tertiary)',
+            padding: '6px',
+            borderRadius: '10px'
           }}>
-            {(['all', 'unread', 'read'] as const).map((filterOption) => (
+            {(['all', 'unread', 'read'] as const).map((f) => (
               <button
-                key={filterOption}
-                onClick={() => setFilter(filterOption)}
+                key={f}
+                onClick={() => setFilter(f)}
                 style={{
-                  padding: '12px 5px',
-                  background: 'none',
+                  background: filter === f ? 'var(--bg-primary)' : 'none',
                   border: 'none',
-                  borderBottom: filter === filterOption ? '2px solid #007bff' : '2px solid transparent',
-                  color: filter === filterOption ? '#007bff' : '#666',
+                  padding: '10px 18px',
+                  borderRadius: '8px',
                   cursor: 'pointer',
-                  fontSize: '15px',
-                  fontWeight: filter === filterOption ? '600' : '400',
-                  marginBottom: '-2px',
+                  fontSize: '14px',
+                  fontWeight: '500',
                   transition: 'all 0.2s',
-                  textTransform: 'capitalize'
+                  position: 'relative',
+                  color: filter === f ? 'var(--text-primary)' : 'var(--text-secondary)'
                 }}
               >
-                {filterOption}
-                {filterOption === 'unread' && unreadCount > 0 && (
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'unread' && unreadCount > 0 && (
                   <span style={{
-                    marginLeft: '8px',
                     backgroundColor: '#007bff',
                     color: 'white',
                     borderRadius: '10px',
                     padding: '2px 8px',
                     fontSize: '12px',
-                    fontWeight: 'bold'
+                    fontWeight: 'bold',
+                    marginLeft: '6px'
                   }}>
                     {unreadCount}
                   </span>
@@ -203,16 +200,14 @@ const Notifications: React.FC = () => {
           {!loading && !error && filteredReminders.length === 0 && (
             <div style={{ 
               padding: '60px 20px', 
-              textAlign: 'center',
-              backgroundColor: '#f8f9fa',
-              borderRadius: '8px',
-              color: '#666'
+              textAlign: 'center', 
+              color: '#999' 
             }}>
-              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#ccc" strokeWidth="2" style={{ margin: '0 auto 15px' }}>
+              <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="#999" strokeWidth="2" style={{ margin: '0 auto 15px' }}>
                 <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
                 <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
               </svg>
-              <h3 style={{ margin: '0 0 10px 0', fontSize: '20px' }}>
+              <h3 style={{ margin: '0 0 8px 0', color: '#666', fontSize: '18px' }}>
                 {filter === 'all' && 'No notifications'}
                 {filter === 'unread' && 'No unread notifications'}
                 {filter === 'read' && 'No read notifications'}
@@ -227,57 +222,89 @@ const Notifications: React.FC = () => {
 
           {/* Notifications List */}
           {!loading && !error && filteredReminders.length > 0 && (
-            <div>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
               {filteredReminders.map((reminder) => (
-                <div key={reminder.reminder_id} className="reminder-item-wrapper" style={{ marginBottom: '20px' }}>
-                  <div className="reminder-item" style={{ padding: '20px' }}>
-                    {/* Header Bar with Cross */}
-                    <div className="reminder-item-header" style={{ padding: '12px 16px' }}>
-                      <div className="reminder-item-header-left">
-                        <span className="reminder-item-icon" style={{ fontSize: '28px' }}>
-                          {reminder.reminderType === 0 ? '📅' : '🔔'}
-                        </span>
-                        <span className="reminder-item-title" style={{ fontSize: '18px', fontWeight: '600' }}>
-                          {reminder.title}
-                        </span>
-                      </div>
-                      {!reminder.isRead && (
-                        <button
-                          onClick={() => handleMarkAsRead(reminder.reminder_id)}
-                          className="reminder-mark-read-btn"
-                          title="Mark as read"
-                          style={{ width: '28px', height: '28px' }}
-                        >
-                          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                            <line x1="18" y1="6" x2="6" y2="18" />
-                            <line x1="6" y1="6" x2="18" y2="18" />
-                          </svg>
-                        </button>
-                      )}
+                <div 
+                  key={reminder.reminder_id} 
+                  style={{
+                    backgroundColor: reminder.isRead ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
+                    border: '1px solid var(--border-color)',
+                    borderRadius: '12px',
+                    padding: '16px',
+                    transition: 'all 0.2s',
+                    boxShadow: '0 2px 4px var(--shadow)'
+                  }}
+                >
+                  {/* Header Bar with Cross */}
+                  <div style={{ 
+                    display: 'flex', 
+                    justifyContent: 'space-between', 
+                    alignItems: 'center',
+                    marginBottom: '10px',
+                    paddingBottom: '10px',
+                    borderBottom: '1px solid var(--border-color)'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                      <span style={{ fontSize: '20px' }}>
+                        {reminder.reminderType === 0 ? '📅' : '🔔'}
+                      </span>
+                      <span style={{ 
+                        fontWeight: '600', 
+                        fontSize: '16px',
+                        color: 'var(--text-primary)'
+                      }}>
+                        {reminder.title}
+                      </span>
                     </div>
+                    {!reminder.isRead && (
+                      <button
+                        onClick={() => handleMarkAsRead(reminder.reminder_id)}
+                        style={{
+                          background: 'none',
+                          border: 'none',
+                          cursor: 'pointer',
+                          padding: '4px',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: 'var(--text-secondary)',
+                          transition: 'color 0.2s'
+                        }}
+                        title="Mark as read"
+                      >
+                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                          <line x1="18" y1="6" x2="6" y2="18" />
+                          <line x1="6" y1="6" x2="18" y2="18" />
+                        </svg>
+                      </button>
+                    )}
+                  </div>
 
-                    {/* Separator line under header */}
-                    <div className="reminder-item-separator">
-                      <div className="reminder-item-separator-line" />
-                    </div>
+                  {/* Date and Time Row with Room Info */}
+                  <div style={{ 
+                    fontSize: '13px', 
+                    color: 'var(--text-secondary)', 
+                    marginBottom: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '4px'
+                  }}>
+                    <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
+                    {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
+                      <>
+                        <span> | </span>
+                        <span>{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
+                      </>
+                    )}
+                  </div>
 
-                    {/* Date and Time Row with IDs */}
-                    <div className="reminder-item-meta" style={{ fontSize: '15px', padding: '0 16px', marginBottom: '14px', gap: '10px' }}>
-                      <span style={{ fontSize: '15px' }}>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
-                      {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
-                        <>
-                          <span className="reminder-item-meta-divider" style={{ fontSize: '15px' }}>|</span>
-                          <span className="reminder-item-meta-id" style={{ fontSize: '15px' }}>{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
-                        </>
-                      )}
-                    </div>
-
-                    {/* Content Row */}
-                    <div className="reminder-item-content" style={{ padding: '0 16px 16px 16px' }}>
-                      <div className="reminder-item-message" style={{ fontSize: '15px', lineHeight: '1.6' }}>
-                        {reminder.message}
-                      </div>
-                    </div>
+                  {/* Content Row */}
+                  <div style={{ 
+                    fontSize: '14px', 
+                    lineHeight: '1.5',
+                    color: 'var(--text-primary)'
+                  }}>
+                    {reminder.message}
                   </div>
                 </div>
               ))}
@@ -285,7 +312,6 @@ const Notifications: React.FC = () => {
           )}
         </div>
 
-        {/* Add spinner animation */}
         <style>{`
           @keyframes spin {
             0% { transform: rotate(0deg); }

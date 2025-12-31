@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUserSettings, useLogoutWithConfirmation } from '../hooks/hooks';
 import { useAuth } from '../states/AuthContext';
+import { useTheme } from '../states/ThemeContext';
 import '../styles/user-settings.css';
 import '../styles/sidebar.css';
 
@@ -20,6 +21,7 @@ const UserSettings: React.FC<UserSettingsProps> = ({
   const [advanceMinutesInput, setAdvanceMinutesInput] = useState('');
   const containerRef = useRef<HTMLDivElement>(null);
   const { user } = useAuth();
+  const { theme, toggleTheme } = useTheme();
   const handleLogout = useLogoutWithConfirmation();
   const {
     preferences,
@@ -123,6 +125,22 @@ const UserSettings: React.FC<UserSettingsProps> = ({
             <div className="user-settings-error">{error}</div>
           ) : (
             <div className="user-settings-content">
+              <div className="settings-section">
+                <h4 className="settings-section-title">Appearance</h4>
+                
+                <div className="settings-item">
+                  <div className="settings-item-label">
+                    <span>Dark Mode</span>
+                  </div>
+                  <button
+                    onClick={toggleTheme}
+                    className={`toggle-button ${theme === 'dark' ? 'active' : ''}`}
+                  >
+                    <span className="toggle-slider"></span>
+                  </button>
+                </div>
+              </div>
+
               {preferences ? (
                 <div className="settings-section">
                   <h4 className="settings-section-title">Reminder Preferences</h4>

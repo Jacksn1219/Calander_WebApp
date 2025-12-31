@@ -8,7 +8,7 @@
   align-items: center;
   gap: 8px;
   background: transparent;
-  border: 1px solid #444;
+  border: 1px solid var(--sidebar-border-color);
   border-radius: 8px;
   padding: 6px 12px;
   cursor: pointer;
@@ -16,7 +16,7 @@
 }
 
 .user-settings-button:hover {
-  border-color: #d0d0d0;
+  border-color: var(--border-hover);
 
 }
 
@@ -58,10 +58,10 @@
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--modal-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 4px 12px var(--shadow-md);
   min-width: 320px;
   max-width: 400px;
   z-index: 1000;
@@ -79,13 +79,14 @@
 
 .user-settings-header {
   padding: 15px;
-  border-bottom: 1px solid #eee;
+  border-bottom: 1px solid var(--border-color);
 }
 
 .user-settings-title {
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .user-settings-loading,
@@ -93,11 +94,11 @@
 .user-settings-empty {
   padding: 20px;
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .user-settings-error {
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 .user-settings-content {
@@ -114,7 +115,7 @@
   margin: 0 0 8px 0;
   font-size: 13px;
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
   text-transform: uppercase;
   letter-spacing: 0.5px;
 }
@@ -134,14 +135,14 @@
 
 .settings-item-label span {
   font-size: 14px;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .toggle-button {
   position: relative;
   width: 44px;
   height: 24px;
-  background-color: #ccc;
+  background-color: var(--border-color);
   border: none;
   border-radius: 12px;
   cursor: pointer;
@@ -150,7 +151,7 @@
 }
 
 .toggle-button.active {
-  background-color: #007bff;
+  background-color: var(--primary-color);
 }
 
 .toggle-slider {
@@ -172,20 +173,22 @@
 .advance-minutes-input {
   width: 80px;
   padding: 6px 10px;
-  border: 1px solid #ddd;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   font-size: 14px;
   text-align: center;
+  background-color: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .advance-minutes-input:focus {
   outline: none;
-  border-color: #007bff;
+  border-color: var(--input-focus);
 }
 
 .settings-divider {
   height: 1px;
-  background-color: #eee;
+  background-color: var(--border-color);
   margin: 12px 0;
 }
 

@@ -50,7 +50,7 @@
 
 .home-page .home-header-user-role {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .home-page .home-notification-button {
@@ -58,8 +58,8 @@
   width: 32px;
   height: 32px;
   border-radius: 8px;
-  background: #020617;
-  border: 1px solid #1f2937;
+  background: var(--bg-tertiary);
+  border: 1px solid var(--border-color);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -71,7 +71,7 @@
   width: 16px;
   height: 16px;
   border-radius: 4px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--border-color);
 }
 
 .home-page .home-notification-dot {
@@ -81,8 +81,8 @@
   width: 10px;
   height: 10px;
   border-radius: 999px;
-  background: #3b82f6;
-  border: 2px solid #020617;
+  background: var(--primary-color);
+  border: 2px solid var(--bg-primary);
 }
 
 .home-page .events-header h1 {
@@ -96,7 +96,7 @@
 
 .home-page .home-row .calendar-container {
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 12px;
 }
 
@@ -127,7 +127,7 @@
   text-align: center;
   font-weight: 600;
   font-size: 0.75rem;
-  color: #666;
+  color: var(--text-secondary);
   padding: 0;
 }
 
@@ -140,7 +140,7 @@
 
 .home-page .home-row .calendar-day {
   aspect-ratio: 4 / 3;
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--calendar-day-border);
   border-radius: 4px;
   padding: 4px 3px;
   cursor: pointer;
@@ -150,13 +150,13 @@
   align-items: center;
   justify-content: flex-start;
   transition: all 0.2s;
-  background: white;
+  background: var(--calendar-day-bg);
 }
 
 .home-page .home-row .weekday-label {
   font-size: 0.7rem;
   font-weight: 600;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .home-page .home-row .calendar-day.empty {
@@ -166,23 +166,23 @@
 }
 
 .home-page .home-row .calendar-day:not(.empty):hover {
-  background: #f7f9fc;
-  border-color: #1f6feb;
+  background: var(--calendar-day-hover);
+  border-color: var(--primary-color);
 }
 
 .home-page .home-row .calendar-day.today {
-  background: #e3f2fd;
-  border-color: #1f6feb;
+  background: var(--calendar-day-today);
+  border-color: var(--primary-color);
   font-weight: 600;
 }
 
 .home-page .home-row .calendar-day.has-event {
-  background: #fff3cd;
-  border-color: #ffc107;
+  background: rgba(245, 158, 11, 0.2);
+  border-color: var(--warning-color);
 }
 
 .home-page .home-row .calendar-day.has-event:hover {
-  background: #ffe69c;
+  background: rgba(245, 158, 11, 0.3);
 }
 
 /* Make Upcoming Events tiles more compact on Home */
@@ -384,36 +384,36 @@
 }
 
 .home-page .home-upcoming-card {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
-  background: #f9fafc;
+  background: var(--bg-tertiary);
   display: flex;
   gap: 12px;
   text-align: left;
   transition: border-color 0.2s, background 0.2s, transform 0.2s;
   width: 100%;
   cursor: pointer;
-  color: inherit;
+  color: var(--text-primary);
   font: inherit;
   outline: none;
 }
 
 .home-page .home-upcoming-card:hover {
-  border-color: #1f6feb;
-  background: #eff5ff;
+  border-color: var(--primary-color);
+  background: var(--bg-primary);
   transform: translateY(-2px);
 }
 
 .home-page .home-upcoming-card:focus-visible {
-  outline: 2px solid #1f6feb;
+  outline: 2px solid var(--primary-color);
 }
 
 .home-page .home-upcoming-card .upcoming-date {
   min-width: 56px;
   border-radius: 8px;
-  background: white;
-  border: 1px solid #e0e6f0;
+  background: var(--bg-primary);
+  border: 1px solid var(--border-color);
   text-align: center;
   padding: 6px 4px;
   display: flex;
@@ -429,7 +429,7 @@
 
 .home-page .home-upcoming-card .upcoming-date-month {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .home-page .home-upcoming-card .upcoming-details {
@@ -439,13 +439,14 @@
 .home-page .home-upcoming-card .upcoming-details h4 {
   margin: 0 0 4px;
   font-size: 1rem;
+  color: var(--text-primary);
 }
 
 .home-page .home-upcoming-card .upcoming-time {
   margin: 0;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #1f6feb;
+  color: var(--primary-color);
 }
 
 .home-page .home-upcoming-card .upcoming-description {

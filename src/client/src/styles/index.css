@@ -1,3 +1,81 @@
+:root {
+  /* Light mode colors - ORIGINEEL */
+  --bg-primary: #ffffff;
+  --bg-secondary: #ffffff;
+  --bg-tertiary: #f9f9f9;
+  --text-primary: #333333;
+  --text-secondary: #666666;
+  --text-tertiary: #999999;
+  --border-color: #dddddd;
+  --border-hover: #cccccc;
+  --sidebar-border-color: #1a2332;
+  --shadow: rgba(0, 0, 0, 0.1);
+  --shadow-md: rgba(0, 0, 0, 0.15);
+  --shadow-lg: rgba(0, 0, 0, 0.2);
+  --primary-color: #1f6feb;
+  --primary-hover: #0969da;
+  --primary-light: #dbeafe;
+  --danger-color: #da3633;
+  --danger-hover: #c92a2a;
+  --success-color: #10b981;
+  --success-hover: #059669;
+  --warning-color: #f59e0b;
+  --warning-hover: #d97706;
+  --input-bg: #ffffff;
+  --input-border: #d1d5db;
+  --input-focus: #1f6feb;
+  --modal-bg: #ffffff;
+  --modal-overlay: rgba(0, 0, 0, 0.5);
+  --sidebar-bg: #0b1220;
+  --sidebar-text: #ffffff;
+  --sidebar-hover: #374151;
+  --sidebar-active: #4b5563;
+  --calendar-day-bg: #ffffff;
+  --calendar-day-border: #e0e0e0;
+  --calendar-day-hover: #f7f9fc;
+  --calendar-day-today: #e3f2fd;
+  --calendar-picker-filter: invert(0);
+}
+
+[data-theme='dark'] {
+  /* Dark mode colors */
+  --bg-primary: #0f172a;           /* Donkerste achtergrond */
+  --bg-secondary: #1e293b;         /* Licht donkerblauw voor cards/componenten */
+  --bg-tertiary: #334155;          /* Nog lichter voor hover states */
+  --text-primary: #e2e8f0;         /* Lichtgrijs voor tekst (goed leesbaar) */
+  --text-secondary: #94a3b8;       /* Subtiele tekst */
+  --text-tertiary: #64748b;        /* Extra subtiel */
+  --border-color: #334155;         /* Subtiele borders */
+  --border-hover: #475569;         /* Hover borders */
+  --sidebar-border-color: #334155;
+  --shadow: rgba(0, 0, 0, 0.4);
+  --shadow-md: rgba(0, 0, 0, 0.5);
+  --shadow-lg: rgba(0, 0, 0, 0.6);
+  --primary-color: #3b82f6;        /* Blauw blijft hetzelfde */
+  --primary-hover: #60a5fa;
+  --primary-light: #1e3a8a;        /* Donker blauw accent */
+  --danger-color: #ef4444;
+  --danger-hover: #f87171;
+  --success-color: #10b981;
+  --success-hover: #34d399;
+  --warning-color: #f59e0b;
+  --warning-hover: #fbbf24;
+  --input-bg: #1e293b;             /* Zelfde als bg-secondary */
+  --input-border: #475569;
+  --input-focus: #60a5fa;
+  --modal-bg: #1e293b;             /* Modals zelfde als cards */
+  --modal-overlay: rgba(0, 0, 0, 0.75);
+  --sidebar-bg: #020617;           /* Extra donker voor sidebar onderscheid */
+  --sidebar-text: #e2e8f0;
+  --sidebar-hover: #0f172a;
+  --sidebar-active: #1e293b;
+  --calendar-day-bg: #1e3a5f;      /* Licht donkerblauw voor kalender vakjes */
+  --calendar-day-border: #2d4a6e;
+  --calendar-day-hover: #2a4a74;
+  --calendar-day-today: #1e40af;   /* Vandaag highlight */
+  --calendar-picker-filter: invert(1);  /* Wit maken in dark mode */
+}
+
 body {
   margin: 0;
   font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', 'Oxygen',
@@ -6,6 +84,9 @@ body {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
   overflow-x: hidden;
+  background-color: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 code {
@@ -50,4 +131,44 @@ code {
 
 .password-toggle svg {
   flex-shrink: 0;
+}
+
+/* Global dark mode styles for common elements */
+input, textarea, select {
+  background-color: var(--input-bg);
+  color: var(--text-primary);
+  border-color: var(--input-border);
+  transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+
+input:focus, textarea:focus, select:focus {
+  border-color: var(--input-focus);
+}
+
+button {
+  transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+h1, h2, h3, h4, h5, h6 {
+  color: var(--text-primary);
+}
+
+p, span, label {
+  color: var(--text-primary);
+}
+
+/* Common dialog/modal styles */
+.dialog-backdrop {
+  background: var(--modal-overlay);
+}
+
+.dialog-content, .modal-content {
+  background: var(--modal-bg);
+  color: var(--text-primary);
+}
+
+/* Common card styles */
+.card, .section, .panel {
+  background: var(--bg-secondary);
+  border-color: var(--border-color);
 }
