@@ -92,6 +92,7 @@
   justify-content: center;
   transition: background 0.2s;
   flex-shrink: 0;
+  color: #ffffff;
 }
 
 .btn-nav:hover {
@@ -272,7 +273,7 @@
 
 .btn-icon.primary {
   background: #1f6feb;
-  color: white;
+  color: #ffffff;
 }
 
 .btn-icon:disabled {

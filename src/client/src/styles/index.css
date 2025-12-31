@@ -69,9 +69,9 @@
   --sidebar-text: #e2e8f0;
   --sidebar-hover: #0f172a;
   --sidebar-active: #1e293b;
-  --calendar-day-bg: #1e3a5f;      /* Licht donkerblauw voor kalender vakjes */
-  --calendar-day-border: #2d4a6e;
-  --calendar-day-hover: #2a4a74;
+  --calendar-day-bg: #334155;      /* Licht donkerblauw voor kalender vakjes */
+  --calendar-day-border: #172b46;
+  --calendar-day-hover: #1e3350;
   --calendar-day-today: #1e40af;   /* Vandaag highlight */
   --calendar-picker-filter: invert(1);  /* Wit maken in dark mode */
 }
