@@ -306,9 +306,6 @@ public class EventParticipationService : IEventParticipationService
             .Where(ep => ep.EventId == eventId)
             .ToArrayAsync();
 
-        if (participants.Length == 0)
-            return Array.Empty<EventParticipationModel>();
-
         // Get current event if not provided
         if (newEvent == null)
         {
@@ -356,15 +353,19 @@ public class EventParticipationService : IEventParticipationService
         // Build message with event time info
         var eventTimeInfo = $"Event starts: {newEvent.EventDate:yyyy-MM-dd HH:mm}";
         var message = changes.Count > 0
-            ? $"\nThe event you are participating in has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
-            : $"\nThe event you are participating in has been updated.\n{eventTimeInfo}";
+            ? $"\nThe event has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
+            : $"\nThe event has been updated.\n{eventTimeInfo}";
 
-        foreach (var participant in participants)
+        // Collect unique user IDs: owner + participants (no duplicates)
+        var userIdsToNotify = new HashSet<int>(participants.Select(p => p.UserId));
+        userIdsToNotify.Add(newEvent.CreatedBy);
+
+        // Send notification to owner and all participants
+        foreach (var userId in userIdsToNotify)
         {
-            // Create a new "changed" reminder for each participant
             await _remindersService.Post(new RemindersModel
             {
-                UserId = participant.UserId,
+                UserId = userId,
                 ReminderType = reminderType.EventParticipationChanged,
                 RelatedEventId = eventId,
                 ReminderTime = newEvent.EventDate,

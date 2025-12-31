@@ -287,36 +287,36 @@
 }
 
 .upcoming-card {
-  border: 1px solid #e0e0e0;
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   padding: 12px;
-  background: #f9fafc;
+  background: var(--bg-tertiary);
   display: flex;
   gap: 12px;
   text-align: left;
   cursor: pointer;
   transition: border-color 0.2s, background 0.2s, transform 0.2s;
   width: 100%;
-  color: inherit;
+  color: var(--text-primary);
   font: inherit;
   outline: none;
 }
 
 .upcoming-card:hover:not(:disabled) {
-  border-color: #1f6feb;
-  background: var(--bg-primary);
+  border-color: var(--primary-color);
+  background: var(--bg-secondary);
   transform: translateY(-2px);
 }
 
 .upcoming-card:focus-visible {
-  outline: 2px solid #1f6feb;
+  outline: 2px solid var(--primary-color);
 }
 
 .upcoming-date {
   min-width: 56px;
   border-radius: 8px;
-  background: white;
-  border: 1px solid #e0e6f0;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   text-align: center;
   padding: 6px 4px;
   display: flex;

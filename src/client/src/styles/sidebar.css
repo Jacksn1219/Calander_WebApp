@@ -281,6 +281,10 @@ code {
   gap: 8px;
 }
 
+.logout-button span {
+  color: white;
+}
+
 .sidebar.collapsed .logout-button {
   padding: 10px 8px;
 }

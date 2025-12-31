@@ -121,12 +121,26 @@
 
 .reminder-item-changed {
   border-left: 4px solid #ff9800;
-  background-color: #fff8e1;
+}
+
+[data-theme='dark'] .reminder-item-changed {
+  background-color: rgba(255, 152, 0, 0.2);
+}
+
+[data-theme='light'] .reminder-item-changed {
+  background-color: rgba(255, 152, 0, 0.1);
 }
 
 .reminder-item-canceled {
   border-left: 4px solid #dc3545;
-  background-color: #f8d7da;
+}
+
+[data-theme='dark'] .reminder-item-canceled {
+  background-color: rgba(220, 53, 69, 0.2);
+}
+
+[data-theme='light'] .reminder-item-canceled {
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .reminder-changed-badge {
@@ -182,6 +196,46 @@
 .reminder-mark-read-btn:hover {
   background-color: var(--bg-secondary);
   color: var(--text-primary);
+}
+
+.reminder-item-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  line-height: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.reminder-item-close:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.reminder-item-body {
+  padding: 16px;
+}
+
+.reminder-item-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.reminder-item-info {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  white-space: pre-line;
 }
 
 .reminder-item-separator {
