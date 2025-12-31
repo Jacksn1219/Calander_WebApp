@@ -140,7 +140,7 @@ const Home: React.FC = () => {
       <main className="main-content">
         <div className="events-header">
           <div className="events-header-left">
-            <h1>Welcome {user?.name}</h1>
+            <h1>Welcome {user?.name},</h1>
             <p className="muted">Review your meetings, bookings, and events in one place.</p>
             {loading && <p className="muted">Loading dashboard data...</p>}
             {error && (
@@ -159,6 +159,7 @@ const Home: React.FC = () => {
           {/* Today summary strip */}
           <div className="home-summary-strip" role="status" aria-live="polite">
             <div className="home-summary-item">
+              <h2 className="home-summary-label-today">What's happening today?</h2>
               <span className="home-summary-label">Today:</span>
               <span className="home-summary-value">
                 {new Date().toLocaleDateString(undefined, {
@@ -182,16 +183,6 @@ const Home: React.FC = () => {
               </span>
             </div>
 
-            <div className="home-summary-item home-summary-item-reminders">
-              <span className="home-summary-label">Unread reminders:</span>
-              <span className="home-summary-value home-summary-pill">
-                {remindersLoading
-                  ? '…'
-                  : remindersError
-                    ? '—'
-                    : unreadRemindersCount}
-              </span>
-            </div>
           </div>
 
           {/* Quick create event (next to summary strip) */}
@@ -203,7 +194,7 @@ const Home: React.FC = () => {
               Create an event to bring your colleagues to the office.
             </p>
             <div className="home-quick-create-actions">
-              <button type="button" className="btn-today" onClick={openCreateDialog}>
+              <button type="button" className="btn-today-create-event" onClick={openCreateDialog}>
                 Create event
               </button>
             </div>
@@ -212,7 +203,7 @@ const Home: React.FC = () => {
 
         {/* Main content layout: mini calendar and upcoming events side-by-side */}
         <div className="home-row home-main-row">
-          <div className="calendar-container">
+          <div className="calendar-container home-calendar-card">
             {/* Embedded week calendar preview */}
             <section className="calendar-grid home-calendar-section">
               <div className="calendar-controls">
