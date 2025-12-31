@@ -155,56 +155,58 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Today summary strip */}
-        <div className="home-summary-strip" role="status" aria-live="polite">
-          <div className="home-summary-item">
-            <span className="home-summary-label">Today</span>
-            <span className="home-summary-value">
-              {new Date().toLocaleDateString(undefined, {
-                weekday: 'long',
-                year: 'numeric',
-                month: 'long',
-                day: 'numeric',
-              })}
-            </span>
+        <div className="home-top-row">
+          {/* Today summary strip */}
+          <div className="home-summary-strip" role="status" aria-live="polite">
+            <div className="home-summary-item">
+              <span className="home-summary-label">Today:</span>
+              <span className="home-summary-value">
+                {new Date().toLocaleDateString(undefined, {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
+            </div>
+
+            <div className="home-summary-item">
+              <span className="home-summary-label">Next event:</span>
+              <span className="home-summary-value">
+                {nextAcceptedEvent
+                  ? nextAcceptedEvent.eventDate.toLocaleTimeString(undefined, {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'No upcoming events'}
+              </span>
+            </div>
+
+            <div className="home-summary-item home-summary-item-reminders">
+              <span className="home-summary-label">Unread reminders:</span>
+              <span className="home-summary-value home-summary-pill">
+                {remindersLoading
+                  ? '…'
+                  : remindersError
+                    ? '—'
+                    : unreadRemindersCount}
+              </span>
+            </div>
           </div>
 
-          <div className="home-summary-item">
-            <span className="home-summary-label">Next event</span>
-            <span className="home-summary-value">
-              {nextAcceptedEvent
-                ? nextAcceptedEvent.eventDate.toLocaleTimeString(undefined, {
-                    hour: '2-digit',
-                    minute: '2-digit',
-                  })
-                : 'No upcoming events'}
-            </span>
-          </div>
-
-          <div className="home-summary-item">
-            <span className="home-summary-label">Unread reminders</span>
-            <span className="home-summary-value home-summary-pill">
-              {remindersLoading
-                ? '…'
-                : remindersError
-                  ? '—'
-                  : unreadRemindersCount}
-            </span>
-          </div>
-        </div>
-
-        {/* Quick create event (above calendar + upcoming) */}
-        <div className="calendar-container home-quick-create">
-          <div className="home-card-header">
-            <h3>Quick action</h3>
-          </div>
-          <p className="muted home-quick-create-text">
-            Create an event to bring your colleagues to the office.
-          </p>
-          <div className="home-quick-create-actions">
-            <button type="button" className="btn-today" onClick={openCreateDialog}>
-              Create event
-            </button>
+          {/* Quick create event (next to summary strip) */}
+          <div className="calendar-container home-quick-create">
+            <div className="home-card-header">
+              <h3>Quick action</h3>
+            </div>
+            <p className="muted home-quick-create-text">
+              Create an event to bring your colleagues to the office.
+            </p>
+            <div className="home-quick-create-actions">
+              <button type="button" className="btn-today" onClick={openCreateDialog}>
+                Create event
+              </button>
+            </div>
           </div>
         </div>
 
