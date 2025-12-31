@@ -92,5 +92,25 @@ public class ReminderPreferencesService : CrudService<ReminderPreferencesModel>,
         return preference.BookingReminder;
     }
 
+    /// <summary>
+    /// Updates the advance minutes for a specific user.
+    /// </summary>
+    /// <param name="userId"> The ID of the user whose advance minutes are to be updated. </param>
+    /// <param name="advanceMinutes"> The new advance minutes value as TimeSpan. </param>
+    /// <returns> The updated reminder preferences model. </returns>
+    public async Task<ReminderPreferencesModel> UpdateAdvanceMinutes(int userId, TimeSpan advanceMinutes)
+    {
+        var preference = await _dbSet
+            .FirstOrDefaultAsync(rp => rp.Id == userId);
+
+        if (preference == null)
+            throw new InvalidOperationException("User preferences not found.");
+
+        preference.ReminderAdvanceMinutes = advanceMinutes;
+
+        await _context.SaveChangesAsync();
+        return preference;
+    }
+
     // Add additional services that are not related to CRUD here
 }

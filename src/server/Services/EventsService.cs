@@ -11,11 +11,13 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 {
     private readonly IEventParticipationService _eventparticipationService;
     private readonly IRoomBookingsService _roombookingsService;
+    private readonly IRemindersService _remindersService;
 
-    public EventsService(AppDbContext ctx, IEventParticipationService eventparticipationService, IRoomBookingsService roombookingsService) : base(ctx)
+    public EventsService(AppDbContext ctx, IEventParticipationService eventparticipationService, IRoomBookingsService roombookingsService, IRemindersService remindersService) : base(ctx)
     {
         _eventparticipationService = eventparticipationService ?? throw new ArgumentNullException(nameof(eventparticipationService));
         _roombookingsService = roombookingsService ?? throw new ArgumentNullException(nameof(roombookingsService));
+        _remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
     }
 
     /// <summary>
@@ -46,12 +48,36 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
+        // Validate that the creator exists
+        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == updatedEntity.CreatedBy);
+        if (!creatorExists)
+        {
+            throw new ArgumentException($"Employee with ID {updatedEntity.CreatedBy} does not exist.");
+        }
+
+        // Get the old event before updating
+        var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
+        
+        if (!updatedEntity.RoomId.HasValue || updatedEntity.RoomId == 0) {
+            updatedEntity.RoomId = null;
+        } else {
+            // Validate that the room exists if a RoomId is provided
+            var roomExists = await _context.Set<RoomsModel>()
+                .AnyAsync(r => r.Id == updatedEntity.RoomId.Value);
+            
+            if (!roomExists)
+            {
+                throw new ArgumentException($"Room with ID {updatedEntity.RoomId.Value} does not exist.");
+            }
+        }
+
         var updatedEvent =  await base.Put(id, updatedEntity);
 
         // Update related reminders
         try
         {
-            await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
+            // Update related reminders with old and new event data
+            await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -106,6 +132,24 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
+        // Validate that the creator exists
+        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == newEntity.CreatedBy);
+        if (!creatorExists)
+        {
+            throw new ArgumentException($"Employee with ID {newEntity.CreatedBy} does not exist.");
+        }
+
+        // Validate that the room exists if specified
+        if (newEntity.RoomId == 0) throw new ArgumentException("RoomId cannot be 0.");
+        else if (newEntity.RoomId.HasValue)
+        {
+            var roomExists = await _context.Set<RoomsModel>().AnyAsync(r => r.Id == newEntity.RoomId.Value);
+            if (!roomExists)
+            {
+                throw new ArgumentException($"Room with ID {newEntity.RoomId.Value} does not exist.");
+            }
+        }
+
         var createdEvent = await base.Post(newEntity);
 
         // Create related roombookings
@@ -126,6 +170,58 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         }
 
         return createdEvent;
+    }
+
+    // Delete
+    public override async Task<EventsModel> Delete(int id)
+    {
+        // Get the event
+        var eventToDelete = await _dbSet.FindAsync(id).ConfigureAwait(false);
+        if (eventToDelete == null)
+        {
+            throw new InvalidOperationException("Event not found.");
+        }
+
+        // Delete related room bookings using the service (generates canceled notifications)
+        var relatedBookings = await _context.Set<RoomBookingsModel>()
+            .Where(rb => rb.EventId == id)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        foreach (var booking in relatedBookings)
+        {
+            await _roombookingsService.Delete(booking).ConfigureAwait(false);
+        }
+
+        // Delete related event participations using the service (generates "Event Canceled" notifications)
+        var relatedParticipations = await _context.Set<EventParticipationModel>()
+            .Where(ep => ep.EventId == id)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        foreach (var participation in relatedParticipations)
+        {
+            await _eventparticipationService.Delete(participation, isEventCanceled: true).ConfigureAwait(false);
+        }
+
+        // Mark all existing reminders for this event as read (except the canceled reminders that were just created)
+        var relatedReminders = await _context.Set<RemindersModel>()
+            .Where(r => r.RelatedEventId == id && 
+                   r.ReminderType != reminderType.EventParticipationCanceled && 
+                   r.ReminderType != reminderType.RoomBookingCanceled)
+            .ToListAsync()
+            .ConfigureAwait(false);
+        
+        foreach (var reminder in relatedReminders)
+        {
+            reminder.IsRead = true;
+        }
+
+        // Finally, delete the event itself
+        _dbSet.Remove(eventToDelete);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+        
+        return eventToDelete;
     }
 
     // Add additional services that are not related to CRUD here

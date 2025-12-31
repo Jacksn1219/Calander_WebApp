@@ -1,12 +1,15 @@
-import React from 'react';
+import React, { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { useCalendar,useOfficeAttendance } from '../hooks/hooks';
+import { useCalendar, useCalendarEvents,useOfficeAttendance } from '../hooks/hooks';
 import '../styles/calendar.css';
+import { useAuth } from '../states/AuthContext';
 import { useState } from 'react';
 
 
 const Calendar: React.FC = () => {
+  const location = useLocation();
   const {
     loading,
     error,
@@ -32,6 +35,22 @@ const Calendar: React.FC = () => {
     calendarGridRef,
     upcomingHeaderRef,
   } = useCalendar();
+
+  const { user } = useAuth();
+  const { events: roleScopedEvents, getEventsForDate: fetchEventsForDate } = useCalendarEvents(user);
+  
+  // Handle navigation from reminder notification - wait for events to load
+  useEffect(() => {
+    const state = location.state as { eventId?: number; eventDate?: string } | null;
+    if (state?.eventId && state?.eventDate && !loading && roleScopedEvents.length > 0) {
+      const targetDate = new Date(state.eventDate);
+      // Normalize to midnight to match calendar date logic
+      const normalizedDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      onDaySelect(normalizedDate);
+      // Clear the state after using it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location, onDaySelect, loading, roleScopedEvents]);
   
     const {
     status: attendanceStatus,

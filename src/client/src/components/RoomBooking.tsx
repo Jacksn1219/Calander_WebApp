@@ -1,4 +1,5 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { useLocation } from 'react-router-dom';
 import "../styles/calendar.css";
 import "../styles/RoomBooking.css";
 import Sidebar from "./Sidebar";
@@ -7,8 +8,9 @@ import { useRoomBooking } from "../hooks/hooks";
 import ViewRoomBookingDialog from "./ViewRoomBookingDialog";
 
 const RoomBooking: React.FC = () => {
+    const location = useLocation();
     const { fetchRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, roomBookings,
-        currentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate } = useRoomBooking()
+        currentDate, setCurrentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate } = useRoomBooking()
     const today = new Date();
     const [showCreateBookingDialog, setShowCreateBookingDialog] = useState(false);
     const [showViewBookingDialog, setShowViewBookingDialog] = useState(false);
@@ -25,12 +27,39 @@ const RoomBooking: React.FC = () => {
     const calendarGridStyle: React.CSSProperties = isMobile ? { overflowX: 'auto' } : {};
 
     const calendarInnerStyle: React.CSSProperties = isMobile ? { minWidth: '700px' } : {};
+    const roomSelectRef = useRef<HTMLSelectElement>(null);
 
     useEffect(() => {
         if (showCreateBookingDialog) {
             setShowViewBookingDialog(false);
         }
     }, [showCreateBookingDialog]);
+
+    // Handle navigation from reminder notification
+    useEffect(() => {
+      const state = location.state as { bookingDate?: string } | null;
+      if (state?.bookingDate) {
+        const notificationDate = new Date(state.bookingDate);
+        
+        // Set the calendar to the correct month
+        setCurrentDate(new Date(notificationDate.getFullYear(), notificationDate.getMonth(), 1));
+        setSelectedDate(notificationDate);
+        
+        // Filter bookings for that specific day
+        const bookingsForDay = roomBookings.filter(booking => {
+          const bookingDate = new Date(booking.bookingDate);
+          return bookingDate.getFullYear() === notificationDate.getFullYear() &&
+            bookingDate.getMonth() === notificationDate.getMonth() &&
+            bookingDate.getDate() === notificationDate.getDate();
+        });
+        
+        setRoomBookingsOnDay(bookingsForDay);
+        setShowViewBookingDialog(true);
+        
+        // Clear the state after using it
+        window.history.replaceState({}, document.title);
+      }
+    }, [location, setCurrentDate, setSelectedDate, roomBookings, setRoomBookingsOnDay]);
 
     return (
         <div className="app-layout">

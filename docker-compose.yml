@@ -14,7 +14,7 @@ services:
       # Use env override for SQLite location inside container
       - ConnectionStrings__Default=${DB_CONNECTION_STRING:-Data Source=/app/data/app.db}
       # JWT config
-      - Jwt__Key=${JWT_SECRET_KEY:-change_me}
+      - Jwt__Key=${JWT_SECRET_KEY:-DIT_IS_EEN_VEILIGE_GEHEIME_SLEUTEL_VERANDER_DIT}
       - Jwt__Issuer=CalendarWebApp
       - Jwt__Audience=CalendarUsers
       # CORS origins
