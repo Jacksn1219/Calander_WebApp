@@ -9,7 +9,11 @@ namespace Calender_WebApp.Models
     public enum reminderType
     {
         EventParticipation,
-        RoomBooking
+        RoomBooking,
+        EventParticipationChanged,
+        RoomBookingChanged,
+        EventParticipationCanceled,
+        RoomBookingCanceled
     }
 
     /// <summary>

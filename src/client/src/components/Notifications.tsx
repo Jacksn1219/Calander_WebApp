@@ -70,7 +70,7 @@ const Notifications: React.FC = () => {
     if (filter === 'unread') return !r.isRead;
     if (filter === 'read') return r.isRead;
     return true;
-  }).sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime());
+  }).sort((a, b) => b.reminder_id - a.reminder_id);
 
   const unreadCount = reminders.filter(r => !r.isRead).length;
 
@@ -223,91 +223,84 @@ const Notifications: React.FC = () => {
           {/* Notifications List */}
           {!loading && !error && filteredReminders.length > 0 && (
             <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-              {filteredReminders.map((reminder) => (
-                <div 
-                  key={reminder.reminder_id} 
-                  style={{
-                    backgroundColor: reminder.isRead ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
-                    border: '1px solid var(--border-color)',
-                    borderRadius: '12px',
-                    padding: '16px',
-                    transition: 'all 0.2s',
-                    boxShadow: '0 2px 4px var(--shadow)'
-                  }}
-                >
-                  {/* Header Bar with Cross */}
-                  <div style={{ 
-                    display: 'flex', 
-                    justifyContent: 'space-between', 
-                    alignItems: 'center',
-                    marginBottom: '10px',
-                    paddingBottom: '10px',
-                    borderBottom: '1px solid var(--border-color)'
-                  }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
-                      <span style={{ fontSize: '20px' }}>
-                        {reminder.reminderType === 0 ? '📅' : '🔔'}
-                      </span>
-                      <span style={{ 
-                        fontWeight: '600', 
-                        fontSize: '16px',
+              {filteredReminders.map((reminder) => {
+                const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
+                const isCanceled = reminder.reminderType === 4 || reminder.reminderType === 5;
+
+                return (
+                  <div 
+                    key={reminder.reminder_id} 
+                    style={{
+                      backgroundColor: reminder.isRead ? 'var(--bg-secondary)' : 'var(--bg-tertiary)',
+                      border: '1px solid var(--border-color)',
+                      borderRadius: '12px',
+                      padding: '16px',
+                      transition: 'all 0.2s',
+                      boxShadow: '0 2px 4px var(--shadow)'
+                    }}
+                  >
+                    <div className="reminder-item" style={{ 
+                      padding: '15px',
+                      // backgroundColor: isChanged ? '#fff8e1' : isCanceled ? '#f8d7da' : '#e8e8e8',
+                      borderRadius: '6px',
+                      overflow: 'hidden',
+                      borderLeft: isChanged ? '4px solid #ff9800' : isCanceled ? '4px solid #dc3545' : 'none'
+                    }}>
+                      {/* Header Bar with Cross */}
+                      <div className="reminder-item-header" style={{ padding: '12px 16px' }}>
+                        <div className="reminder-item-header-left">
+                          <span className="reminder-item-icon" style={{ fontSize: '28px' }}>
+                            {reminder.reminderType === 0 ? '📅' : '🔔'}
+                          </span>
+                          <span className="reminder-item-title" style={{ fontSize: '18px', fontWeight: '600' }}>
+                            {reminder.title}
+                          </span>
+                        </div>
+                        {!reminder.isRead && (
+                          <button
+                            onClick={() => handleMarkAsRead(reminder.reminder_id)}
+                            className="reminder-mark-read-btn"
+                            title="Mark as read"
+                            style={{ width: '28px', height: '28px' }}
+                          >
+                            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
+                              <line x1="18" y1="6" x2="6" y2="18" />
+                              <line x1="6" y1="6" x2="18" y2="18" />
+                            </svg>
+                          </button>
+                        )}
+                      </div>
+
+                      {/* Date and Time Row with Room Info */}
+                      <div style={{ 
+                        fontSize: '13px', 
+                        color: 'var(--text-secondary)', 
+                        marginBottom: '8px',
+                        display: 'flex',
+                        alignItems: 'center',
+                        gap: '4px'
+                      }}>
+                        <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
+                        {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
+                          <>
+                            <span> | </span>
+                            <span>{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
+                          </>
+                        )}
+                      </div>
+
+                      {/* Content Row */}
+                      <div style={{ 
+                        fontSize: '14px', 
+                        lineHeight: '1.5',
                         color: 'var(--text-primary)'
                       }}>
-                        {reminder.title}
-                      </span>
+                        {reminder.message}
+                      </div>
                     </div>
-                    {!reminder.isRead && (
-                      <button
-                        onClick={() => handleMarkAsRead(reminder.reminder_id)}
-                        style={{
-                          background: 'none',
-                          border: 'none',
-                          cursor: 'pointer',
-                          padding: '4px',
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
-                          color: 'var(--text-secondary)',
-                          transition: 'color 0.2s'
-                        }}
-                        title="Mark as read"
-                      >
-                        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-                          <line x1="18" y1="6" x2="6" y2="18" />
-                          <line x1="6" y1="6" x2="18" y2="18" />
-                        </svg>
-                      </button>
-                    )}
                   </div>
-
-                  {/* Date and Time Row with Room Info */}
-                  <div style={{ 
-                    fontSize: '13px', 
-                    color: 'var(--text-secondary)', 
-                    marginBottom: '8px',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: '4px'
-                  }}>
-                    <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
-                    {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
-                      <>
-                        <span> | </span>
-                        <span>{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
-                      </>
-                    )}
-                  </div>
-
-                  {/* Content Row */}
-                  <div style={{ 
-                    fontSize: '14px', 
-                    lineHeight: '1.5',
-                    color: 'var(--text-primary)'
-                  }}>
-                    {reminder.message}
-                  </div>
-                </div>
-              ))}
+                );
+              })}
             </div>
           )}
         </div>
