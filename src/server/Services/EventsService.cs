@@ -161,5 +161,57 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         await _roombookingsService.Put(booking.Id, booking).ConfigureAwait(false);
     }
 
+    // Delete
+    public override async Task<EventsModel> Delete(int id)
+    {
+        // Get the event
+        var eventToDelete = await _dbSet.FindAsync(id).ConfigureAwait(false);
+        if (eventToDelete == null)
+        {
+            throw new InvalidOperationException("Event not found.");
+        }
+
+        // Delete related room bookings using the service (generates canceled notifications)
+        var relatedBookings = await _context.Set<RoomBookingsModel>()
+            .Where(rb => rb.EventId == id)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        foreach (var booking in relatedBookings)
+        {
+            await _roombookingsService.Delete(booking).ConfigureAwait(false);
+        }
+
+        // Delete related event participations using the service (generates "Event Canceled" notifications)
+        var relatedParticipations = await _context.Set<EventParticipationModel>()
+            .Where(ep => ep.EventId == id)
+            .ToListAsync()
+            .ConfigureAwait(false);
+
+        foreach (var participation in relatedParticipations)
+        {
+            await _eventparticipationService.Delete(participation, isEventCanceled: true).ConfigureAwait(false);
+        }
+
+        // Mark all existing reminders for this event as read (except the canceled reminders that were just created)
+        var relatedReminders = await _context.Set<RemindersModel>()
+            .Where(r => r.RelatedEventId == id && 
+                   r.ReminderType != reminderType.EventParticipationCanceled && 
+                   r.ReminderType != reminderType.RoomBookingCanceled)
+            .ToListAsync()
+            .ConfigureAwait(false);
+        
+        foreach (var reminder in relatedReminders)
+        {
+            reminder.IsRead = true;
+        }
+
+        // Finally, delete the event itself
+        _dbSet.Remove(eventToDelete);
+        await _context.SaveChangesAsync().ConfigureAwait(false);
+        
+        return eventToDelete;
+    }
+
     // Add additional services that are not related to CRUD here
 }

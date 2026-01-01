@@ -110,8 +110,8 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
             <label>Number of Invitees *</label>
             <input
               type="number"
-              name="attendeeCount"
-              value={formData.attendeeCount}
+              name="expectedAttendees"
+              value={formData.expectedAttendees}
               onChange={handleChange}
               min="1"
               placeholder="1"
@@ -126,8 +126,8 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
                 value={formData.location}
                 onChange={handleChange}
                 onFocus={() => formData.location === '' && setShowRoomDropdown(true)}
-                placeholder={formData.attendeeCount > 0 ? "Start typing or select a room..." : "Enter attendee count first"}
-                disabled={formData.attendeeCount <= 0}
+                placeholder={formData.expectedAttendees > 0 ? "Start typing or select a room..." : "Enter attendee count first"}
+                disabled={formData.expectedAttendees <= 0}
               />
               
               {showRoomDropdown && availableRooms.length > 0 && (
@@ -164,7 +164,7 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
                 </div>
               )}
 
-              {showRoomDropdown && availableRooms.length === 0 && formData.attendeeCount > 0 && (
+              {showRoomDropdown && availableRooms.length === 0 && formData.expectedAttendees > 0 && (
                 <div style={{
                   position: 'absolute',
                   top: '100%',

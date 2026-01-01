@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
+using Calender_WebApp.Models;
 
 namespace Calender_WebApp.Models
 {
@@ -56,7 +57,10 @@ namespace Calender_WebApp.Models
         /// ID of the room booking associated with this event (optional).
         /// </summary>
         [Column("booking_id", Order = 6)]
+        [ForeignKey(nameof(BookingId))]
         public int? BookingId { get; set; }
+        [JsonIgnore]
+        public virtual RoomBookingsModel? Booking { get; set; }
 
         /// <summary>
         /// ID of the user who created the event.
@@ -71,5 +75,11 @@ namespace Calender_WebApp.Models
         /// </summary>
         [JsonIgnore]
         public virtual EmployeesModel? CreatedByUser { get; set; }
+
+        /// <summary>
+        /// Expected number of attendees for the event.
+        /// </summary>
+        [Column("expected_attendees", Order = 8)]
+        public int? ExpectedAttendees { get; set; }
     }
 }
