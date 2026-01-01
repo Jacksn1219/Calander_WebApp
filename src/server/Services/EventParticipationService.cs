@@ -233,7 +233,7 @@ public class EventParticipationService : IEventParticipationService
     /// <param name="eventId">The ID of the event.</param>
     /// <returns>An array of updated event participation records.</returns>
     /// <exception cref="InvalidOperationException">Thrown when no participants are found for the event.</exception>
-    public async Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId)
+    public async Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId, EventsModel? oldEvent = null, EventsModel? newEvent = null)
     {
         var participants = await _dbSet
             .Where(ep => ep.EventId == eventId)

@@ -48,17 +48,18 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
+
         await ApplyBookingToEventAsync(updatedEntity).ConfigureAwait(false);
         NormalizeLocation(updatedEntity);
         ValidateEventTimes(updatedEntity.EventDate, updatedEntity.EndTime);
 
         var updatedEvent =  await base.Put(id, updatedEntity);
-
+        var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         // Update related reminders
         try
         {
-            // Update related reminders with new event data
-            await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
+            // Update related reminders with old and new event data
+            await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
@@ -70,7 +71,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
         return updatedEvent;
     }
-
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
         await ApplyBookingToEventAsync(newEntity).ConfigureAwait(false);
