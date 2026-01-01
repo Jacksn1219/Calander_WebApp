@@ -57,7 +57,7 @@ namespace Calender_WebApp.Models
         /// ID of the room booking associated with this event (optional).
         /// </summary>
         [Column("booking_id", Order = 6)]
-        [ForeignKey(nameof(BookingId))]
+        [ForeignKey(nameof(Booking))]
         public int? BookingId { get; set; }
         [JsonIgnore]
         public virtual RoomBookingsModel? Booking { get; set; }
