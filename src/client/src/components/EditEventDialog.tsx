@@ -32,14 +32,14 @@ const EditEventDialog: React.FC<EditEventDialogProps> = ({ currentEvent, onClose
   }, [showRoomDropdown, setShowRoomDropdown]);
 
   return (
-    <div className="dialog-backdrop" onClick={handleBackdropClick}>
+    <div className="dialog-backdrop edit-dialog-backdrop" onClick={handleBackdropClick}>
       <div className="dialog-content">
         <div className="dialog-header">
           <h2>Edit Event</h2>
           <button className="btn-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="dialog-body">
-          <form className="booking-card" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
+          <form className="edit-event-form" onSubmit={(e) => { e.preventDefault(); handleSave(); }}>
             <label>Title *</label>
             <input
               type="text"

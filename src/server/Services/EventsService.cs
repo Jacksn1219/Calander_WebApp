@@ -11,11 +11,13 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 {
     private readonly IEventParticipationService _eventparticipationService;
     private readonly IRoomBookingsService _roombookingsService;
+    private readonly IRemindersService _remindersService;
 
-    public EventsService(AppDbContext ctx, IEventParticipationService eventparticipationService, IRoomBookingsService roombookingsService) : base(ctx)
+    public EventsService(AppDbContext ctx, IEventParticipationService eventparticipationService, IRoomBookingsService roombookingsService, IRemindersService remindersService) : base(ctx)
     {
         _eventparticipationService = eventparticipationService ?? throw new ArgumentNullException(nameof(eventparticipationService));
         _roombookingsService = roombookingsService ?? throw new ArgumentNullException(nameof(roombookingsService));
+        _remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
     }
 
     /// <summary>
@@ -55,6 +57,7 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         // Update related reminders
         try
         {
+            // Update related reminders with new event data
             await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
         }
         catch (Exception ex)

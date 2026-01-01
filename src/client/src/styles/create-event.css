@@ -87,15 +87,15 @@
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
 }
 
-/* Scoped to CreateEventDialog (uses booking-card) */
-.dialog-content .booking-card .create-event-buttons {
+/* Scoped to CreateEventDialog */
+.dialog-content .create-event-form .create-event-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 
-.dialog-content .booking-card .create-event-buttons button {
+.dialog-content .create-event-form .create-event-buttons button {
   align-self: flex-end;
   border: 1px solid #a3e4b1;
   color: white;
@@ -108,19 +108,19 @@
   border: none;
 }
 
-.dialog-content .booking-card .create-event-save {
-  background: #1f6feb;
+.dialog-content .create-event-form .create-event-save {
+  background: #1ed02d;
 }
 
-.dialog-content .booking-card .create-event-cancel {
+.dialog-content .create-event-form .create-event-cancel {
   background: #e21818;
 }
 
-.dialog-content .booking-card .create-event-save:hover {
-  background: #1557c0;
+.dialog-content .create-event-form .create-event-save:hover {
+  background: #1a8a10;
 }
 
-.dialog-content .booking-card .create-event-cancel:hover {
+.dialog-content .create-event-form .create-event-cancel:hover {
   background: #b10000;
 }
 
@@ -151,12 +151,12 @@
     margin: 1rem;
   }
 
-  .dialog-content .booking-card .create-event-buttons {
+  .dialog-content .create-event-form .create-event-buttons {
     flex-direction: column;
     align-items: stretch;
   }
 
-  .dialog-content .booking-card .create-event-buttons button {
+  .dialog-content .create-event-form .create-event-buttons button {
     width: 100%;
   }
 

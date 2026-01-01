@@ -85,19 +85,19 @@ public class EventParticipationController : ControllerBase
 
 	public class UpdateStatusRequest
 	{
-		public string Status { get; set; } = string.Empty;
+		public int Status { get; set; } = 0;
 	}
 	
 
 	[HttpPut("event/{eventId:int}/user/{userId:int}/status")]
 	public async Task<ActionResult<EventParticipationModel>> UpdateStatus(int eventId, int userId, [FromBody] UpdateStatusRequest request)
 	{
-		if (request == null || string.IsNullOrWhiteSpace(request.Status))
+		if (request == null)
 			return BadRequest("Status must be provided.");
 
 		try
 		{
-			var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status).ConfigureAwait(false);
+			var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status.ToString()).ConfigureAwait(false);
 			return Ok(updated);
 		}
 		catch (InvalidOperationException)

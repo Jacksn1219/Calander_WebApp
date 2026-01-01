@@ -78,14 +78,16 @@
 }
 
 .user-settings-header {
-  padding: 15px;
-  border-bottom: 1px solid #eee;
+  padding: 16px 16px 12px 16px;
+  border-bottom: 1px solid #e5e5e5;
 }
 
 .user-settings-title {
   margin: 0;
-  font-size: 16px;
+  font-size: 15px;
   font-weight: 600;
+  color: #1a1a1a;
+  font-weight: bold;
 }
 
 .user-settings-loading,
@@ -101,29 +103,35 @@
 }
 
 .user-settings-content {
-  padding: 12px;
+  padding: 16px;
 }
 
 .settings-section {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 4px;
 }
 
 .settings-section-title {
   margin: 0 0 8px 0;
-  font-size: 13px;
+  padding-bottom: 0;
+  font-size: 11px;
   font-weight: 600;
-  color: #666;
+  color: #999;
   text-transform: uppercase;
-  letter-spacing: 0.5px;
+  letter-spacing: 1px;
 }
 
 .settings-item {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 8px 0;
+  padding: 10px 0 10px 16px;
+  transition: opacity 0.2s;
+}
+
+.settings-item:hover {
+  opacity: 0.8;
 }
 
 .settings-item-label {
@@ -134,7 +142,8 @@
 
 .settings-item-label span {
   font-size: 14px;
-  color: #333;
+  color: #2c2c2c;
+  font-weight: 500;
 }
 
 .toggle-button {

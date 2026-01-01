@@ -9,5 +9,10 @@ namespace Calender_WebApp.Services.Interfaces
         Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId);
 
         // Add any additional methods specific to OfficeAttendance here if needed
+        Task<OfficeAttendanceModel> UpsertAttendanceAsync(
+            int userId,
+            DateTime date,
+            AttendanceStatus status
+        );
     }
 }

@@ -59,7 +59,7 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
           <button className="btn-close" onClick={onClose} aria-label="Close">×</button>
         </div>
         <div className="dialog-body">
-          <form className="booking-card" onSubmit={handleSubmit}>
+          <form className="create-event-form" onSubmit={handleSubmit}>
             <label>Title *</label>
             <input
               type="text"

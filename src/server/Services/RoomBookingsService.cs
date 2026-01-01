@@ -52,6 +52,22 @@ public class RoomBookingsService : IRoomBookingsService
         if (booking == null)
             throw new InvalidOperationException("Booking not found.");
 
+        // Send canceled reminder before deleting booking
+        var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
+        await _remindersService.Post(new RemindersModel
+        {
+            UserId = booking.UserId,
+            ReminderType = reminderType.RoomBookingCanceled,
+            RelatedRoomId = booking.RoomId,
+            RelatedEventId = booking.EventId ?? 0,
+            ReminderTime = DateTime.Now,
+            Title = $"Room {booking.RoomId} Booking Canceled",
+            Message = $"Your room booking for Room {booking.RoomId} scheduled for {bookingDateTime:yyyy-MM-dd HH:mm} has been canceled."
+        }).ConfigureAwait(false);
+
+        // Delete related reminders
+        await _remindersService.DeleteRoomBookingRemindersAsync(booking.UserId, booking.RoomId, booking.BookingDate, booking.StartTime);
+
         _dbSet.Remove(booking);
         await _context.SaveChangesAsync();
         return booking;
@@ -99,7 +115,7 @@ public class RoomBookingsService : IRoomBookingsService
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
             .Where(p => validators == null || validators.ContainsKey(p.Name))
-            .ToDictionary(p => p.Name, p => p.GetValue(newNewRoombooking));
+            .ToDictionary(p => p.Name, p => p.GetValue(newNewRoombooking) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
@@ -137,25 +153,22 @@ public class RoomBookingsService : IRoomBookingsService
             b.StartTime == entity.StartTime);
         if (booking == null) throw new InvalidOperationException("Booking not found.");
 
+        var oldStartTime = booking.StartTime;
+        var oldEndTime = booking.EndTime;
         booking.StartTime = newStartTime;
 
-        var existingReminders = await _remindersService.GetRemindersByRelatedRoomAsync(entity.UserId, entity.RoomId, entity.BookingDate, entity.StartTime).ConfigureAwait(false);
-        foreach (var reminder in existingReminders)
+        // Create a new "changed" reminder instead of updating the existing one
+        var bookingDateTime = booking.BookingDate.Add(newStartTime);
+        await _remindersService.Post(new RemindersModel
         {
-            if (reminder.Id.HasValue)
-            {
-                await _remindersService.Put(reminder.Id.Value, new RemindersModel
-                {
-                    UserId = entity.UserId,
-                    ReminderType = reminderType.RoomBooking,
-                    RelatedRoomId = entity.RoomId,
-                    RelatedEventId = entity.EventId ?? 0,
-                    ReminderTime = booking.BookingDate.Add(newStartTime),
-                    Title = $"Room {entity.RoomId} Booking",
-                    Message = $"You have a room booking for Room {entity.RoomId} starting at {booking.BookingDate.Add(newStartTime):yyyy-MM-dd HH:mm}.",
-                }).ConfigureAwait(false);
-            }
-        }
+            UserId = entity.UserId,
+            ReminderType = reminderType.RoomBookingChanged,
+            RelatedRoomId = entity.RoomId,
+            RelatedEventId = entity.EventId ?? 0,
+            ReminderTime = bookingDateTime,
+            Title = $"Room {entity.RoomId} Booking Changed",
+            Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {oldStartTime:hh\\:mm} → {newStartTime:hh\\:mm}\nEnd time: {oldEndTime:hh\\:mm} (unchanged)\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
+        }).ConfigureAwait(false);
 
         await _context.SaveChangesAsync();
         return booking;
@@ -178,7 +191,22 @@ public class RoomBookingsService : IRoomBookingsService
             b.StartTime == entity.StartTime);
         if (booking == null) throw new InvalidOperationException("Booking not found.");
 
+        var oldEndTime = booking.EndTime;
         booking.EndTime = newEndTime;
+        
+        // Create a new "changed" reminder
+        var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
+        await _remindersService.Post(new RemindersModel
+        {
+            UserId = entity.UserId,
+            ReminderType = reminderType.RoomBookingChanged,
+            RelatedRoomId = entity.RoomId,
+            RelatedEventId = entity.EventId ?? 0,
+            ReminderTime = bookingDateTime,
+            Title = $"Room {entity.RoomId} Booking Changed",
+            Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {booking.StartTime:hh\\:mm} (unchanged)\nEnd time: {oldEndTime:hh\\:mm} → {newEndTime:hh\\:mm}\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
+        }).ConfigureAwait(false);
+        
         await _context.SaveChangesAsync();
         return booking;
     }
@@ -226,7 +254,7 @@ public class RoomBookingsService : IRoomBookingsService
                         && p.Name != nameof(RoomBookingsModel.Room)
                         && p.Name != nameof(RoomBookingsModel.Employee)
                         && p.Name != nameof(RoomBookingsModel.Event))
-            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (p.PropertyType == typeof(int?) ? (object?)null : (object)string.Empty));
+            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");

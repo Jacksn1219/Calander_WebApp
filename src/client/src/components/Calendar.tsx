@@ -1,15 +1,18 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
 import CreateEventDialog from './CreateEventDialog';
-import { useCalendar } from '../hooks/hooks';
 import { useAuth } from '../states/AuthContext';
+import { useLocation } from 'react-router-dom';
+import { useCalendar, useCalendarEvents,useOfficeAttendance } from '../hooks/hooks';
 import '../styles/calendar.css';
+
 
 const Calendar: React.FC = () => {
   const { user } = useAuth();
   const [showCreateDialog, setShowCreateDialog] = useState(false);
   const [createDialogDate, setCreateDialogDate] = useState<Date | undefined>(undefined);
+  const location = useLocation();
   const {
     loading,
     error,
@@ -47,6 +50,30 @@ const Calendar: React.FC = () => {
     setShowCreateDialog(false);
     setCreateDialogDate(undefined);
   };
+  const { events: roleScopedEvents, getEventsForDate: fetchEventsForDate } = useCalendarEvents(user);
+  
+  // Handle navigation from reminder notification - wait for events to load
+  useEffect(() => {
+    const state = location.state as { eventId?: number; eventDate?: string } | null;
+    if (state?.eventId && state?.eventDate && !loading && roleScopedEvents.length > 0) {
+      const targetDate = new Date(state.eventDate);
+      // Normalize to midnight to match calendar date logic
+      const normalizedDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
+      onDaySelect(normalizedDate);
+      // Clear the state after using it
+      window.history.replaceState({}, document.title);
+    }
+  }, [location, onDaySelect, loading, roleScopedEvents]);
+  
+    const {
+    status: attendanceStatus,
+    setTodayAttendance,
+    loading: attendanceLoading,
+  } = useOfficeAttendance();
+
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const attendanceLabel = attendanceStatus ?? 'Set attendance';
+
 
   return (
     <div className="app-layout">
@@ -64,7 +91,50 @@ const Calendar: React.FC = () => {
               </div>
             )}
           </div>
+
+          <div className="attendance-wrapper">
+            <div className="attendance-control">
+              <p className="attendance-helper">
+                Tell your colleagues where you’re working from today
+              </p>
+
+              <button
+              className="attendance-button"
+              onClick={() => setAttendanceOpen(o => !o)}
+              disabled={attendanceLoading}
+              >
+              {attendanceLabel}
+              <span className="attendance-caret">▾</span>
+            </button>
+          </div>
+
+
+            {attendanceOpen && (
+              <div className="attendance-dropdown">
+                {[  
+                  { key: 'Present', label: 'Office', icon: '🏢' },
+                  { key: 'Remote', label: 'Remote', icon: '🏠' },
+                  { key: 'Absent', label: 'Absent', icon: '⛔' },
+                ].map(option => (
+                  <button
+                    key={option.key}
+                    className={`attendance-option ${
+                      attendanceStatus === option.key ? 'active' : ''
+                    }`}
+                    onClick={() => {
+                      setTodayAttendance(option.key as any);
+                      setAttendanceOpen(false);
+                    }}
+                  >
+                    <span className="attendance-icon">{option.icon}</span>
+                    <span className="attendance-text">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
 
         <div className="calendar-container">
           <div className="calendar-controls">
@@ -231,5 +301,4 @@ const Calendar: React.FC = () => {
     </div>
   );
 };
-
 export default Calendar;
