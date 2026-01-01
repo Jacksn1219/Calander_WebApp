@@ -39,12 +39,59 @@ public class EventParticipationService : IEventParticipationService
     /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
     public async Task<EventParticipationModel> Delete(EventParticipationModel entity)
     {
+        return await Delete(entity, isEventCanceled: false);
+    }
+
+    /// <summary>
+    /// Removes a user's participation from an event based on the provided entity details.
+    /// </summary>
+    /// <param name="entity"></param>
+    /// <param name="isEventCanceled">If true, sends "Event Canceled" notification. If false, sends "You are no longer participating" notification.</param>
+    /// <returns>The deleted participation record.</returns>
+    /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
+    public async Task<EventParticipationModel> Delete(EventParticipationModel entity, bool isEventCanceled)
+    {
         var participation = await _dbSet
             .FirstOrDefaultAsync(ep => ep.UserId == entity.UserId && ep.EventId == entity.EventId);
 
         if (participation == null)
             throw new InvalidOperationException("Participation record not found.");
     
+        // Get event details for the notification
+        var eventModel = await _context.Set<EventsModel>()
+            .AsNoTracking()
+            .FirstOrDefaultAsync(e => e.Id == participation.EventId)
+            .ConfigureAwait(false);
+
+        // Send notification before deleting participation
+        if (eventModel != null)
+        {
+            string title, message;
+            
+            if (isEventCanceled)
+            {
+                // Entire event was canceled
+                title = $"Event Canceled: {eventModel.Title}";
+                message = $"The event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm} has been canceled.";
+            }
+            else
+            {
+                // User canceled their own participation
+                title = $"You are no longer participating: {eventModel.Title}";
+                message = $"You have canceled your participation for the event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm}.";
+            }
+
+            await _remindersService.Post(new RemindersModel
+            {
+                UserId = participation.UserId,
+                ReminderType = reminderType.EventParticipationCanceled,
+                RelatedEventId = participation.EventId,
+                ReminderTime = DateTime.Now,
+                Title = title,
+                Message = message
+            }).ConfigureAwait(false);
+        }
+
         // Delete related reminders
         await _remindersService.DeleteEventParticipationRemindersAsync(participation.UserId, participation.EventId);
 
@@ -81,9 +128,7 @@ public class EventParticipationService : IEventParticipationService
     /// <exception cref="ArgumentException">Thrown when the status is invalid.</exception>
     public async Task<EventParticipationModel> Post(EventParticipationModel participation)
     {
-        Console.WriteLine("Attempting to create participation record...");
         if (participation == null) throw new ArgumentNullException(nameof(participation));
-        Console.WriteLine($"Participation details: EventId={participation.EventId}, UserId={participation.UserId}, Status={participation.Status}");
 
         if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
             throw new InvalidOperationException("User is already participating in this event.");
@@ -106,6 +151,22 @@ public class EventParticipationService : IEventParticipationService
         }
 
         var entry = await _dbSet.AddAsync(participation).ConfigureAwait(false);
+        
+        // Mark any existing "no longer participating" notifications for this event as read
+        var canceledReminders = await _context.Set<RemindersModel>()
+            .Where(r => r.UserId == participation.UserId && 
+                       r.RelatedEventId == participation.EventId && 
+                       r.ReminderType == reminderType.EventParticipationCanceled &&
+                       !r.IsRead)
+            .ToListAsync()
+            .ConfigureAwait(false);
+        
+        foreach (var reminder in canceledReminders)
+        {
+            reminder.IsRead = true;
+        }
+        
+        await _context.SaveChangesAsync().ConfigureAwait(false);
         
         // Create reminder for the event participation
         DateTime eventDetails = await GetEventStartTimeAsync(participation.EventId).ConfigureAwait(false);
@@ -196,8 +257,7 @@ public class EventParticipationService : IEventParticipationService
             .AnyAsync(ep => ep.EventId == eventId && ep.UserId == userId);
     }
     
-    // Add additional services that are not related to CRUD here
-        /// <summary>
+    /// <summary>
     /// Get all participants for a specific event
     /// </summary>
     /// <param name="userId"></param>
@@ -231,6 +291,8 @@ public class EventParticipationService : IEventParticipationService
     /// Updates reminders for all participants of a specific event.
     /// </summary>
     /// <param name="eventId">The ID of the event.</param>
+    /// <param name="oldEvent">The old event data before changes.</param>
+    /// <param name="newEvent">The new event data after changes.</param>
     /// <returns>An array of updated event participation records.</returns>
     /// <exception cref="InvalidOperationException">Thrown when no participants are found for the event.</exception>
     public async Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId, EventsModel? oldEvent = null, EventsModel? newEvent = null)
@@ -242,23 +304,77 @@ public class EventParticipationService : IEventParticipationService
         if (participants.Length == 0)
             return Array.Empty<EventParticipationModel>();
 
-        var eventStartTime = await GetEventStartTimeAsync(eventId);
+        // Get current event if not provided
+        if (newEvent == null)
+        {
+            newEvent = await _context.Set<EventsModel>()
+                .AsNoTracking()
+                .FirstOrDefaultAsync(e => e.Id == eventId)
+                .ConfigureAwait(false);
+                
+            if (newEvent == null)
+                throw new InvalidOperationException("Event not found.");
+        }
+
+        // Build change message
+        var changes = new List<string>();
+        
+        if (oldEvent != null)
+        {
+            // Compare title
+            if (oldEvent.Title != newEvent.Title)
+            {
+                changes.Add($"\nTitle: '{oldEvent.Title}' → '{newEvent.Title}'");
+            }
+
+            // Compare date/time
+            if (oldEvent.EventDate != newEvent.EventDate)
+            {
+                changes.Add($"\nTime: {oldEvent.EventDate:yyyy-MM-dd HH:mm} → {newEvent.EventDate:yyyy-MM-dd HH:mm}");
+            }
+
+            // Compare endtime
+            if (oldEvent.EndTime != newEvent.EndTime)
+            {
+                changes.Add($"\nEnd Time: {oldEvent.EndTime:yyyy-MM-dd HH:mm} → {newEvent.EndTime:yyyy-MM-dd HH:mm}");
+            }
+
+            // Compare location
+            if (oldEvent.Location != newEvent.Location)
+            {
+                changes.Add($"\nLocation: '{oldEvent.Location}' → '{newEvent.Location}'");
+            }
+
+            // Compare description
+            if (oldEvent.Description != newEvent.Description)
+            {
+                changes.Add($"\nDescription changed.");
+            }
+        }
+
+        // Build message with event time info
+        var eventTimeInfo = $"Event starts: {newEvent.EventDate:yyyy-MM-dd HH:mm}";
+        var message = changes.Count > 0
+            ? $"\nThe event you are participating in has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
+            : $"\nThe event you are participating in has been updated.\n{eventTimeInfo}";
 
         foreach (var participant in participants)
         {
-            var existingReminders = await _remindersService.GetRemindersByRelatedEventAsync(participant.UserId, eventId).ConfigureAwait(false);
-            
-            foreach (var reminder in existingReminders.Where(r => r.Id.HasValue))
+            // Create a new "changed" reminder for each participant
+            await _remindersService.Post(new RemindersModel
             {
-            if (!reminder.Id.HasValue) continue;
-            
-            reminder.ReminderTime = eventStartTime;
-            reminder.Message = $"Reminder: You are participating in an event (Event ID: {eventId}) starting at {eventStartTime}.";
-            await _remindersService.Put(reminder.Id.Value, reminder).ConfigureAwait(false);
-            }
+                UserId = participant.UserId,
+                ReminderType = reminderType.EventParticipationChanged,
+                RelatedEventId = eventId,
+                ReminderTime = newEvent.EventDate,
+                Title = $"Event Updated: {newEvent.Title}",
+                Message = message,
+            }).ConfigureAwait(false);
         }
 
         await _context.SaveChangesAsync();
         return participants;
     }
+    
+    // Add additional services that are not related to CRUD here
 }
