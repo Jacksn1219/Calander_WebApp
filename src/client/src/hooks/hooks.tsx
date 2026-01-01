@@ -1080,6 +1080,7 @@ export interface EventItem {
   roomId?: number;
   bookingId?: number | null;
   createdBy: number;
+  expectedAttendees: number | null;
 }
 
 export interface Employee {
@@ -1094,7 +1095,7 @@ export interface Employee {
 ADMINISTRATIVE DASHBOARD HOOKS
  ====================================
  */
-export const useAdministrativeDashboard = () => {
+export const  useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEvent, setEvent] = useState<EventItem>();
   const [usernames, setUsernames] = useState<Record<number, string>>({});
@@ -1144,6 +1145,7 @@ export const useAdministrativeDashboard = () => {
       if (!res.ok) throw new Error("Failed delete");
 
       setEvents((prev) => prev.filter((e) => e.event_id !== id));
+      alert('Event deleted successfully');
     } catch (err) {
       console.error("Error:", err);
     }
@@ -1164,7 +1166,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     endTime: "",
     location: "",
     bookingId: null as number | null,
-    attendeeCount: 0,
+    expectedAttendees: 1,
     createdBy: "",
   });
 
@@ -1185,13 +1187,13 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       endTime: end.toTimeString().slice(0, 5),
       location: event.location ?? '',
       bookingId: event.bookingId ?? null,
-      attendeeCount: 1,
+      expectedAttendees: event.expectedAttendees ?? 1,
       createdBy: event.createdBy.toString(),
     });
   }, [event, onClose]);
 
   useEffect(() => {
-    const canQuery = formData.date && formData.startTime && formData.endTime && formData.attendeeCount > 0;
+    const canQuery = formData.date && formData.startTime && formData.endTime && formData.expectedAttendees > 0;
     if (!canQuery) {
       setAvailableRooms([]);
       return;
@@ -1200,7 +1202,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       try {
         const startIso = `${formData.date}T${formData.startTime}:00`;
         const endIso = `${formData.date}T${formData.endTime}:00`;
-        const capacity = formData.attendeeCount;
+        const capacity = formData.expectedAttendees;
         const res = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${startIso}&endtime=${endIso}&capacity=${capacity}`);
         if (res.ok) {
           const rooms = await res.json();
@@ -1212,13 +1214,13 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       }
     };
     loadRooms();
-  }, [formData.date, formData.startTime, formData.endTime, formData.attendeeCount]);
+  }, [formData.date, formData.startTime, formData.endTime, formData.expectedAttendees]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'attendeeCount') {
-      setFormData(prev => ({ ...prev, attendeeCount: Math.max(0, parseInt(value) || 0) }));
+    if (name === 'expectedAttendees') {
+      setFormData(prev => ({ ...prev, expectedAttendees: Math.max(0, parseInt(value) || 0) }));
       return;
     }
     
@@ -1248,7 +1250,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
     if (!formData.startTime) return 'Start time cannot be empty';
     if (!formData.endTime) return 'End time cannot be empty';
     if (!formData.location.trim()) return 'Location cannot be empty';
-    if (formData.attendeeCount <= 0) return 'Attendee count must be at least 1';
+    if (formData.expectedAttendees <= 0) return 'Attendee count must be at least 1';
     const start = new Date(`${formData.date}T${formData.startTime}:00`);
     const end = new Date(`${formData.date}T${formData.endTime}:00`);
     if (end <= start) return 'End time must be after start time';
@@ -1323,6 +1325,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
         location: formData.location || undefined,
         ...(bookingId !== null && { bookingId }),
         createdBy: event?.createdBy,
+        expectedAttendees: formData.expectedAttendees,
       };
 
       const response = await apiFetch(`/api/events/${event?.event_id}`, {
@@ -1333,6 +1336,7 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       if (!response.ok) throw new Error("Failed to update event");
       reloadEvents();
       onClose();
+      alert('Event updated successfully');
     } catch (err: any) {
       console.error("Error updating event:", err);
       alert(err.message || "Failed to update event");
@@ -1369,7 +1373,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
     startTime: defaults.startTime,
     endTime: defaults.endTime,
     location: "",
-    attendeeCount: 1,
+    expectedAttendees: 1,
     createdBy: user?.userId,
   });
 
@@ -1377,7 +1381,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
   const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
 
   useEffect(() => {
-    const canQuery = formData.date && formData.startTime && formData.endTime && formData.attendeeCount > 0;
+    const canQuery = formData.date && formData.startTime && formData.endTime && formData.expectedAttendees > 0;
     if (!canQuery) {
       setAvailableRooms([]);
       return;
@@ -1386,7 +1390,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
       try {
         const startIso = `${formData.date}T${formData.startTime}:00`;
         const endIso = `${formData.date}T${formData.endTime}:00`;
-        const capacity = formData.attendeeCount;
+        const capacity = formData.expectedAttendees;
         const res = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${startIso}&endtime=${endIso}&capacity=${capacity}`);
         if (res.ok) {
           const rooms = await res.json();
@@ -1398,13 +1402,13 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
       }
     };
     loadRooms();
-  }, [formData.date, formData.startTime, formData.endTime, formData.attendeeCount]);
+  }, [formData.date, formData.startTime, formData.endTime, formData.expectedAttendees]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
     
-    if (name === 'attendeeCount') {
-      setFormData(prev => ({ ...prev, attendeeCount: Math.max(0, parseInt(value) || 0) }));
+    if (name === 'expectedAttendees') {
+      setFormData(prev => ({ ...prev, expectedAttendees: Math.max(0, parseInt(value) || 0) }));
       return;
     }
     
@@ -1434,7 +1438,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
     if (!formData.startTime) return 'Start time cannot be empty';
     if (!formData.endTime) return 'End time cannot be empty';
     if (!formData.location.trim()) return 'Location cannot be empty';
-    if (formData.attendeeCount <= 0) return 'Attendee count must be at least 1';
+    if (formData.expectedAttendees <= 0) return 'Expected attendees must be at least 1';
     const start = new Date(`${formData.date}T${formData.startTime}:00`);
     const end = new Date(`${formData.date}T${formData.endTime}:00`);
     if (end <= start) return 'End time must be after start time';
@@ -1501,6 +1505,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
         location: formData.location || undefined,
         ...(bookingId !== null && { bookingId }),
         createdBy: user.userId,
+        expectedAttendees: formData.expectedAttendees,
       };
 
       const response = await apiFetch('/api/events', {
@@ -1513,7 +1518,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
         const text = await response.text();
         throw new Error(text || 'Failed to create event');
       }
-
+      alert('Event created successfully');
       reloadEvents();
       onClose();
     } catch (err: any) {

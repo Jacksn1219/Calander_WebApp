@@ -3,6 +3,7 @@ using System;
 using Calender_WebApp;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 #nullable disable
@@ -10,9 +11,11 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calender_WebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    partial class AppDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260101163246_newRoombookingFix")]
+    partial class newRoombookingFix
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder.HasAnnotation("ProductVersion", "9.0.9");
@@ -134,11 +137,6 @@ namespace Calender_WebApp.Migrations
                         .HasColumnType("TEXT")
                         .HasColumnName("event_date")
                         .HasColumnOrder(3);
-
-                    b.Property<int?>("ExpectedAttendees")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("expected_attendees")
-                        .HasColumnOrder(8);
 
                     b.Property<string>("Location")
                         .HasColumnType("TEXT")
