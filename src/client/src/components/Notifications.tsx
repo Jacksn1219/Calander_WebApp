@@ -71,7 +71,7 @@ const Notifications: React.FC = () => {
     if (filter === 'unread') return !r.isRead;
     if (filter === 'read') return r.isRead;
     return true;
-  }).sort((a, b) => new Date(b.reminderTime).getTime() - new Date(a.reminderTime).getTime());
+  }).sort((a, b) => b.reminder_id - a.reminder_id);
 
   const unreadCount = reminders.filter(r => !r.isRead).length;
 
@@ -227,15 +227,54 @@ const Notifications: React.FC = () => {
 
           {/* Notifications List */}
           {!loading && !error && filteredReminders.length > 0 && (
-            <div>
-              {filteredReminders.map((reminder) => (
-                <div key={reminder.reminder_id} className="reminder-item-wrapper" style={{ marginBottom: '20px' }}>
-                  <div className="reminder-item" style={{ padding: '20px' }}>
+            <div style={{
+              backgroundColor: 'white',
+              borderRadius: '8px',
+              border: '1px solid #e9ecef',
+              overflow: 'hidden'
+            }}>
+              {filteredReminders.map((reminder, index) => {
+                const isChanged = reminder.reminderType === 2 || reminder.reminderType === 3;
+                const isCanceled = reminder.reminderType === 4 || reminder.reminderType === 5;
+                
+                return (
+                <div
+                  key={reminder.reminder_id}
+                  style={{
+                    padding: '20px',
+                    borderBottom: index < filteredReminders.length - 1 ? '1px solid #f0f0f0' : 'none',
+                    backgroundColor: reminder.isRead ? 'white' : '#f8f9fa',
+                    transition: 'background-color 0.2s',
+                    position: 'relative'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f5'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = reminder.isRead ? 'white' : '#f8f9fa'}
+                >
+                  <div style={{ 
+                    padding: '15px',
+                    backgroundColor: isChanged ? '#fff8e1' : isCanceled ? '#f8d7da' : '#e8e8e8',
+                    borderRadius: '6px',
+                    overflow: 'hidden',
+                    borderLeft: isChanged ? '4px solid #ff9800' : isCanceled ? '4px solid #dc3545' : 'none'
+                  }}>
                     {/* Header Bar with Cross */}
-                    <div className="reminder-item-header" style={{ padding: '12px 16px' }}>
-                      <div className="reminder-item-header-left">
-                        <span className="reminder-item-icon" style={{ fontSize: '28px' }}>
-                          {reminder.reminderType === 0 ? '📅' : '🔔'}
+                    <div style={{ 
+                      display: 'flex', 
+                      justifyContent: 'space-between', 
+                      alignItems: 'center',
+                      padding: '10px 15px',
+                      backgroundColor: isChanged ? '#fff8e1' : isCanceled ? '#f8d7da' : '#e8e8e8',
+                      marginBottom: '-20px'
+                    }}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                        <span style={{ fontSize: '20px' }}>
+                          {reminder.reminderType === 0 || reminder.reminderType === 2 || reminder.reminderType === 4 ? '📅' : '🔔'}
+                          {(reminder.reminderType === 2 || reminder.reminderType === 3) && (
+                            <span style={{ marginLeft: '6px', fontSize: '14px' }}>📝</span>
+                          )}
+                          {(reminder.reminderType === 4 || reminder.reminderType === 5) && (
+                            <span style={{ marginLeft: '6px', fontSize: '14px' }}>❌</span>
+                          )}
                         </span>
                         <span className="reminder-item-title" style={{ fontSize: '18px', fontWeight: '600' }}>
                           {reminder.title}
@@ -280,7 +319,8 @@ const Notifications: React.FC = () => {
                     </div>
                   </div>
                 </div>
-              ))}
+              );
+              })}
             </div>
           )}
         </div>

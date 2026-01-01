@@ -1613,14 +1613,18 @@ export const useReminders = () => {
   const [reminders, setReminders] = useState<Reminder[]>([]);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [isInitialLoad, setIsInitialLoad] = useState(true);
 
-  const fetchReminders = useCallback(async () => {
+  const fetchReminders = useCallback(async (silent = false) => {
     if (!user?.userId) {
       setError('No user logged in');
       return;
     }
 
-    setLoading(true);
+    // Only show loading state on initial load, not on polling refreshes
+    if (!silent) {
+      setLoading(true);
+    }
     setError(null);
 
     try {
@@ -1660,23 +1664,48 @@ export const useReminders = () => {
 
       const data = await response.json();
       setReminders(data);
+      setIsInitialLoad(false);
     } catch (err: any) {
       setError(err.message || 'An error occurred while fetching reminders');
       console.error('Error fetching reminders:', err);
     } finally {
-      setLoading(false);
+      if (!silent) {
+        setLoading(false);
+      }
     }
   }, [user?.userId]);
 
+  // Refresh reminders on user interaction and window focus
   useEffect(() => {
-    fetchReminders();
+    fetchReminders(false); // Initial load with loading state
     
-    // Poll for new reminders every 30 seconds
-    const intervalId = setInterval(() => {
-      fetchReminders();
-    }, 30000);
+    // Refresh when user returns to the tab
+    const handleVisibilityChange = () => {
+      if (document.visibilityState === 'visible') {
+        fetchReminders(true); // Silent refresh
+      }
+    };
 
-    return () => clearInterval(intervalId);
+    // Refresh when window gains focus
+    const handleFocus = () => {
+      fetchReminders(true); // Silent refresh
+    };
+
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    window.addEventListener('focus', handleFocus);
+
+    // Fallback: refresh every 2 minutes as backup (less aggressive than 30s)
+    const intervalId = setInterval(() => {
+      if (document.visibilityState === 'visible') {
+        fetchReminders(true);
+      }
+    }, 120000); // 2 minutes
+
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+      window.removeEventListener('focus', handleFocus);
+      clearInterval(intervalId);
+    };
   }, [fetchReminders]);
 
   const markAsRead = useCallback(async (reminderId: number) => {
@@ -1689,7 +1718,7 @@ export const useReminders = () => {
         throw new Error(`Failed to mark reminder as read: ${response.statusText}`);
       }
 
-      // Update local state
+      // Update local state immediately for instant feedback
       setReminders(prev => 
         prev.map(r => r.reminder_id === reminderId ? { ...r, isRead: true } : r)
       );
@@ -1714,7 +1743,7 @@ export const useReminders = () => {
     reminders,
     loading,
     error,
-    refetch: fetchReminders,
+    refetch: () => fetchReminders(false),
     markAsRead,
     markAllAsRead,
   };
@@ -2713,6 +2742,47 @@ export const useCreateRoomBookingDialog = (onClose: () => void, selectedDate: Da
   };
 };
 
+export const useRoomBooking = () => {
+  const { user } = useAuth()
+  const [roomBookings, setRoomBookings] = useState<RoomBooking[]>([]);
+  const [roomBookingsOnDay, setRoomBookingsOnDay] = useState<RoomBooking[]>([]);
+  const [currentDate, setCurrentDate] = useState(new Date());
+  const [selectedDate, setSelectedDate] = useState(new Date());
+
+  const fetchRoomBookings = async () => {
+    if (!user) return;
+    try {
+      const response = await apiFetch(`/api/room-bookings/user/${user.userId}`);
+
+      if (!response.ok) throw new Error("Failed to fetch roombookings");
+
+      const data: RoomBooking[] = await response.json();
+      setRoomBookings(data);
+    } catch (err) {
+      console.error("Fetching roombookings failed: ", err);
+      setRoomBookings([]);
+    }
+  };
+
+  useEffect(() => {
+    fetchRoomBookings();
+  }, [user]);
+
+  const goToPreviousMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() - 1, 1));
+  };
+
+  const goToNextMonth = () => {
+    setCurrentDate(new Date(currentDate.getFullYear(), currentDate.getMonth() + 1, 1));
+  };
+
+  const goToCurrentDate = () => {
+    setCurrentDate(new Date());
+  };
+
+  return { fetchRoomBookings, roomBookings, setRoomBookings, roomBookingsOnDay, setRoomBookingsOnDay, 
+    currentDate, setCurrentDate, selectedDate, setSelectedDate, goToPreviousMonth, goToNextMonth, goToCurrentDate };
+}
 
 export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: RoomBooking[], reloadBookings: () => void) => {
   const [editingBooking, setEditingBooking] = useState<RoomBooking | null>(null);
@@ -2847,3 +2917,94 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
 // _________________________________________
 // end functions roombooking
 // _________________________________________
+
+// _________________________________________
+// start functions office attendance
+// _________________________________________
+
+const STATUS_TO_INT = {
+  Present: 0,
+  Absent: 1,
+  Remote: 2,
+} as const;
+
+const INT_TO_STATUS = {
+  0: 'Present',
+  1: 'Absent',
+  2: 'Remote',
+} as const;
+
+export type AttendanceStatus = 'Present' | 'Absent' | 'Remote';
+
+export const useOfficeAttendance = () => {
+  const { user } = useAuth();
+  const [status, setStatus] = useState<AttendanceStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  /**
+   * Load today's attendance for the current user
+   */
+  useEffect(() => {
+    const loadTodayAttendance = async () => {
+      if (!user?.userId) return;
+      
+      try {
+        const res = await apiFetch(`/api/office-attendance/today/${user.userId}`);
+
+        if (res.ok) {
+          const data: { status: number } = await res.json();
+          setStatus(INT_TO_STATUS[data.status as 0 | 1 | 2]);
+        } else if (res.status === 404) {
+          // No attendance set for today
+          setStatus(null);
+        } else {
+          console.error('Failed to load attendance:', res.status);
+        }
+      } catch (err) {
+        console.error('Attendance load error', err);
+        setStatus(null);
+      }
+    };
+
+    loadTodayAttendance();
+  }, []);
+
+  /**
+   * Set or update today's attendance (UPSERT)
+   */
+  const setTodayAttendance = async (newStatus: AttendanceStatus) => {
+    if (!user?.userId) return;
+    
+    setLoading(true);
+
+    try {
+      const res = await apiFetch(`/api/office-attendance/today/${user.userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          status: STATUS_TO_INT[newStatus],
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Update failed (${res.status}): ${text}`);
+      }
+
+      const data: { status: number } = await res.json();
+      setStatus(INT_TO_STATUS[data.status as 0 | 1 | 2]);
+    } catch (err) {
+      console.error('Attendance update error', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    status,
+    loading,
+    setTodayAttendance,
+  };
+};
+// _________________________________________
+// end functions office attendance
+// _________________________________________ 
