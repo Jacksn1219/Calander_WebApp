@@ -57,8 +57,8 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         // Update related reminders
         try
         {
-            // Update related reminders with old and new event data
-            await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
+            // Update related reminders with new event data
+            await _eventparticipationService.UpdateEventRemindersAsync(id).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
