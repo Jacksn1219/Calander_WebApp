@@ -1,7 +1,7 @@
 import React, { useEffect, useState, useRef, useCallback, useMemo } from 'react';
 import '../styles/event-dialog.css';
 import { CalendarEvent, CalendarParticipant, useEventDialog } from '../hooks/hooks';
-import { useAuth } from '../states/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 
 interface EventDialogProps {
   events: CalendarEvent[];

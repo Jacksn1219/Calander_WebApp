@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import EventDialog from './EventDialog';
-import CreateEventDialog from './CreateEventDialog';
-import { useAuth } from '../states/AuthContext';
+import Sidebar from '../UI/Sidebar';
+import EventDialog from '../UI/EventDialog';
+import CreateEventDialog from '../UI/CreateEventDialog';
+import { useAuth } from '../auth/AuthContext';
 import { useLocation } from 'react-router-dom';
 import { useCalendar, useCalendarEvents,useOfficeAttendance } from '../hooks/hooks';
 import '../styles/calendar.css';

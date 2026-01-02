@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useUserSettings, useLogoutWithConfirmation } from '../hooks/hooks';
-import { useAuth } from '../states/AuthContext';
-import { useTheme } from '../states/ThemeContext';
+import { useAuth } from '../auth/AuthContext';
+import { useTheme } from '../auth/ThemeContext';
 import '../styles/user-settings.css';
 import '../styles/sidebar.css';
 

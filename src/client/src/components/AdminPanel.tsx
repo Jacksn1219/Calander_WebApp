@@ -1,7 +1,7 @@
 import React from 'react';
-import { useAuth } from '../states/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import { Link } from 'react-router-dom';
-import Sidebar from './Sidebar';
+import Sidebar from '../UI/Sidebar';
 import '../styles/admin-panel.css';
 
 const AdminPanel: React.FC = () => {

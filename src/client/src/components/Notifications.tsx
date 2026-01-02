@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '../UI/Sidebar';
 import { useReminders, getRoomById, RoomDto } from '../hooks/hooks';
 import '../styles/index.css';
 import '../styles/notifications-page.css';

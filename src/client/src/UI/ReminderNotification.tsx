@@ -1,7 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useReminders, formatDateOnly, formatTimeOnly, useCalendarEvents, getRoomById, RoomDto } from '../hooks/hooks';
-import { useAuth } from '../states/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import '../styles/reminder-notification.css';
 
 const ReminderNotification: React.FC = () => {

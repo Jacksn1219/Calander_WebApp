@@ -1,6 +1,6 @@
 import { useState, useCallback, useEffect, useMemo, useRef } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useAuth } from '../states/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import { apiFetch } from '../config/api';
 import { isSuperAdmin } from '../constants/superAdmin';
 
@@ -2370,7 +2370,7 @@ interface EmployeeDto {
   role: string;
 }
 
-interface EmployeeFormState {
+export interface EmployeeFormState {
   id: number | null;
   name: string;
   email: string;

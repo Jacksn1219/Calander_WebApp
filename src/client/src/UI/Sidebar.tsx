@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { useAuth } from '../states/AuthContext';
+import { useAuth } from '../auth/AuthContext';
 import { useSidebar } from '../hooks/hooks';
 import '../styles/sidebar.css';
 import UserSettings from './UserSettings';
