@@ -265,13 +265,6 @@ const Calendar: React.FC = () => {
                         )}
                         <span className="upcoming-meta">{event.acceptedCount} attending</span>
 
-        {showCreateDialog && (
-          <CreateEventDialog
-            onClose={closeCreateDialog}
-            reloadEvents={reload}
-            defaultDate={createDialogDate}
-          />
-        )}
                       </div>
                     </button>
                   ))
