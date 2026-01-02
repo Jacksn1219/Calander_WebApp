@@ -111,11 +111,36 @@ public class RoomBookingsService : IRoomBookingsService
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(rb => rb.Id == id).ConfigureAwait(false);
     }
 
-    public virtual async Task<RoomBookingsModel> Put(int id, RoomBookingsModel newNewRoombooking)
+    public async Task<RoomBookingsModel> Put(int id, RoomBookingsModel newNewRoombooking)
     {
         if (newNewRoombooking == null) throw new ArgumentNullException(nameof(newNewRoombooking));
         var dbNewRoombooking = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbNewRoombooking == null) throw new InvalidOperationException("Entity not found.");
+
+        // Normalize date to date-only and times to minute precision (zero seconds)
+        newNewRoombooking.BookingDate = newNewRoombooking.BookingDate.Date;
+        newNewRoombooking.StartTime = new TimeSpan(newNewRoombooking.StartTime.Hours, newNewRoombooking.StartTime.Minutes, 0);
+        newNewRoombooking.EndTime = new TimeSpan(newNewRoombooking.EndTime.Hours, newNewRoombooking.EndTime.Minutes, 0);
+
+        if (newNewRoombooking.EndTime <= newNewRoombooking.StartTime)
+            throw new ArgumentException("EndTime must be greater than StartTime.");
+
+        // Load bookings for same room & date, excluding the current booking being updated
+        var dayBookings = await _dbSet
+            .Where(rb => rb.RoomId == newNewRoombooking.RoomId 
+                      && rb.BookingDate == newNewRoombooking.BookingDate
+                      && rb.Id != id)
+            .ToListAsync();
+
+        // Check exact duplicate of slot
+        var exactExists = dayBookings.Any(rb => rb.StartTime == newNewRoombooking.StartTime && rb.EndTime == newNewRoombooking.EndTime);
+        if (exactExists)
+            throw new InvalidOperationException("An identical booking slot already exists.");
+
+        // Overlap check in-memory for same room & date
+        var overlaps = dayBookings.Any(rb => rb.StartTime < newNewRoombooking.EndTime && rb.EndTime > newNewRoombooking.StartTime);
+        if (overlaps)
+            throw new InvalidOperationException("Room is not available for the requested time window.");
 
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(RoomBookingsModel).Name);
 

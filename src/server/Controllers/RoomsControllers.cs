@@ -89,12 +89,24 @@ public class RoomsController : ControllerBase
         {
             return BadRequest("Room payload must be provided.");
         }
-
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
         }
-
+        
+        // Check for duplicate room name
+        try
+        {
+            var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
+            if (existingRoom != null)
+            {
+                return Conflict("Room with the same name already exists.");
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Room doesn't exist, which is fine - continue
+        }
         try
         {
             var createdRoom = await _roomsService.Post(room).ConfigureAwait(false);
@@ -121,7 +133,21 @@ public class RoomsController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-
+        
+        // Check for duplicate room name (excluding the current room being updated)
+        try
+        {
+            var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
+            if (existingRoom != null && existingRoom.Id != id)
+            {
+                return Conflict("Room with the same name already exists.");
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Room doesn't exist, which is fine for update - continue
+        }
+        
         try
         {
             var updatedRoom = await _roomsService.Put(id, room).ConfigureAwait(false);
