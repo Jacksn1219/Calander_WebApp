@@ -4,6 +4,7 @@ import { useAuth } from '../auth/AuthContext';
 import { useSidebar } from '../hooks/hooks';
 import '../styles/sidebar.css';
 import UserSettings from './UserSettings';
+import ReminderNotification from './ReminderNotification';
 
 const Sidebar: React.FC = () => {
   const { isCollapsed, toggleSidebar, handleLogout } = useSidebar();
@@ -146,6 +147,8 @@ const Sidebar: React.FC = () => {
 
         {isAuthenticated && (
           <div className="sidebar-user-section">
+            <ReminderNotification />
+            
             <UserSettings
               dropdownPlacement="right"
               showLogoutAction={false}

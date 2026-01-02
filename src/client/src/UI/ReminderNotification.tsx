@@ -81,20 +81,25 @@ const ReminderNotification: React.FC = () => {
   };
 
   return (
-    <div className="reminder-notification-container">
+    <div className="reminder-notification-container dropdown-right">
       <button
         onClick={() => setShowReminders(!showReminders)}
         className="reminder-notification-button"
+        aria-haspopup="menu"
+        aria-expanded={showReminders}
       >
-        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2">
-          <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
-          <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
-        </svg>
-        {unsentReminders.length > 0 && (
-          <span className="reminder-notification-badge">
-            {unsentReminders.length}
-          </span>
-        )}
+        <div className="reminder-icon-wrapper">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" strokeWidth="2">
+            <path d="M18 8A6 6 0 0 0 6 8c0 7-3 9-3 9h18s-3-2-3-9"/>
+            <path d="M13.73 21a2 2 0 0 1-3.46 0"/>
+          </svg>
+          {unsentReminders.length > 0 && (
+            <span className="reminder-notification-badge">
+              {unsentReminders.length}
+            </span>
+          )}
+        </div>
+        <span className="reminder-text">Notifications</span>
       </button>
 
       {/* Dropdown */}

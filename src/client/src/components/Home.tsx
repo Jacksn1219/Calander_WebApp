@@ -3,7 +3,6 @@ import { useNavigate } from 'react-router-dom';
 import Sidebar from '../UI/Sidebar';
 import EventDialog from '../UI/EventDialog';
 import CreateEventDialog from '../UI/CreateEventDialog';
-import ReminderNotification from '../UI/ReminderNotification';
 import { useHomeDashboard, useReminders } from '../hooks/hooks';
 import '../styles/home.css';
 import '../styles/login-page.css';
@@ -149,9 +148,6 @@ const Home: React.FC = () => {
                 <button type="button" onClick={reload}>Retry</button>
               </div>
             )}
-          </div>
-          <div className="home-header-right">
-            <ReminderNotification />
           </div>
         </div>
 
