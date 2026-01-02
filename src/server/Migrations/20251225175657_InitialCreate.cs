@@ -42,6 +42,55 @@ namespace Calender_WebApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "reminderpreferences",
+                columns: table => new
+                {
+                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    event_reminder = table.Column<bool>(type: "INTEGER", nullable: false),
+                    booking_reminder = table.Column<bool>(type: "INTEGER", nullable: false),
+                    reminder_advance_minutes = table.Column<TimeSpan>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_reminderpreferences", x => x.user_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "reminders",
+                columns: table => new
+                {
+                    reminder_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    reminder_type = table.Column<int>(type: "INTEGER", nullable: false),
+                    related_room_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    related_event_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    reminder_time = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    is_read = table.Column<bool>(type: "INTEGER", nullable: false),
+                    title = table.Column<string>(type: "TEXT", nullable: false),
+                    message = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_reminders", x => x.reminder_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "rooms",
+                columns: table => new
+                {
+                    room_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    room_name = table.Column<string>(type: "TEXT", nullable: false),
+                    capacity = table.Column<int>(type: "INTEGER", nullable: false),
+                    location = table.Column<string>(type: "TEXT", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_rooms", x => x.room_id);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "admins",
                 columns: table => new
                 {
@@ -56,28 +105,6 @@ namespace Calender_WebApp.Migrations
                     table.ForeignKey(
                         name: "FK_admins_employees_user_id",
                         column: x => x.user_id,
-                        principalTable: "employees",
-                        principalColumn: "user_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "events",
-                columns: table => new
-                {
-                    event_id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true),
-                    title = table.Column<string>(type: "TEXT", nullable: false),
-                    description = table.Column<string>(type: "TEXT", nullable: true),
-                    event_date = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    created_by = table.Column<int>(type: "INTEGER", nullable: false)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_events", x => x.event_id);
-                    table.ForeignKey(
-                        name: "FK_events_employees_created_by",
-                        column: x => x.created_by,
                         principalTable: "employees",
                         principalColumn: "user_id",
                         onDelete: ReferentialAction.Cascade);
@@ -129,6 +156,37 @@ namespace Calender_WebApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "events",
+                columns: table => new
+                {
+                    event_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true),
+                    title = table.Column<string>(type: "TEXT", nullable: false),
+                    description = table.Column<string>(type: "TEXT", nullable: true),
+                    event_date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    end_time = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    location = table.Column<string>(type: "TEXT", nullable: true),
+                    room_id = table.Column<int>(type: "INTEGER", nullable: true),
+                    booking_id = table.Column<int>(type: "INTEGER", nullable: true),
+                    created_by = table.Column<int>(type: "INTEGER", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_events", x => x.event_id);
+                    table.ForeignKey(
+                        name: "FK_events_employees_created_by",
+                        column: x => x.created_by,
+                        principalTable: "employees",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_events_rooms_room_id",
+                        column: x => x.room_id,
+                        principalTable: "rooms",
+                        principalColumn: "room_id");
+                });
+
+            migrationBuilder.CreateTable(
                 name: "eventparticipation",
                 columns: table => new
                 {
@@ -153,6 +211,42 @@ namespace Calender_WebApp.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
+            migrationBuilder.CreateTable(
+                name: "roombookings",
+                columns: table => new
+                {
+                    room_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    booking_date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    start_time = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    end_time = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    event_id = table.Column<int>(type: "INTEGER", nullable: true),
+                    purpose = table.Column<string>(type: "TEXT", nullable: false),
+                    booking_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_roombookings", x => x.booking_id);
+                    table.ForeignKey(
+                        name: "FK_roombookings_employees_user_id",
+                        column: x => x.user_id,
+                        principalTable: "employees",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_roombookings_events_event_id",
+                        column: x => x.event_id,
+                        principalTable: "events",
+                        principalColumn: "event_id");
+                    table.ForeignKey(
+                        name: "FK_roombookings_rooms_room_id",
+                        column: x => x.room_id,
+                        principalTable: "rooms",
+                        principalColumn: "room_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
             migrationBuilder.CreateIndex(
                 name: "IX_admins_user_id",
                 table: "admins",
@@ -169,6 +263,11 @@ namespace Calender_WebApp.Migrations
                 column: "created_by");
 
             migrationBuilder.CreateIndex(
+                name: "IX_events_room_id",
+                table: "events",
+                column: "room_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_groupmemberships_group_id",
                 table: "groupmemberships",
                 column: "group_id");
@@ -176,6 +275,21 @@ namespace Calender_WebApp.Migrations
             migrationBuilder.CreateIndex(
                 name: "IX_officeattendance_user_id",
                 table: "officeattendance",
+                column: "user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_roombookings_event_id",
+                table: "roombookings",
+                column: "event_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_roombookings_room_id",
+                table: "roombookings",
+                column: "room_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_roombookings_user_id",
+                table: "roombookings",
                 column: "user_id");
         }
 
@@ -195,13 +309,25 @@ namespace Calender_WebApp.Migrations
                 name: "officeattendance");
 
             migrationBuilder.DropTable(
-                name: "events");
+                name: "reminderpreferences");
+
+            migrationBuilder.DropTable(
+                name: "reminders");
+
+            migrationBuilder.DropTable(
+                name: "roombookings");
 
             migrationBuilder.DropTable(
                 name: "groups");
 
             migrationBuilder.DropTable(
+                name: "events");
+
+            migrationBuilder.DropTable(
                 name: "employees");
+
+            migrationBuilder.DropTable(
+                name: "rooms");
         }
     }
 }

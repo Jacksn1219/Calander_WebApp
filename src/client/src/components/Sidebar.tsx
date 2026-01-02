@@ -25,6 +25,34 @@ const Sidebar: React.FC = () => {
     </svg>
   );
 
+  const UsersIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2" />
+      <circle cx="9" cy="7" r="4" />
+      <path d="M23 21v-2a4 4 0 0 0-3-3.87" />
+      <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+    </svg>
+  );
+
+  const DashboardIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <rect x="3" y="3" width="18" height="18" rx="2" ry="2" />
+      <line x1="3" y1="9" x2="21" y2="9" />
+      <line x1="9" y1="21" x2="9" y2="9" />
+    </svg>
+  );
+
+  const RoomIcon = () => (
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3 21V3h18v18" />
+      <path d="M9 21V9h6v12" />
+      <path d="M7 7h.01" />
+      <path d="M17 7h.01" />
+      <path d="M7 11h.01" />
+      <path d="M17 11h.01" />
+    </svg>
+  );
+
   const renderAuthenticatedSidebar = () => (
     <>
       <li className={location.pathname === '/home' ? 'active' : ''}>
@@ -34,14 +62,6 @@ const Sidebar: React.FC = () => {
             <polyline points="9,22 9,12 15,12 15,22"/>
           </svg>
           {!isCollapsed && <span>Home</span>}
-        </Link>
-      </li>
-      <li className={location.pathname === '/roombooking' ? 'active' : ''}>
-        <Link to="/roombooking" title="Roombooking">
-          <svg width="20" height="20" viewBox="0 0 15 15" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-            <path d="M3.5 0V5M11.5 0V5M3 7.5H6M12 7.5H9M3 10.5H6M9 10.5H12M1.5 2.5H13.5C14.0523 2.5 14.5 2.94772 14.5 3.5V13.5C14.5 14.0523 14.0523 14.5 13.5 14.5H1.5C0.947716 14.5 0.5 14.0523 0.5 13.5V3.5C0.5 2.94772 0.947715 2.5 1.5 2.5Z" />
-          </svg>
-          {!isCollapsed && <span>Roombooking</span>}
         </Link>
       </li>
       
@@ -58,14 +78,28 @@ const Sidebar: React.FC = () => {
       </li>
 
       {(user?.role === 'SuperAdmin' || user?.role === 'Admin') && (
-        <li className={['/admin-panel','/admin-panel/Room-Panel','/admin-panel/add-emp','/admin-panel/administrative-dashboard'].includes(location.pathname) ? 'active' : ''}>
-          <Link to="/admin-panel" title="Admin Panel">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <rect x="3" y="4" width="18" height="16" rx="2" ry="2"/>
-              <line x1="3" y1="10" x2="21" y2="10"/>
-              <line x1="9" y1="4" x2="9" y2="20"/>
-            </svg>
-            {!isCollapsed && <span>Admin Panel</span>}
+        <li className={location.pathname === '/admin-panel/add-emp' ? 'active' : ''}>
+          <Link to="/admin-panel/add-emp" title="Employee Panel">
+            <UsersIcon />
+            {!isCollapsed && <span>Employee Panel</span>}
+          </Link>
+        </li>
+      )}
+
+      {(user?.role === 'SuperAdmin' || user?.role === 'Admin') && (
+        <li className={location.pathname === '/admin-panel/administrative-dashboard' ? 'active' : ''}>
+          <Link to="/admin-panel/administrative-dashboard" title="Event Panel">
+            <DashboardIcon />
+            {!isCollapsed && <span>Event Panel</span>}
+          </Link>
+        </li>
+      )}
+
+      {user?.role === 'SuperAdmin' && (
+        <li className={location.pathname === '/admin-panel/Room-Panel' ? 'active' : ''}>
+          <Link to="/admin-panel/Room-Panel" title="Room Panel">
+            <RoomIcon />
+            {!isCollapsed && <span>Room Panel</span>}
           </Link>
         </li>
       )}

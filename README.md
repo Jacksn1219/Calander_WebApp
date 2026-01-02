@@ -70,7 +70,7 @@ cp .env.example .env
 
 2. Start both services (frontend + backend):
 ```bash
-docker compose --profile public up --build
+docker compose up --build
 ```
 
 3. Access the apps:
@@ -99,7 +99,7 @@ The backend uses SQLite. A named Docker volume `backend-db` persists the databas
 docker compose build
 
 # Build with container logs (MOST RECOMMENDED FOR DEV)
-docker compose --profile public up --build
+docker compose up --build
 
 # Restart with clean containers but keep DB volume
 docker compose down && docker compose up -d

@@ -1,12 +1,17 @@
-import React, { useEffect } from 'react';
-import { useLocation } from 'react-router-dom';
+import React, { useState, useEffect } from 'react';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
-import { useCalendar, useCalendarEvents } from '../hooks/hooks';
-import '../styles/calendar.css';
+import CreateEventDialog from './CreateEventDialog';
 import { useAuth } from '../states/AuthContext';
+import { useLocation } from 'react-router-dom';
+import { useCalendar, useCalendarEvents,useOfficeAttendance } from '../hooks/hooks';
+import '../styles/calendar.css';
+
 
 const Calendar: React.FC = () => {
+  const { user } = useAuth();
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createDialogDate, setCreateDialogDate] = useState<Date | undefined>(undefined);
   const location = useLocation();
   const {
     loading,
@@ -34,7 +39,17 @@ const Calendar: React.FC = () => {
     upcomingHeaderRef,
   } = useCalendar();
 
-  const { user } = useAuth();
+
+  const handleCreateEvent = (date?: Date) => {
+    closeDialog();
+    setCreateDialogDate(date);
+    setShowCreateDialog(true);
+  };
+
+  const closeCreateDialog = () => {
+    setShowCreateDialog(false);
+    setCreateDialogDate(undefined);
+  };
   const { events: roleScopedEvents, getEventsForDate: fetchEventsForDate } = useCalendarEvents(user);
   
   // Handle navigation from reminder notification - wait for events to load
@@ -49,6 +64,16 @@ const Calendar: React.FC = () => {
       window.history.replaceState({}, document.title);
     }
   }, [location, onDaySelect, loading, roleScopedEvents]);
+  
+    const {
+    status: attendanceStatus,
+    setTodayAttendance,
+    loading: attendanceLoading,
+  } = useOfficeAttendance();
+
+  const [attendanceOpen, setAttendanceOpen] = useState(false);
+  const attendanceLabel = attendanceStatus ?? 'Set attendance';
+
 
   return (
     <div className="app-layout">
@@ -66,7 +91,50 @@ const Calendar: React.FC = () => {
               </div>
             )}
           </div>
+
+          <div className="attendance-wrapper">
+            <div className="attendance-control">
+              <p className="attendance-helper">
+                Tell your colleagues where you’re working from today
+              </p>
+
+              <button
+              className="attendance-button"
+              onClick={() => setAttendanceOpen(o => !o)}
+              disabled={attendanceLoading}
+              >
+              {attendanceLabel}
+              <span className="attendance-caret">▾</span>
+            </button>
+          </div>
+
+
+            {attendanceOpen && (
+              <div className="attendance-dropdown">
+                {[  
+                  { key: 'Present', label: 'Office', icon: '🏢' },
+                  { key: 'Remote', label: 'Remote', icon: '🏠' },
+                  { key: 'Absent', label: 'Absent', icon: '⛔' },
+                ].map(option => (
+                  <button
+                    key={option.key}
+                    className={`attendance-option ${
+                      attendanceStatus === option.key ? 'active' : ''
+                    }`}
+                    onClick={() => {
+                      setTodayAttendance(option.key as any);
+                      setAttendanceOpen(false);
+                    }}
+                  >
+                    <span className="attendance-icon">{option.icon}</span>
+                    <span className="attendance-text">{option.label}</span>
+                  </button>
+                ))}
+              </div>
+            )}
+          </div>
         </div>
+
 
         <div className="calendar-container">
           <div className="calendar-controls">
@@ -107,6 +175,13 @@ const Calendar: React.FC = () => {
                         }
                       : undefined;
 
+                    const handlePlusClick = (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      if (day.date) {
+                        handleCreateEvent(day.date);
+                      }
+                    };
+
                     return (
                       <div
                         key={day.key}
@@ -120,6 +195,16 @@ const Calendar: React.FC = () => {
                               <div className="event-indicator">
                                 <span className="event-count">{day.eventCount}</span>
                               </div>
+                            )}
+                            {!day.isPast && (
+                              <button
+                                className="day-plus-button"
+                                onClick={handlePlusClick}
+                                aria-label="Create event"
+                                title="Create event for this day"
+                              >
+                                +
+                              </button>
                             )}
                           </>
                         )}
@@ -179,6 +264,14 @@ const Calendar: React.FC = () => {
                           <p className="upcoming-description">{event.description}</p>
                         )}
                         <span className="upcoming-meta">{event.acceptedCount} attending</span>
+
+        {showCreateDialog && (
+          <CreateEventDialog
+            onClose={closeCreateDialog}
+            reloadEvents={reload}
+            defaultDate={createDialogDate}
+          />
+        )}
                       </div>
                     </button>
                   ))
@@ -188,7 +281,7 @@ const Calendar: React.FC = () => {
           </div>
         </div>
 
-        {selectedDate && (
+        {selectedDate && !showCreateDialog && (
           <EventDialog
             date={selectedDate}
             events={selectedDateEvents}
@@ -196,9 +289,16 @@ const Calendar: React.FC = () => {
             onStatusChange={reload}
           />
         )}
+
+        {showCreateDialog && (
+          <CreateEventDialog
+            onClose={closeCreateDialog}
+            reloadEvents={reload}
+            defaultDate={createDialogDate}
+          />
+        )}
       </main>
     </div>
   );
 };
-
 export default Calendar;

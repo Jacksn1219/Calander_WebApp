@@ -2,14 +2,16 @@ import React from 'react';
 import { useNavigate } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import EventDialog from './EventDialog';
+import CreateEventDialog from './CreateEventDialog';
 import ReminderNotification from './ReminderNotification';
-import UserSettings from './UserSettings';
-import { useHomeDashboard } from '../hooks/hooks';
+import { useHomeDashboard, useReminders } from '../hooks/hooks';
 import '../styles/home.css';
 import '../styles/login-page.css';
 
 const Home: React.FC = () => {
   const navigate = useNavigate();
+  const [showCreateDialog, setShowCreateDialog] = React.useState(false);
+
   const {
     user,
     loading,
@@ -36,10 +38,37 @@ const Home: React.FC = () => {
     roomsById,
   } = useHomeDashboard();
 
+  const {
+    reminders,
+    loading: remindersLoading,
+    error: remindersError,
+  } = useReminders();
+
+  const unreadRemindersCount = React.useMemo(
+    () => reminders.filter(r => !r.isRead).length,
+    [reminders]
+  );
+
+  const nextAcceptedEvent = React.useMemo(() => {
+    const now = new Date();
+    const futureAccepted = weekEventsAttending
+      .filter(ev => ev.eventDate >= now)
+      .sort((a, b) => a.eventDate.getTime() - b.eventDate.getTime());
+    return futureAccepted[0] ?? null;
+  }, [weekEventsAttending]);
+
   const displayedUpcoming = React.useMemo(
     () => upcomingEvents.slice(0, 4),
     [upcomingEvents]
   );
+
+  const openCreateDialog = () => {
+    setShowCreateDialog(true);
+  };
+
+  const closeCreateDialog = () => {
+    setShowCreateDialog(false);
+  };
 
 
   const renderMiniWeek = () => {
@@ -47,8 +76,8 @@ const Home: React.FC = () => {
     const today = new Date();
     const days = [];
 
-    // Only render 5 working days: Monday–Friday
-    for (let i = 0; i < 5; i++) {
+    // Render full week: Monday–Sunday
+    for (let i = 0; i < 7; i++) {
       const date = new Date(startOfWeek);
       date.setDate(startOfWeek.getDate() + i);
 
@@ -111,7 +140,7 @@ const Home: React.FC = () => {
       <main className="main-content">
         <div className="events-header">
           <div className="events-header-left">
-            <h1>Welcome {user?.name}</h1>
+            <h1>Welcome {user?.name},</h1>
             <p className="muted">Review your meetings, bookings, and events in one place.</p>
             {loading && <p className="muted">Loading dashboard data...</p>}
             {error && (
@@ -126,113 +155,95 @@ const Home: React.FC = () => {
           </div>
         </div>
 
-        {/* Main content layout: left column (mini calendar + room booking) and right column (upcoming events) */}
-        <div className="home-row">
-          {/* Left column: mini calendar on top, Room Booking below */}
-          <div className="home-left-column">
-            <div className="calendar-container">
-              {/* Embedded week calendar preview */}
-              <section className="calendar-grid home-calendar-section">
-                <div className="calendar-controls">
-                  <button onClick={goToPreviousWeek} className="btn-icon" aria-label="Previous week">
-                    ←
-                  </button>
-                  <div className="month-year">
-                    <h2>
-                      {currentWeekStart.toLocaleDateString(undefined, {
-                        month: 'long',
-                        year: 'numeric',
-                      })}
-                    </h2>
-                    <button onClick={goToCurrentWeek} className="btn-today">This week</button>
-                  </div>
-                  <button onClick={goToNextWeek} className="btn-icon primary" aria-label="Next week">
-                    →
-                  </button>
-                </div>
-
-                <div className="calendar-grid">
-                  
-                  <div className="calendar-days">
-                    {renderMiniWeek()}
-                  </div>
-                </div>
-
-                <div className="home-see-more-wrapper">
-                  <button
-                    type="button"
-                    className="btn-today"
-                    onClick={() => navigate('/calendar')}
-                  >
-                    See more...
-                  </button>
-                </div>
-              </section>
+        <div className="home-top-row">
+          {/* Today summary strip */}
+          <div className="home-summary-strip" role="status" aria-live="polite">
+            <div className="home-summary-item">
+              <h2 className="home-summary-label-today">What's happening today?</h2>
+              <span className="home-summary-label">Today:</span>
+              <span className="home-summary-value">
+                {new Date().toLocaleDateString(undefined, {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                })}
+              </span>
             </div>
 
-            <div className="calendar-container">
-              <section className="calendar-grid">
-                <h2 className="section-title">Room Booking</h2>
-                {roomBookingsLoading && (
-                  <p className="muted">Loading your room bookings...</p>
-                )}
-                {roomBookingsError && (
-                  <p className="muted room-booking-error">
-                    {roomBookingsError}
-                  </p>
-                )}
-                {!roomBookingsLoading && !roomBookingsError && roomBookings.length === 0 && (
-                  <p className="muted">You have no room bookings yet.</p>
-                )}
-
-                {roomBookings.length > 0 && (
-                  <>
-                    <div className="upcoming-list">
-                      {[...roomBookings].reverse().slice(0, 3).map(b => {
-                        const start = new Date(b.startTime);
-                        const end = new Date(b.endTime);
-                        const bookingDate = start; // Use start time for the date badge
-                        const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
-                        return (
-                          <button
-                            type="button"
-                            key={b.id}
-                            className="upcoming-card home-upcoming-card"
-                          >
-                            <div className="upcoming-date">
-                              <span className="upcoming-date-day">{bookingDate.getDate()}</span>
-                              <span className="upcoming-date-month">{bookingDate.toLocaleDateString(undefined, { month: 'short' })}</span>
-                            </div>
-                            <div className="upcoming-details">
-                              <h4>{b.roomName || 'Room'}</h4>
-                              <p className="upcoming-time">{timeRange}</p>
-                              {b.purpose && (
-                                <p className="upcoming-description">
-                                  {b.purpose.length > 120 ? `${b.purpose.slice(0, 117)}...` : b.purpose}
-                                </p>
-                              )}
-                            </div>
-                          </button>
-                        );
-                      })}
-                    </div>
-                    <div className="home-see-more-wrapper">
-                      <button
-                        type="button"
-                        className="btn-today"
-                        onClick={() => navigate('/roombooking')}
-                      >
-                        See more...
-                      </button>
-                    </div>
-                  </>
-                )}
-              </section>
+            <div className="home-summary-item">
+              <span className="home-summary-label">Next event:</span>
+              <span className="home-summary-value">
+                {nextAcceptedEvent
+                  ? nextAcceptedEvent.eventDate.toLocaleTimeString(undefined, {
+                      hour: '2-digit',
+                      minute: '2-digit',
+                    })
+                  : 'No upcoming events'}
+              </span>
             </div>
+
           </div>
 
-          {/* Right column: Upcoming Events */}
-          <div className="calendar-container home-upcoming-events home-right-column">
+          {/* Quick create event (next to summary strip) */}
+          <div className="calendar-container home-quick-create">
+            <div className="home-card-header">
+              <h3>Quick action</h3>
+            </div>
+            <p className="muted home-quick-create-text">
+              Create an event to bring your colleagues to the office.
+            </p>
+            <div className="home-quick-create-actions">
+              <button type="button" className="btn-today-create-event" onClick={openCreateDialog}>
+                Create event
+              </button>
+            </div>
+          </div>
+        </div>
+
+        {/* Main content layout: mini calendar and upcoming events side-by-side */}
+        <div className="home-row home-main-row">
+          <div className="calendar-container home-calendar-card">
+            {/* Embedded week calendar preview */}
+            <section className="calendar-grid home-calendar-section">
+              <div className="calendar-controls">
+                <button onClick={goToPreviousWeek} className="btn-icon" aria-label="Previous week">
+                  ←
+                </button>
+                <div className="month-year">
+                  <h2>
+                    {currentWeekStart.toLocaleDateString(undefined, {
+                      month: 'long',
+                      year: 'numeric',
+                    })}
+                  </h2>
+                  <button onClick={goToCurrentWeek} className="btn-today">This week</button>
+                </div>
+                <button onClick={goToNextWeek} className="btn-icon primary" aria-label="Next week">
+                  →
+                </button>
+              </div>
+
+              <div className="calendar-grid">
+                <div className="calendar-days">
+                  {renderMiniWeek()}
+                </div>
+              </div>
+
+              <div className="home-see-more-wrapper">
+                <button
+                  type="button"
+                  className="btn-today"
+                  onClick={() => navigate('/calendar')}
+                >
+                  See more...
+                </button>
+              </div>
+            </section>
+          </div>
+
+          {/* Upcoming Events */}
+          <div className="calendar-container home-upcoming-events">
             <aside className="upcoming-panel home-upcoming-panel" aria-live="polite">
               <div className="upcoming-header">
                 <div>
@@ -246,7 +257,7 @@ const Home: React.FC = () => {
                 ) : (
                   displayedUpcoming.map(ev => {
                     const start = ev.eventDate;
-                    const end = new Date(start.getTime() + ev.durationMinutes * 60000);
+                    const end = ev.endTime;
                     const timeRange = `${start.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })} - ${end.toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })}`;
                     return (
                       <button
@@ -271,10 +282,10 @@ const Home: React.FC = () => {
                                 : ev.description}
                             </p>
                           )}
-                          {ev.roomId != null && roomsById[ev.roomId] && (
+                          {ev.bookingId != null && roomsById[ev.bookingId] && (
                             <p className="upcoming-location">
-                              {roomsById[ev.roomId].roomName}
-                              {roomsById[ev.roomId].location && ` — ${roomsById[ev.roomId].location}`}
+                              {roomsById[ev.bookingId].roomName}
+                              {roomsById[ev.bookingId].location && ` — ${roomsById[ev.bookingId].location}`}
                             </p>
                           )}
                         </div>
@@ -283,7 +294,7 @@ const Home: React.FC = () => {
                   })
                 )}
               </div>
-              
+
               {upcomingEvents.length > 0 && (
                 <div className="upcoming-footer">
                   <button
@@ -309,6 +320,13 @@ const Home: React.FC = () => {
               }}
             />
           )}
+
+        {showCreateDialog && (
+          <CreateEventDialog
+            onClose={closeCreateDialog}
+            reloadEvents={reload}
+          />
+        )}
         </main>
       </div>
     );

@@ -137,7 +137,10 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose, onStat
                       aria-label={`View details for ${event.title}`}
                     >
                       <div className="event-item-time">{formatTime(new Date(event.eventDate))}</div>
-                      <div className="event-item-title">{event.title}</div>
+                      <div className="event-item-title">
+                        {event.title}
+                        {event.bookingId && <span className="room-booking-badge-list" title="Room booking">🏢</span>}
+                      </div>
                       <div className="event-meta">
                         <span className="event-badge participants" title="Attendees">👥 {event.participants.length}</span>
                         {userIsParticipant && <span className="event-badge joined" title="You are attending">✓ Joined</span>}
@@ -156,14 +159,27 @@ const EventDialog: React.FC<EventDialogProps> = ({ date, events, onClose, onStat
                 <button className="btn-back" type="button" onClick={backToList} aria-label="Back to events list">← Back</button>
               )}
               <div className="event-info">
-                <h3>{selectedEvent.title}</h3>
+                <div className="event-title-row">
+                  <h3>{selectedEvent.title}</h3>
+                  {selectedEvent.bookingId && (
+                    <span className="room-booking-badge" title="This event has a room booking">🏢</span>
+                  )}
+                </div>
                 <div className="event-time">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
                     <circle cx="12" cy="12" r="10"/>
                     <polyline points="12,6 12,12 16,14"/>
                   </svg>
-                  <span>{formatTime(new Date(selectedEvent.eventDate))}</span>
+                  <span>{formatTime(new Date(selectedEvent.eventDate))} - {formatTime(new Date(selectedEvent.endTime))}</span>
                 </div>
+                {selectedEvent.location && (
+                  <div className="event-location">
+                    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true">
+                      <path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7zm0 9.5c-1.38 0-2.5-1.12-2.5-2.5s1.12-2.5 2.5-2.5 2.5 1.12 2.5 2.5-1.12 2.5-2.5 2.5z"/>
+                    </svg>
+                    <span>{selectedEvent.location}</span>
+                  </div>
+                )}
                 {selectedEvent.description && <p className="event-description">{selectedEvent.description}</p>}
               </div>
               {!isPastSelectedEvent && (

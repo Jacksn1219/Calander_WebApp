@@ -83,7 +83,7 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
             .Where(p => validators == null || validators.ContainsKey(p.Name))
-            .ToDictionary(p => p.Name, p => p.GetValue(model) ?? (object)string.Empty);
+            .ToDictionary(p => p.Name, p => p.GetValue(model)!);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(TEntity).Name, inputDict, out var errors))
         {
@@ -120,7 +120,7 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
             .Where(p => validators == null || validators.ContainsKey(p.Name))
-            .ToDictionary(p => p.Name, p => p.GetValue(newTEntity) ?? (object)string.Empty);
+            .ToDictionary(p => p.Name, p => p.GetValue(newTEntity)!);
 
         if (!ModelWhitelistUtil.ValidateModelInput(typeof(TEntity).Name, inputDict, out var errors)) {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");

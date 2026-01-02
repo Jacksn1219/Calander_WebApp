@@ -1020,15 +1020,20 @@ export const useCalendarEvents = (user: { userId?: number; role?: string } | nul
         const id: number = ev.event_id ?? ev.EventId ?? ev.Id ?? ev.eventId;
         const createdBy: number = ev.CreatedBy ?? ev.created_by ?? ev.createdBy;
         const eventDateString: string = ev.EventDate ?? ev.event_date ?? ev.eventDate;
-        const durationMinutes: number = ev.DurationMinutes ?? ev.duration_minutes ?? ev.durationMinutes ?? 60;
-        const roomId: number | undefined = ev.RoomId ?? ev.room_id ?? ev.roomId ?? undefined;
+        const endDateString: string = ev.EndTime ?? ev.end_time ?? ev.endTime ?? '';
+        const startDate = eventDateString ? new Date(eventDateString) : new Date();
+        const fallbackDuration = ev.DurationMinutes ?? ev.duration_minutes ?? ev.durationMinutes ?? 60;
+        const computedEnd = endDateString ? new Date(endDateString) : new Date(startDate.getTime() + fallbackDuration * 60000);
+        const bookingId: number | undefined = ev.BookingId ?? ev.booking_id ?? ev.bookingId ?? undefined;
+        const location: string | undefined = ev.Location ?? ev.location ?? undefined;
         return {
           eventId: id,
           title: ev.Title ?? ev.title ?? 'Untitled Event',
           description: ev.Description ?? ev.description ?? undefined,
-          eventDate: eventDateString ? new Date(eventDateString) : new Date(),
-          durationMinutes,
-          roomId,
+          eventDate: startDate,
+          endTime: computedEnd,
+          location,
+          bookingId,
           createdBy,
           participants: participationByEvent[id] ?? []
         };
@@ -1076,10 +1081,13 @@ export interface EventItem {
   event_id: number;
   title: string;
   description: string;
-  eventDate: string;
-  durationMinutes: number;
+  eventDate: string; // start date-time ISO
+  endTime: string;   // end date-time ISO
+  location?: string | null;
   roomId?: number;
+  bookingId?: number | null;
   createdBy: number;
+  expectedAttendees: number | null;
 }
 
 export interface Employee {
@@ -1094,7 +1102,7 @@ export interface Employee {
 ADMINISTRATIVE DASHBOARD HOOKS
  ====================================
  */
-export const useAdministrativeDashboard = () => {
+export const  useAdministrativeDashboard = () => {
   const [events, setEvents] = useState<EventItem[]>([]);
   const [currentEvent, setEvent] = useState<EventItem>();
   const [usernames, setUsernames] = useState<Record<number, string>>({});
@@ -1144,6 +1152,7 @@ export const useAdministrativeDashboard = () => {
       if (!res.ok) throw new Error("Failed delete");
 
       setEvents((prev) => prev.filter((e) => e.event_id !== id));
+      alert('Event deleted successfully');
     } catch (err) {
       console.error("Error:", err);
     }
@@ -1153,246 +1162,381 @@ export const useAdministrativeDashboard = () => {
 };
 
 export const useEditEvent = (event: EventItem | undefined, onClose: () => void, reloadEvents: () => void) => {
-  const navigate = useNavigate();
-  const currentEvent = event;
+  const [availableRooms, setAvailableRooms] = useState<RoomDto[]>([]);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
   const [formData, setFormData] = useState({
     title: "",
     description: "",
     date: "",
-    time: "",
-    durationMinutes: 60,
-    roomId: null as number | null,
+    startTime: "",
+    endTime: "",
+    location: "",
+    bookingId: null as number | null,
+    expectedAttendees: 1,
     createdBy: "",
   });
 
   useEffect(() => {
-    if (!currentEvent) {
+    if (!event) {
       alert("Event not found");
       onClose();
       return;
     }
-    const eventDateTime = new Date(currentEvent.eventDate);
-    setFormData({
-      title: currentEvent.title,
-      description: currentEvent.description,
-      date: eventDateTime.toLocaleDateString('en-CA'),
-      time: eventDateTime.toTimeString().slice(0, 5), // HH:MM format
-      durationMinutes: currentEvent.durationMinutes || 60,
-      roomId: currentEvent.roomId ?? null,
-      createdBy: currentEvent.createdBy.toString()
-    });
-  }, [currentEvent]);
 
-  const generateTimeOptions = () => {
-    const options = [];
-    for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += 15) {
-        const hh = String(h).padStart(2, "0");
-        const mm = String(m).padStart(2, "0");
-        options.push(`${hh}:${mm}`);
-      }
+    const start = new Date(event.eventDate);
+    const end = new Date(event.endTime);
+    setFormData({
+      title: event.title,
+      description: event.description,
+      date: start.toLocaleDateString('en-CA'),
+      startTime: start.toTimeString().slice(0, 5),
+      endTime: end.toTimeString().slice(0, 5),
+      location: event.location ?? '',
+      bookingId: event.bookingId ?? null,
+      expectedAttendees: event.expectedAttendees ?? 1,
+      createdBy: event.createdBy.toString(),
+    });
+  }, [event, onClose]);
+
+  useEffect(() => {
+    const canQuery = formData.date && formData.startTime && formData.endTime && formData.expectedAttendees > 0;
+    if (!canQuery) {
+      setAvailableRooms([]);
+      return;
     }
-    return options;
-  };
+    const loadRooms = async () => {
+      try {
+        const startIso = `${formData.date}T${formData.startTime}:00`;
+        const endIso = `${formData.date}T${formData.endTime}:00`;
+        const capacity = formData.expectedAttendees;
+        const res = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${startIso}&endtime=${endIso}&capacity=${capacity}`);
+        if (res.ok) {
+          const rooms = await res.json();
+          setAvailableRooms(rooms || []);
+        }
+      } catch (err) {
+        console.error('Failed to load available rooms', err);
+        setAvailableRooms([]);
+      }
+    };
+    loadRooms();
+  }, [formData.date, formData.startTime, formData.endTime, formData.expectedAttendees]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    const processedValue = (name === 'durationMinutes' || name === 'roomId') 
-      ? (value === '' ? undefined : Number(value))
-      : value;
-    setFormData((events) => ({ ...events, [name]: processedValue }));
+    
+    if (name === 'expectedAttendees') {
+      setFormData(prev => ({ ...prev, expectedAttendees: Math.max(0, parseInt(value) || 0) }));
+      return;
+    }
+    
+    if (name === 'location') {
+      const newValue = value;
+      // When user types manually, clear the room selection (free-form location)
+      setFormData(prev => ({ ...prev, location: newValue }));
+      setSelectedRoomId(null);
+      setShowRoomDropdown(newValue === '');
+      return;
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const selectRoom = (room: RoomDto) => {
+    setFormData(prev => ({ ...prev, location: room.roomName }));
+    setSelectedRoomId(room.room_id);
+    console.log('Selected room:', room);
+    setShowRoomDropdown(false);
+  };
+
+  const validateBasics = () => {
+    if (!formData.title.trim()) return 'Title cannot be empty';
+    if (!formData.description.trim()) return 'Description cannot be empty';
+    if (!formData.date) return 'Date cannot be empty';
+    if (!formData.startTime) return 'Start time cannot be empty';
+    if (!formData.endTime) return 'End time cannot be empty';
+    if (!formData.location.trim()) return 'Location cannot be empty';
+    if (formData.expectedAttendees <= 0) return 'Attendee count must be at least 1';
+    const start = new Date(`${formData.date}T${formData.startTime}:00`);
+    const end = new Date(`${formData.date}T${formData.endTime}:00`);
+    if (end <= start) return 'End time must be after start time';
+    return '';
   };
 
   const handleSave = async () => {
-    if (!formData.title.trim()) {
-      alert("Title cannot be empty");
+    const validationMessage = validateBasics();
+    if (validationMessage) {
+      alert(validationMessage);
       return;
     }
-    if (!formData.description.trim()) {
-      alert("Description cannot be empty");
-      return;
-    }
-    if (!formData.date.trim()) {
-      alert("Date cannot be empty");
-      return;
-    }
-    if (!formData.time.trim()) {
-      alert("Time cannot be empty");
-      return;
-    }
-    if (!formData.durationMinutes || formData.durationMinutes <= 0) {
-      alert("Duration must be greater than 0");
-      return;
-    }
-    const selectedDate = new Date(formData.date);
-    const today = new Date();
 
-    today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      alert("Date must be today or later");
-      return;
-    }
+    const startIso = `${formData.date}T${formData.startTime}:00`;
+    const endIso = `${formData.date}T${formData.endTime}:00`;
+    const bookingOwner = Number.parseInt(formData.createdBy || "0", 10) || event?.createdBy || 0;
 
     try {
-      // Combine date and time into a single DateTime string WITHOUT timezone conversion
-      const eventDateTimeString = `${formData.date}T${formData.time}:00`;
-      
+      let bookingId = formData.bookingId ?? event?.bookingId ?? null;
+
+      // Only create/update room booking if a room is selected
+      if (selectedRoomId !== null) {
+        const bookingPayload = {
+          roomId: selectedRoomId,
+          userId: bookingOwner,
+          bookingDate: `${formData.date}T00:00:00`,
+          startTime: `${formData.startTime}:00`,
+          endTime: `${formData.endTime}:00`,
+          purpose: formData.title,
+        };
+
+        if (bookingId) {
+          const updateBookingRes = await apiFetch(`/api/room-bookings/${bookingId}`, {
+            method: "PUT",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(bookingPayload),
+          });
+          if (!updateBookingRes.ok) {
+            const text = await updateBookingRes.text();
+            throw new Error(text || "Failed to update booking");
+          }
+        } else {
+          const createBookingRes = await apiFetch('/api/room-bookings', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(bookingPayload),
+          });
+          if (!createBookingRes.ok) {
+            const text = await createBookingRes.text();
+            throw new Error(text || 'Failed to create booking');
+          }
+          const createdBooking = await createBookingRes.json();
+          bookingId = createdBooking?.booking_id ?? createdBooking?.bookingId ?? createdBooking?.id;
+          if (bookingId) {
+            setFormData(prev => ({ ...prev, bookingId }));
+          }
+        }
+      } else {
+        // No room selected - if there was a booking, detach it
+        if (bookingId) {
+          bookingId = null;
+        }
+      }
+
       const payload = {
-        event_id: currentEvent?.event_id,
+        event_id: event?.event_id,
         title: formData.title,
         description: formData.description || "",
-        eventDate: eventDateTimeString,
-        durationMinutes: formData.durationMinutes || 60,
-        roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
-        createdBy: currentEvent?.createdBy
+        eventDate: startIso,
+        endTime: endIso,
+        location: formData.location || undefined,
+        ...(bookingId !== null && { bookingId }),
+        createdBy: event?.createdBy,
+        expectedAttendees: formData.expectedAttendees,
       };
-      
-      console.log('Sending PUT request with payload:', payload);
-      
-      const response = await apiFetch(`/api/events/${currentEvent?.event_id}`, { 
+
+      const response = await apiFetch(`/api/events/${event?.event_id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(payload)
       });
       if (!response.ok) throw new Error("Failed to update event");
-      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: formData.createdBy });
       reloadEvents();
       onClose();
+      alert('Event updated successfully');
     } catch (err: any) {
       console.error("Error updating event:", err);
-      alert("Failed to update event");
+      alert(err.message || "Failed to update event");
     }
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: formData.createdBy });
     onClose();
   };
 
-  return { formData, handleChange, handleSave, handleCancel, generateTimeOptions };
+  return { formData, availableRooms, showRoomDropdown, setShowRoomDropdown, selectRoom, handleChange, handleSave, handleCancel };
 };
 
-export const useCreateEvent = (onClose: () => void, reloadEvents: () => void) => {
+export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, defaultDate?: Date) => {
   const { user } = useAuth();
+  const [availableRooms, setAvailableRooms] = useState<RoomDto[]>([]);
+  const [showRoomDropdown, setShowRoomDropdown] = useState(false);
+
+  const getDefaultTimes = () => {
+    const base = defaultDate ? new Date(defaultDate) : new Date();
+    const start = new Date(base);
+    start.setMinutes(start.getMinutes() + (15 - (start.getMinutes() % 15)) % 15);
+    const end = new Date(start.getTime() + 60 * 60000);
+    const fmt = (d: Date) => `${String(d.getHours()).padStart(2, '0')}:${String(d.getMinutes()).padStart(2, '0')}`;
+    return { date: start.toLocaleDateString('en-CA'), startTime: fmt(start), endTime: fmt(end) };
+  };
+
+  const defaults = getDefaultTimes();
 
   const [formData, setFormData] = useState({
     title: "",
     description: "",
-    date: "",
-    time: "",
-    durationMinutes: 60,
-    roomId: null as number | null,
+    date: defaults.date,
+    startTime: defaults.startTime,
+    endTime: defaults.endTime,
+    location: "",
+    expectedAttendees: 1,
     createdBy: user?.userId,
   });
 
-  const generateTimeOptions = () => {
-    const options = [];
-    for (let h = 0; h < 24; h++) {
-      for (let m = 0; m < 60; m += 15) {
-        const hh = String(h).padStart(2, "0");
-        const mm = String(m).padStart(2, "0");
-        options.push(`${hh}:${mm}`);
-      }
+  // Track whether the location is from a room selection (actual room) or free-form typing
+  const [selectedRoomId, setSelectedRoomId] = useState<number | null>(null);
+
+  useEffect(() => {
+    const canQuery = formData.date && formData.startTime && formData.endTime && formData.expectedAttendees > 0;
+    if (!canQuery) {
+      setAvailableRooms([]);
+      return;
     }
-    return options;
-  };
+    const loadRooms = async () => {
+      try {
+        const startIso = `${formData.date}T${formData.startTime}:00`;
+        const endIso = `${formData.date}T${formData.endTime}:00`;
+        const capacity = formData.expectedAttendees;
+        const res = await apiFetch(`/api/Rooms/available-by-capacity?starttime=${startIso}&endtime=${endIso}&capacity=${capacity}`);
+        if (res.ok) {
+          const rooms = await res.json();
+          setAvailableRooms(rooms || []);
+        }
+      } catch (err) {
+        console.error('Failed to load available rooms', err);
+        setAvailableRooms([]);
+      }
+    };
+    loadRooms();
+  }, [formData.date, formData.startTime, formData.endTime, formData.expectedAttendees]);
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement | HTMLSelectElement>) => {
     const { name, value } = e.target;
-    let processedValue: any = value;
     
-    if (name === 'durationMinutes') {
-      processedValue = value === '' ? 60 : Number(value);
-    } else if (name === 'roomId') {
-      processedValue = value === '' ? null : Number(value);
+    if (name === 'expectedAttendees') {
+      setFormData(prev => ({ ...prev, expectedAttendees: Math.max(0, parseInt(value) || 0) }));
+      return;
     }
     
-    setFormData((events) => ({ ...events, [name]: processedValue }));
+    if (name === 'location') {
+      const newValue = value;
+      // When user types manually, clear the room selection (free-form location)
+      setFormData(prev => ({ ...prev, location: newValue }));
+      setSelectedRoomId(null);
+      setShowRoomDropdown(newValue === '');
+      return;
+    }
+    
+    setFormData(prev => ({ ...prev, [name]: value }));
+  };
+
+  const selectRoom = (room: RoomDto) => {
+    // User selected a room from dropdown - this is an actual room booking
+    setFormData(prev => ({ ...prev, location: room.roomName }));
+    setSelectedRoomId(room.room_id);
+    setShowRoomDropdown(false);
+  };
+
+  const validateBasics = () => {
+    if (!formData.title.trim()) return 'Title cannot be empty';
+    if (!formData.description.trim()) return 'Description cannot be empty';
+    if (!formData.date) return 'Date cannot be empty';
+    if (!formData.startTime) return 'Start time cannot be empty';
+    if (!formData.endTime) return 'End time cannot be empty';
+    if (!formData.location.trim()) return 'Location cannot be empty';
+    if (formData.expectedAttendees <= 0) return 'Expected attendees must be at least 1';
+    const start = new Date(`${formData.date}T${formData.startTime}:00`);
+    const end = new Date(`${formData.date}T${formData.endTime}:00`);
+    if (end <= start) return 'End time must be after start time';
+    return '';
   };
 
   const handleSubmit = async (e?: React.FormEvent) => {
     if (e) e.preventDefault();
-
     if (!user?.userId) {
-      alert("User is not logged in.");
+      alert('User is not logged in.');
       return;
     }
 
-    if (!formData.title.trim()) {
-      alert("Title cannot be empty");
+    const validationMessage = validateBasics();
+    if (validationMessage) {
+      alert(validationMessage);
       return;
     }
-    if (!formData.description.trim()) {
-      alert("Description cannot be empty");
-      return;
-    }
-    if (!formData.date.trim()) {
-      alert("Date cannot be empty");
-      return;
-    }
-    if (!formData.time.trim()) {
-      alert("Time cannot be empty");
-      return;
-    }
-    if (!formData.durationMinutes || formData.durationMinutes <= 0) {
-      alert("Duration must be greater than 0");
-      return;
-    }
-    const selectedDate = new Date(formData.date);
-    const today = new Date();
 
-    today.setHours(0, 0, 0, 0);
-    selectedDate.setHours(0, 0, 0, 0);
-
-    if (selectedDate < today) {
-      alert("Date must be today or later");
-      return;
-    }
+    const startIso = `${formData.date}T${formData.startTime}:00`;
+    const endIso = `${formData.date}T${formData.endTime}:00`;
 
     try {
-      // Combine date and time into a single DateTime string WITHOUT timezone conversion
-      const eventDateTimeString = `${formData.date}T${formData.time}:00`;
-      
-      const response = await apiFetch("/api/events", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          event_id: null,
-          title: formData.title,
-          description: formData.description || "",
-          eventDate: eventDateTimeString,
-          durationMinutes: formData.durationMinutes || 60,
-          roomId: formData.roomId === null || formData.roomId === undefined ? null : formData.roomId,
-          createdBy: user.userId,
-        }),
+      let bookingId: number | null = null;
+
+      // Conditional logic: only create room booking if a room was selected
+      if (selectedRoomId !== null) {
+        // Room selected - create room booking and link to event
+        const bookingPayload = {
+          roomId: selectedRoomId,
+          userId: user.userId,
+          bookingDate: `${formData.date}T00:00:00`,
+          startTime: `${formData.startTime}:00`,
+          endTime: `${formData.endTime}:00`,
+          purpose: formData.title,
+        };
+
+        const bookingRes = await apiFetch('/api/room-bookings', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(bookingPayload),
+        });
+
+        if (!bookingRes.ok) {
+          const text = await bookingRes.text();
+          throw new Error(text || 'Failed to create room booking');
+        }
+
+        const createdBooking = await bookingRes.json();
+        bookingId = createdBooking?.booking_id ?? createdBooking?.bookingId ?? createdBooking?.id;
+        if (!bookingId) {
+          throw new Error('Booking id missing after booking creation.');
+        }
+      }
+
+      // Create event with bookingId only if a room booking was created, otherwise null
+      const payload = {
+        event_id: null,
+        title: formData.title,
+        description: formData.description || '',
+        eventDate: startIso,
+        endTime: endIso,
+        location: formData.location || undefined,
+        ...(bookingId !== null && { bookingId }),
+        createdBy: user.userId,
+        expectedAttendees: formData.expectedAttendees,
+      };
+
+      const response = await apiFetch('/api/events', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
       });
 
       if (!response.ok) {
-        alert("Failed to create event");
-        console.error("Server response error:", response.status);
-        return;
+        const text = await response.text();
+        throw new Error(text || 'Failed to create event');
       }
-
-      const result = await response.json();
-      console.log("Event created:", result);
-
-      setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: user.userId });
+      alert('Event created successfully');
       reloadEvents();
       onClose();
     } catch (err: any) {
-      console.error("Events error:", err);
-      alert("Error creating an event");
+      console.error('Events error:', err);
+      alert(err.message || 'Error creating an event');
     }
   };
 
   const handleCancel = () => {
-    setFormData({ title: "", description: "", date: "", time: "", durationMinutes: 60, roomId: null, createdBy: user?.userId });
     onClose();
   };
 
-  return { formData, handleChange, handleSubmit, handleCancel, generateTimeOptions };
+  return { formData, availableRooms, showRoomDropdown, setShowRoomDropdown, selectRoom, handleChange, handleSubmit, handleCancel };
 };
 
 export const useViewAttendees = (event: EventItem | undefined, onClose: () => void) => {
@@ -1445,9 +1589,10 @@ export interface CalendarEvent {
   eventId: number;
   title: string;
   description?: string;
-  eventDate: Date;
-  durationMinutes: number;
-  roomId?: number;
+  eventDate: Date; // start
+  endTime: Date;  // end
+  location?: string;
+  bookingId?: number;
   createdBy: number;
   participants: CalendarParticipant[];
 }
@@ -1631,7 +1776,7 @@ export const getRoomById = async (roomId: number): Promise<RoomDto | null> => {
     }
     const data = await response.json();
     return {
-      id: data.room_id ?? data.id ?? data.roomId ?? data.RoomId ?? 0,
+      room_id: data.room_id ?? data.RoomId ?? data.id ?? data.Id,
       roomName: data.room_name ?? data.roomName ?? data.RoomName ?? 'Room',
       capacity: data.capacity ?? data.Capacity ?? null,
       location: data.location ?? data.Location ?? '',
@@ -1815,7 +1960,7 @@ export const useHomeDashboard = () => {
 
   // Fetch room details for events with roomId
   useEffect(() => {
-    const roomIds = Array.from(new Set(upcomingEvents.map(ev => ev.roomId).filter((id): id is number => id != null)));
+    const roomIds = Array.from(new Set(upcomingEvents.map(ev => ev.bookingId).filter((id): id is number => id != null)));
     
     roomIds.forEach(async (roomId) => {
       if (!roomsById[roomId]) {
@@ -1978,7 +2123,7 @@ export const formatTimeOnly = (dateString: string) => {
 // _________________________________________
 
 export interface RoomDto {
-  id: number;
+  room_id: number;
   roomName: string;
   capacity?: number | null;
   location: string;
@@ -2050,7 +2195,7 @@ export const useRoomsAdmin = () => {
 
   const startEdit = (room: RoomDto) => {
     setEditForm({
-      id: room.id,
+      id: room.room_id,
       roomName: room.roomName,
       location: (room as any).location ?? (room as any).Location ?? '',
       capacity: room.capacity != null ? String(room.capacity) : '',
@@ -2725,7 +2870,6 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
         bookingDate: editingBooking.bookingDate,
         startTime: editingBooking.startTime.slice(0, 5),
         endTime: editingBooking.endTime.slice(0, 5),
-        eventId: null,
         purpose: editingBooking.purpose,
       }),
     });
@@ -2782,3 +2926,94 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
 // _________________________________________
 // end functions roombooking
 // _________________________________________
+
+// _________________________________________
+// start functions office attendance
+// _________________________________________
+
+const STATUS_TO_INT = {
+  Present: 0,
+  Absent: 1,
+  Remote: 2,
+} as const;
+
+const INT_TO_STATUS = {
+  0: 'Present',
+  1: 'Absent',
+  2: 'Remote',
+} as const;
+
+export type AttendanceStatus = 'Present' | 'Absent' | 'Remote';
+
+export const useOfficeAttendance = () => {
+  const { user } = useAuth();
+  const [status, setStatus] = useState<AttendanceStatus | null>(null);
+  const [loading, setLoading] = useState(false);
+
+  /**
+   * Load today's attendance for the current user
+   */
+  useEffect(() => {
+    const loadTodayAttendance = async () => {
+      if (!user?.userId) return;
+      
+      try {
+        const res = await apiFetch(`/api/office-attendance/today/${user.userId}`);
+
+        if (res.ok) {
+          const data: { status: number } = await res.json();
+          setStatus(INT_TO_STATUS[data.status as 0 | 1 | 2]);
+        } else if (res.status === 404) {
+          // No attendance set for today
+          setStatus(null);
+        } else {
+          console.error('Failed to load attendance:', res.status);
+        }
+      } catch (err) {
+        console.error('Attendance load error', err);
+        setStatus(null);
+      }
+    };
+
+    loadTodayAttendance();
+  }, []);
+
+  /**
+   * Set or update today's attendance (UPSERT)
+   */
+  const setTodayAttendance = async (newStatus: AttendanceStatus) => {
+    if (!user?.userId) return;
+    
+    setLoading(true);
+
+    try {
+      const res = await apiFetch(`/api/office-attendance/today/${user.userId}`, {
+        method: 'PUT',
+        body: JSON.stringify({
+          status: STATUS_TO_INT[newStatus],
+        }),
+      });
+
+      if (!res.ok) {
+        const text = await res.text();
+        throw new Error(`Update failed (${res.status}): ${text}`);
+      }
+
+      const data: { status: number } = await res.json();
+      setStatus(INT_TO_STATUS[data.status as 0 | 1 | 2]);
+    } catch (err) {
+      console.error('Attendance update error', err);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  return {
+    status,
+    loading,
+    setTodayAttendance,
+  };
+};
+// _________________________________________
+// end functions office attendance
+// _________________________________________ 

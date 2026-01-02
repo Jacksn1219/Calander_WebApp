@@ -97,7 +97,7 @@ public class EventParticipationController : ControllerBase
 
 		try
 		{
-			var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status).ConfigureAwait(false);
+			var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status.ToString()).ConfigureAwait(false);
 			return Ok(updated);
 		}
 		catch (InvalidOperationException)

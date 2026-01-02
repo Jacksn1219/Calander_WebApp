@@ -139,6 +139,14 @@
   margin-bottom: 12px;
 }
 
+.event-location {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #666;
+  margin-bottom: 12px;
+}
+
 .event-description {
   color: var(--text-primary);
   line-height: 1.6;
@@ -399,3 +407,38 @@
     font-size: 1rem;
   }
 }
+
+/* Room booking badge styles */
+.event-title-row {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.event-title-row h3 {
+  margin: 0;
+  flex: 1;
+}
+
+.room-booking-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.25rem;
+  padding: 4px 8px;
+  background: #f0f4f8;
+  border-radius: 6px;
+  border: 1px solid #d0dce6;
+  flex-shrink: 0;
+}
+
+.room-booking-badge-list {
+  display: inline-block;
+  margin-left: 6px;
+  font-size: 0.9rem;
+  padding: 2px 4px;
+  background: #f0f4f8;
+  border-radius: 4px;
+  vertical-align: middle;
+}
+

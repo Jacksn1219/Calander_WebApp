@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calender_WebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20251209195653_Migration_Fix")]
-    partial class Migration_Fix
+    [Migration("20251225175657_InitialCreate")]
+    partial class InitialCreate
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -113,20 +113,40 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(0)
                         .HasAnnotation("Relational:JsonPropertyName", "event_id");
 
+                    b.Property<int?>("BookingId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("booking_id")
+                        .HasColumnOrder(7);
+
                     b.Property<int>("CreatedBy")
                         .HasColumnType("INTEGER")
                         .HasColumnName("created_by")
-                        .HasColumnOrder(4);
+                        .HasColumnOrder(8);
 
                     b.Property<string>("Description")
                         .HasColumnType("TEXT")
                         .HasColumnName("description")
                         .HasColumnOrder(2);
 
+                    b.Property<DateTime>("EndTime")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("end_time")
+                        .HasColumnOrder(4);
+
                     b.Property<DateTime>("EventDate")
                         .HasColumnType("TEXT")
                         .HasColumnName("event_date")
                         .HasColumnOrder(3);
+
+                    b.Property<string>("Location")
+                        .HasColumnType("TEXT")
+                        .HasColumnName("location")
+                        .HasColumnOrder(5);
+
+                    b.Property<int?>("RoomId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("room_id")
+                        .HasColumnOrder(6);
 
                     b.Property<string>("Title")
                         .IsRequired()
@@ -137,6 +157,8 @@ namespace Calender_WebApp.Migrations
                     b.HasKey("Id");
 
                     b.HasIndex("CreatedBy");
+
+                    b.HasIndex("RoomId");
 
                     b.ToTable("events");
                 });
@@ -217,7 +239,6 @@ namespace Calender_WebApp.Migrations
             modelBuilder.Entity("Calender_WebApp.Models.ReminderPreferencesModel", b =>
                 {
                     b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
                         .HasColumnType("INTEGER")
                         .HasColumnName("user_id")
                         .HasColumnOrder(0)
@@ -252,9 +273,9 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(0)
                         .HasAnnotation("Relational:JsonPropertyName", "reminder_id");
 
-                    b.Property<bool>("IsSent")
+                    b.Property<bool>("IsRead")
                         .HasColumnType("INTEGER")
-                        .HasColumnName("is_sent")
+                        .HasColumnName("is_read")
                         .HasColumnOrder(7);
 
                     b.Property<string>("Message")
@@ -317,11 +338,16 @@ namespace Calender_WebApp.Migrations
                         .HasColumnName("end_time")
                         .HasColumnOrder(4);
 
+                    b.Property<int?>("EventId")
+                        .HasColumnType("INTEGER")
+                        .HasColumnName("event_id")
+                        .HasColumnOrder(5);
+
                     b.Property<string>("Purpose")
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("purpose")
-                        .HasColumnOrder(5);
+                        .HasColumnOrder(6);
 
                     b.Property<int>("RoomId")
                         .HasColumnType("INTEGER")
@@ -339,6 +365,8 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(1);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("EventId");
 
                     b.HasIndex("RoomId");
 
@@ -416,7 +444,13 @@ namespace Calender_WebApp.Migrations
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
 
+                    b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
+                        .WithMany()
+                        .HasForeignKey("RoomId");
+
                     b.Navigation("CreatedByUser");
+
+                    b.Navigation("Room");
                 });
 
             modelBuilder.Entity("Calender_WebApp.Models.GroupMembershipsModel", b =>
@@ -451,6 +485,10 @@ namespace Calender_WebApp.Migrations
 
             modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>
                 {
+                    b.HasOne("Calender_WebApp.Models.EventsModel", "Event")
+                        .WithMany()
+                        .HasForeignKey("EventId");
+
                     b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
                         .WithMany("RoomBookings")
                         .HasForeignKey("RoomId")
@@ -464,6 +502,8 @@ namespace Calender_WebApp.Migrations
                         .IsRequired();
 
                     b.Navigation("Employee");
+
+                    b.Navigation("Event");
 
                     b.Navigation("Room");
                 });

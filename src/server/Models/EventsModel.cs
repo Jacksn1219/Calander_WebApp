@@ -2,6 +2,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text.Json.Serialization;
 using Calender_WebApp.Models.Interfaces;
+using Calender_WebApp.Models;
 
 namespace Calender_WebApp.Models
 {
@@ -33,44 +34,56 @@ namespace Calender_WebApp.Models
         public string? Description { get; set; }
 
         /// <summary>
-        /// Date and time when the event occurs.
+        /// Date and time when the event starts.
         /// </summary>
         [Required]
         [Column("event_date", Order = 3)]
         public DateTime EventDate { get; set; }
 
         /// <summary>
-        /// Duration of the event in minutes.
+        /// Date and time when the event ends.
         /// </summary>
         [Required]
-        [Column("duration_minutes", Order = 4)]
-        public int DurationMinutes { get; set; }
+        [Column("end_time", Order = 4)]
+        public DateTime EndTime { get; set; }
 
         /// <summary>
-        /// ID of the room where the event takes place.
+        /// Location of the event. Can be a free-text address or room name.
         /// </summary>
-        [Column("room_id", Order = 5)]
-        [ForeignKey(nameof(Room))]
-        public int? RoomId { get; set; }
+        [Column("location", Order = 5)]
+        public string? Location { get; set; }
+
+        /// <summary>
+        /// Foreign key to the room booking associated with this event (optional).
+        /// </summary>
+        [Column("booking_id", Order = 6)]
+        [ForeignKey(nameof(Booking))]
+        public int? BookingId { get; set; }
+
+        /// <summary>
+        /// Navigation property for the room booking associated with this event (optional).
+        /// </summary>
+        [JsonIgnore]
+        public virtual RoomBookingsModel? Booking { get; set; }
 
         /// <summary>
         /// ID of the user who created the event.
         /// </summary>
         [Required]
-        [Column("created_by", Order = 6)]
+        [Column("created_by", Order = 7)]
         [ForeignKey(nameof(CreatedByUser))]
         public int CreatedBy { get; set; }
-
-        /// <summary>
-        /// Navigation property for the room where the event takes place.
-        /// </summary>
-        [JsonIgnore]
-        public virtual RoomsModel? Room { get; set; }
 
         /// <summary>
         /// Navigation property for the employee who created the event.
         /// </summary>
         [JsonIgnore]
         public virtual EmployeesModel? CreatedByUser { get; set; }
+
+        /// <summary>
+        /// Expected number of attendees for the event.
+        /// </summary>
+        [Column("expected_attendees", Order = 8)]
+        public int? ExpectedAttendees { get; set; }
     }
 }

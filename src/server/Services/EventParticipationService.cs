@@ -86,7 +86,6 @@ public class EventParticipationService : IEventParticipationService
                 UserId = participation.UserId,
                 ReminderType = reminderType.EventParticipationCanceled,
                 RelatedEventId = participation.EventId,
-                RelatedRoomId = eventModel.RoomId ?? 0,
                 ReminderTime = DateTime.Now,
                 Title = title,
                 Message = message
@@ -182,9 +181,7 @@ public class EventParticipationService : IEventParticipationService
             RelatedEventId = participation.EventId,
             ReminderTime = eventDetails,
             Title = $"Event {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"} participation",
-            Message = $"You are participating in {eventModel?.Title ?? participation.EventId.ToString() ?? " an Event"}" +
-                      $" starting at {eventDetails.ToString("dd MMM", new System.Globalization.CultureInfo("nl-NL"))} {eventDetails.ToString("HH:mm", new System.Globalization.CultureInfo("nl-NL"))}" +
-                      (eventModel != null && eventModel.RoomId.HasValue ? $" in room {eventModel.RoomId}" : string.Empty),
+            Message = $"You are participating in {eventModel?.Title ?? participation.EventId.ToString() ?? "Event"} starting at {eventDetails}." + (eventModel != null ? string.Empty : string.Empty),
         }).ConfigureAwait(false);
         
         await _context.SaveChangesAsync().ConfigureAwait(false);
@@ -220,13 +217,11 @@ public class EventParticipationService : IEventParticipationService
     /// <returns>The updated participation record.</returns>
     /// <exception cref="ArgumentException">Thrown when the new status is invalid.</exception>
     /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
-    public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, int newStatus)
+    public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus)
     {
         // Validate newStatus
-        if (!Enum.IsDefined(typeof(ParticipationStatus), newStatus))
+        if (!Enum.TryParse<ParticipationStatus>(newStatus, true, out var status))
             throw new ArgumentException("Invalid status value", nameof(newStatus));
-        
-        var status = (ParticipationStatus)newStatus;
 
         // Find the participation record
         var participation = await _dbSet.FirstOrDefaultAsync(ep => ep.UserId == userId && ep.EventId == eventId).ConfigureAwait(false);
@@ -323,30 +318,34 @@ public class EventParticipationService : IEventParticipationService
         
         if (oldEvent != null)
         {
+            // Compare title
+            if (oldEvent.Title != newEvent.Title)
+            {
+                changes.Add($"\nTitle: '{oldEvent.Title}' → '{newEvent.Title}'");
+            }
+
             // Compare date/time
             if (oldEvent.EventDate != newEvent.EventDate)
             {
                 changes.Add($"\nTime: {oldEvent.EventDate:yyyy-MM-dd HH:mm} → {newEvent.EventDate:yyyy-MM-dd HH:mm}");
             }
-            
-            // Compare duration
-            if (oldEvent.DurationMinutes != newEvent.DurationMinutes)
+
+            // Compare endtime
+            if (oldEvent.EndTime != newEvent.EndTime)
             {
-                changes.Add($"\nDuration: {oldEvent.DurationMinutes} min → {newEvent.DurationMinutes} min");
+                changes.Add($"\nEnd Time: {oldEvent.EndTime:yyyy-MM-dd HH:mm} → {newEvent.EndTime:yyyy-MM-dd HH:mm}");
             }
-            
-            // Compare room
-            if (oldEvent.RoomId != newEvent.RoomId)
+
+            // Compare location
+            if (oldEvent.Location != newEvent.Location)
             {
-                var oldRoom = oldEvent.RoomId.HasValue ? $"Room {oldEvent.RoomId}" : "No room";
-                var newRoom = newEvent.RoomId.HasValue ? $"Room {newEvent.RoomId}" : "No room";
-                changes.Add($"\nLocation: {oldRoom} → {newRoom}");
+                changes.Add($"\nLocation: '{oldEvent.Location}' → '{newEvent.Location}'");
             }
-            
-            // Compare title
-            if (oldEvent.Title != newEvent.Title)
+
+            // Compare description
+            if (oldEvent.Description != newEvent.Description)
             {
-                changes.Add($"\nTitle: '{oldEvent.Title}' → '{newEvent.Title}'");
+                changes.Add($"\nDescription changed.");
             }
         }
 

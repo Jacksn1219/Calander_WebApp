@@ -48,31 +48,13 @@ public class EventsService : CrudService<EventsModel>, IEventsService
     // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
-        // Validate that the creator exists
-        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == updatedEntity.CreatedBy);
-        if (!creatorExists)
-        {
-            throw new ArgumentException($"Employee with ID {updatedEntity.CreatedBy} does not exist.");
-        }
 
-        // Get the old event before updating
-        var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-        
-        if (!updatedEntity.RoomId.HasValue || updatedEntity.RoomId == 0) {
-            updatedEntity.RoomId = null;
-        } else {
-            // Validate that the room exists if a RoomId is provided
-            var roomExists = await _context.Set<RoomsModel>()
-                .AnyAsync(r => r.Id == updatedEntity.RoomId.Value);
-            
-            if (!roomExists)
-            {
-                throw new ArgumentException($"Room with ID {updatedEntity.RoomId.Value} does not exist.");
-            }
-        }
+        await ApplyBookingToEventAsync(updatedEntity).ConfigureAwait(false);
+        NormalizeLocation(updatedEntity);
+        ValidateEventTimes(updatedEntity.EventDate, updatedEntity.EndTime);
 
         var updatedEvent =  await base.Put(id, updatedEntity);
-
+        var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
         // Update related reminders
         try
         {
@@ -85,91 +67,80 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             Console.WriteLine($"Failed to update event reminders: {ex.Message}");
         }
 
-        // Update related roombookings
-        if (updatedEntity.RoomId.HasValue)
-        {
-            var existingBooking = (await _roombookingsService.Get().ConfigureAwait(false))
-                .FirstOrDefault(rb => rb.EventId == id);
-
-            if (existingBooking != null)
-            {
-                existingBooking.RoomId = updatedEntity.RoomId.Value;
-                existingBooking.BookingDate = updatedEntity.EventDate.Date;
-                existingBooking.StartTime = updatedEntity.EventDate.TimeOfDay;
-                existingBooking.EndTime = updatedEntity.EventDate.AddMinutes(updatedEntity.DurationMinutes).TimeOfDay;
-
-                await _roombookingsService.Put(existingBooking.Id, existingBooking).ConfigureAwait(false);
-            }
-            else
-            {
-                var newBooking = new RoomBookingsModel
-                {
-                    RoomId = updatedEntity.RoomId.Value,
-                    UserId = updatedEntity.CreatedBy,
-                    BookingDate = updatedEntity.EventDate.Date,
-                    StartTime = updatedEntity.EventDate.TimeOfDay,
-                    EndTime = updatedEntity.EventDate.AddMinutes(updatedEntity.DurationMinutes).TimeOfDay,
-                    EventId = updatedEvent.Id,
-                    Purpose = $"Event Booking {updatedEvent.Title}"
-                };
-
-                await _roombookingsService.Post(newBooking).ConfigureAwait(false);
-            }
-        }
-        else
-        {
-            // If RoomId is null, remove existing booking if any
-            var existingBooking = (await _roombookingsService.Get().ConfigureAwait(false))
-                .FirstOrDefault(rb => rb.EventId == id);
-
-            if (existingBooking != null) {
-                await _roombookingsService.Delete(existingBooking).ConfigureAwait(false);
-            }
-        }
+        await SyncRoomBookingAsync(updatedEvent, updatedEntity).ConfigureAwait(false);
 
         return updatedEvent;
     }
-
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
-        // Validate that the creator exists
-        var creatorExists = await _context.Set<EmployeesModel>().AnyAsync(e => e.Id == newEntity.CreatedBy);
-        if (!creatorExists)
-        {
-            throw new ArgumentException($"Employee with ID {newEntity.CreatedBy} does not exist.");
-        }
-
-        // Validate that the room exists if specified
-        if (newEntity.RoomId == 0) throw new ArgumentException("RoomId cannot be 0.");
-        else if (newEntity.RoomId.HasValue)
-        {
-            var roomExists = await _context.Set<RoomsModel>().AnyAsync(r => r.Id == newEntity.RoomId.Value);
-            if (!roomExists)
-            {
-                throw new ArgumentException($"Room with ID {newEntity.RoomId.Value} does not exist.");
-            }
-        }
+        await ApplyBookingToEventAsync(newEntity).ConfigureAwait(false);
+        NormalizeLocation(newEntity);
+        ValidateEventTimes(newEntity.EventDate, newEntity.EndTime);
 
         var createdEvent = await base.Post(newEntity);
 
-        // Create related roombookings
-        if (newEntity.RoomId.HasValue)
-        {
-            var roomBooking = new RoomBookingsModel
-            {
-                RoomId = newEntity.RoomId.Value,
-                UserId = newEntity.CreatedBy,
-                BookingDate = newEntity.EventDate.Date,
-                StartTime = newEntity.EventDate.TimeOfDay,
-                EndTime = newEntity.EventDate.AddMinutes(newEntity.DurationMinutes).TimeOfDay,
-                EventId = createdEvent.Id,
-                Purpose = "Event Booking " + createdEvent.Title
-            };
-
-            await _roombookingsService.Post(roomBooking).ConfigureAwait(false);
-        }
+        await SyncRoomBookingAsync(createdEvent, newEntity).ConfigureAwait(false);
 
         return createdEvent;
+    }
+
+    private static void NormalizeLocation(EventsModel entity)
+    {
+        if (entity.Location != null)
+        {
+            entity.Location = entity.Location.Trim();
+        }
+    }
+
+    private static void ValidateEventTimes(DateTime start, DateTime end)
+    {
+        if (end <= start)
+        {
+            throw new ArgumentException("End time must be after start time.");
+        }
+    }
+
+    private async Task<RoomBookingsModel?> ApplyBookingToEventAsync(EventsModel entity)
+    {
+        if (!entity.BookingId.HasValue)
+        {
+            return null;
+        }
+
+        var booking = await _roombookingsService.GetByIdAsync(entity.BookingId.Value).ConfigureAwait(false);
+        if (booking == null)
+        {
+            throw new InvalidOperationException("Booking not found for the provided bookingId.");
+        }
+
+        var bookingStart = booking.BookingDate.Date.Add(booking.StartTime);
+        var bookingEnd = booking.BookingDate.Date.Add(booking.EndTime);
+        if (bookingStart != entity.EventDate || bookingEnd != entity.EndTime)
+        {
+            throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
+        }
+
+        return booking;
+    }
+
+    private async Task SyncRoomBookingAsync(EventsModel persistedEvent, EventsModel payload)
+    {
+        // If a booking is provided, validate the timing matches
+        if (payload.BookingId.HasValue)
+        {
+            var booking = await _roombookingsService.GetByIdAsync(payload.BookingId.Value).ConfigureAwait(false);
+            if (booking == null)
+            {
+                throw new InvalidOperationException("Booking not found for the provided bookingId.");
+            }
+
+            var bookingStart = booking.BookingDate.Date.Add(booking.StartTime);
+            var bookingEnd = booking.BookingDate.Date.Add(booking.EndTime);
+            if (bookingStart != payload.EventDate || bookingEnd != payload.EndTime)
+            {
+                throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
+            }
+        }
     }
 
     // Delete
@@ -182,15 +153,14 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             throw new InvalidOperationException("Event not found.");
         }
 
-        // Delete related room bookings using the service (generates canceled notifications)
-        var relatedBookings = await _context.Set<RoomBookingsModel>()
-            .Where(rb => rb.EventId == id)
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        foreach (var booking in relatedBookings)
+        // Delete related room booking if exists (using the service to generate canceled notifications)
+        if (eventToDelete.BookingId.HasValue)
         {
-            await _roombookingsService.Delete(booking).ConfigureAwait(false);
+            var booking = await _roombookingsService.GetByIdAsync(eventToDelete.BookingId.Value).ConfigureAwait(false);
+            if (booking != null)
+            {
+                await _roombookingsService.Delete(booking).ConfigureAwait(false);
+            }
         }
 
         // Delete related event participations using the service (generates "Event Canceled" notifications)

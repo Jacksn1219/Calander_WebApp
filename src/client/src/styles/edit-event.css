@@ -7,7 +7,7 @@
 
 .edit-event-dashboard {
   flex: 1;
-  padding: 1rem;
+  padding: 2rem;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -66,15 +66,25 @@
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
 }
 
-/* Scoped button styles for Edit Event Dialog (uses booking-card) */
-.dialog-content .booking-card .edit-event-buttons {
+/* EditEventDialog modal-specific sizing tweaks (avoid tiny internal scroll) */
+.edit-dialog-backdrop .dialog-content {
+  max-height: 95vh;
+}
+
+.edit-dialog-backdrop .dialog-body {
+  padding: 16px;
+  padding-right: 10%;
+}
+
+/* Scoped button styles for Edit Event Dialog */
+.dialog-content .edit-event-form .edit-event-buttons {
   display: flex;
   justify-content: flex-end;
   gap: 1rem;
   margin-top: 1.5rem;
 }
 
-.dialog-content .booking-card .edit-event-buttons button {
+.dialog-content .edit-event-form .edit-event-buttons button {
   align-self: flex-end;
   border: 1px solid #a3e4b1;
   color: white;
@@ -87,19 +97,19 @@
   border: none;
 }
 
-.dialog-content .booking-card .edit-event-save {
+.dialog-content .edit-event-form .edit-event-save {
   background: #1f6feb;
 }
 
-.dialog-content .booking-card .edit-event-cancel {
+.dialog-content .edit-event-form .edit-event-cancel {
   background: #e21818;
 }
 
-.dialog-content .booking-card .edit-event-save:hover {
+.dialog-content .edit-event-form .edit-event-save:hover {
   background: #1557c0;
 }
 
-.dialog-content .booking-card .edit-event-cancel:hover {
+.dialog-content .edit-event-form .edit-event-cancel:hover {
   background: #b10000;
 }
 
