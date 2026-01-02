@@ -8,7 +8,5 @@ namespace Calender_WebApp.Services.Interfaces
         Task<bool> ToggleEventReminders(int userId);
         Task<bool> ToggleBookingReminders(int userId);
         Task<ReminderPreferencesModel> UpdateAdvanceMinutes(int userId, TimeSpan advanceMinutes);
-
-        // Add any additional methods specific to Reminder Preferences here if needed
     }
 }
