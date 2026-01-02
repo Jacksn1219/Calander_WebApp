@@ -82,32 +82,12 @@ const Notifications: React.FC = () => {
       <main className="main-content">
         <div className="notifications-container">
           {/* Header */}
-          <div className="notifications-header-card">
-            <div className="notifications-header">
+          <div className="notifications-header">
+            <div>
               <h1>Notifications</h1>
-              <p className="notifications-status">
-                {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+              <p>
+                {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
               </p>
-            </div>
-          </div>
-
-          {/* Filter Tabs with Mark All Button - Outside card */}
-          <div className="notifications-tabs-wrapper">
-            <div className="notifications-tabs">
-              {(['all', 'unread', 'read'] as const).map((f) => (
-                <button
-                  key={f}
-                  onClick={() => setFilter(f)}
-                  className={`notifications-tab ${filter === f ? 'active' : ''}`}
-                >
-                  {f.charAt(0).toUpperCase() + f.slice(1)}
-                  {f === 'unread' && unreadCount > 0 && (
-                    <span className="notifications-tab-badge">
-                      {unreadCount}
-                    </span>
-                  )}
-                </button>
-              ))}
             </div>
             {unreadCount > 0 && (
               <button
@@ -119,8 +99,23 @@ const Notifications: React.FC = () => {
             )}
           </div>
 
-          {/* Content Card */}
-          <div className="notifications-content-card">
+          {/* Filter Tabs */}
+          <div className="notifications-tabs">
+            {(['all', 'unread', 'read'] as const).map((f) => (
+              <button
+                key={f}
+                onClick={() => setFilter(f)}
+                className={`notifications-tab ${filter === f ? 'active' : ''}`}
+              >
+                {f.charAt(0).toUpperCase() + f.slice(1)}
+                {f === 'unread' && unreadCount > 0 && (
+                  <span className="notifications-tab-badge">
+                    {unreadCount}
+                  </span>
+                )}
+              </button>
+            ))}
+          </div>
 
           {/* Loading State */}
           {loading && (
@@ -215,7 +210,6 @@ const Notifications: React.FC = () => {
               })}
             </div>
           )}
-          </div>
         </div>
 
         <style>{`
