@@ -42,7 +42,9 @@ public class OfficeAttendanceController : ControllerBase
     {
         try
         {
+            // MOVE TO SERVICE START
             var today = DateTime.Today;
+            // MOVE TO SERVICE END
 
             var record = await _officeAttendanceService
                 .GetAttendanceByUserAndDateAsync(userId, today)
@@ -107,7 +109,9 @@ public class OfficeAttendanceController : ControllerBase
     {
         try
         {
+            // MOVE TO SERVICE START
             var today = DateTime.Today;
+            // MOVE TO SERVICE END
 
             var record = await _officeAttendanceService
                 .GetAttendanceByUserAndDateAsync(userId, today);

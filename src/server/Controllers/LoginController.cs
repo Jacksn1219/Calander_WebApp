@@ -19,7 +19,6 @@ namespace Calender_WebApp.Controllers
             _authService = authService;
         }
 
-        // POST /api/auth/login
         [HttpPost("login")]
         public IActionResult Login([FromBody] LoginRequest request)
         {
@@ -48,12 +47,10 @@ namespace Calender_WebApp.Controllers
             });
         }
 
-
-
-        // GET /api/auth/me
         [HttpGet("me")]
         public IActionResult Me()
         {
+            // MOVE TO SERVICE START
             var authHeader = Request.Headers["Authorization"].ToString();
 
             if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
@@ -69,6 +66,7 @@ namespace Calender_WebApp.Controllers
             var email = principal.FindFirst(ClaimTypes.Email)?.Value;
             var role = principal.FindFirst(ClaimTypes.Role)?.Value;
             var name = principal.FindFirst(ClaimTypes.Name)?.Value;
+            // MOVE TO SERVICE END
             return Ok(new
             {
                 user = new
