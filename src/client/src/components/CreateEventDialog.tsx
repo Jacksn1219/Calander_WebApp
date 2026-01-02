@@ -131,32 +131,12 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
               />
               
               {showRoomDropdown && availableRooms.length > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'white',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  maxHeight: '200px',
-                  overflowY: 'auto',
-                  zIndex: 1000,
-                  marginTop: '4px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)'
-                }}>
+                <div className="dropdown-menu">
                   {availableRooms.map((room) => (
                     <div
                       key={room.room_id}
                       onClick={() => selectRoom(room)}
-                      style={{
-                        padding: '8px 12px',
-                        cursor: 'pointer',
-                        borderBottom: '1px solid #eee',
-                        transition: 'background-color 0.2s'
-                      }}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f0f0f0'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'white'}
+                      className="dropdown-item"
                     >
                       {room.roomName} (Capacity: {room.capacity})
                     </div>
@@ -165,20 +145,7 @@ const CreateEventDialog: React.FC<CreateEventDialogProps> = ({ onClose, reloadEv
               )}
 
               {showRoomDropdown && availableRooms.length === 0 && formData.expectedAttendees > 0 && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: 0,
-                  right: 0,
-                  backgroundColor: 'white',
-                  border: '1px solid #ccc',
-                  borderRadius: '4px',
-                  padding: '8px 12px',
-                  zIndex: 1000,
-                  marginTop: '4px',
-                  boxShadow: '0 2px 8px rgba(0,0,0,0.1)',
-                  color: '#666'
-                }}>
+                <div className="dropdown-empty">
                   No available rooms for this time
                 </div>
               )}
