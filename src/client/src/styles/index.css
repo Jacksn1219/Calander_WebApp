@@ -12,8 +12,8 @@
   --shadow: rgba(0, 0, 0, 0.1);
   --shadow-md: rgba(0, 0, 0, 0.15);
   --shadow-lg: rgba(0, 0, 0, 0.2);
-  --primary-color: #1ed02d;
-  --primary-hover: #1a8a10;
+  --primary-color: #1f6feb;
+  --primary-hover: #0969da;
   --primary-light: #dbeafe;
   --danger-color: #e21818;
   --danger-hover: #b10000;
@@ -171,4 +171,9 @@ p, span, label {
 .card, .section, .panel {
   background: var(--bg-secondary);
   border-color: var(--border-color);
+}
+
+/* Muted text utility class */
+.muted {
+  color: var(--text-secondary);
 }

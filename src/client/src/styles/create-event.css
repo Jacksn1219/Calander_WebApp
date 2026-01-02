@@ -5,7 +5,7 @@
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.3);
+  background: var(--modal-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -111,7 +111,6 @@
 
 .dialog-content .create-event-form .create-event-buttons button {
   align-self: flex-end;
-  border: 1px solid #a3e4b1;
   color: white;
   padding: 12px 18px;
   border-radius: 6px;
@@ -122,18 +121,22 @@
   border: none;
 }
 
+.dialog-content .create-event-form .create-event-save,
 .dialog-content .booking-card .create-event-save {
   background: var(--primary-color);
 }
 
+.dialog-content .create-event-form .create-event-cancel,
 .dialog-content .booking-card .create-event-cancel {
   background: var(--danger-color);
 }
 
+.dialog-content .create-event-form .create-event-save:hover,
 .dialog-content .booking-card .create-event-save:hover {
   background: var(--primary-hover);
 }
 
+.dialog-content .create-event-form .create-event-cancel:hover,
 .dialog-content .booking-card .create-event-cancel:hover {
   background: var(--danger-hover);
 }

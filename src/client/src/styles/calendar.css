@@ -363,7 +363,7 @@
 
 .upcoming-date-month {
   font-size: 0.75rem;
-  color: #6b7280;
+  color: var(--text-secondary);
 }
 
 .upcoming-details h4 {
@@ -375,13 +375,13 @@
   margin: 0;
   font-size: 0.85rem;
   font-weight: 500;
-  color: #1f6feb;
+  color: var(--primary-color);
 }
 
 .upcoming-description {
   margin: 6px 0;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   -webkit-box-orient: vertical;
@@ -390,17 +390,17 @@
 
 .upcoming-meta {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-tertiary);
 }
 
 .upcoming-empty {
   margin: 0;
   padding: 16px;
-  border: 1px dashed #c7cede;
+  border: 1px dashed var(--border-color);
   border-radius: 8px;
+  background: var(--bg-tertiary);
+  color: var(--text-secondary);
   text-align: center;
-  color: #6b7280;
-  background: #fdfdfd;
 }
 
 @media (max-width: 1100px) {
@@ -425,8 +425,8 @@
 }
 
 .attendance-button {
-  background: white;
-  border: 1px solid #e1e4ea;
+  background: var(--bg-secondary);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
   padding: 8px 14px;
   font-size: 0.85rem;
@@ -435,13 +435,14 @@
   align-items: center;
   gap: 8px;
   cursor: pointer;
-  box-shadow: 0 1px 2px rgba(0,0,0,0.04);
+  color: var(--text-primary);
+  box-shadow: 0 1px 2px var(--shadow);
   transition: background 0.15s, box-shadow 0.15s;
 }
 
 .attendance-button:hover:not(:disabled) {
-  background: #f9fafb;
-  box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+  background: var(--bg-tertiary);
+  box-shadow: 0 4px 10px var(--shadow-md);
 }
 
 
@@ -459,11 +460,12 @@
   position: absolute;
   right: 0;
   top: calc(100% + 8px);
-  background: white;
+  background: var(--modal-bg);
+  border: 1px solid var(--border-color);
   border-radius: 10px;
   box-shadow:
-    0 8px 24px rgba(0,0,0,0.12),
-    0 2px 6px rgba(0,0,0,0.08);
+    0 8px 24px var(--shadow-lg),
+    0 2px 6px var(--shadow);
   min-width: 220px;
   padding: 6px;
   z-index: 20;
@@ -481,15 +483,16 @@
   border-radius: 8px;
   font-size: 0.85rem;
   cursor: pointer;
+  color: var(--text-primary);
   transition: background 0.15s;
 }
 
 .attendance-option:hover {
-  background: #f3f6fb;
+  background: var(--bg-tertiary);
 }
 
 .attendance-option.active {
-  background: #e8f0fe;
+  background: var(--primary-light);
   font-weight: 600;
 }
 
@@ -514,8 +517,12 @@
 .attendance-helper {
   margin: 0;
   font-size: 0.7rem;
-  color: #6b7280;
+  color: var(--text-tertiary);
   line-height: 1.2;
   white-space: nowrap;
   text-align: right;
+}
+
+.attendance-caret {
+  color: var(--text-secondary);
 }

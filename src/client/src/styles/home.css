@@ -126,9 +126,9 @@
   width: auto;
   max-width: 100%;
   border-radius: 10px;
-  border: 1px solid #e0e0e0;
-  background: #f9fafc;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 16px;
   padding-top: 22px;
   min-height: 132px;
@@ -158,13 +158,13 @@
 
 .home-page .home-summary-label {
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 600;
 }
 
 .home-page .home-summary-value {
   font-size: 0.95rem;
-  color: #111827;
+  color: var(--text-primary);
   font-weight: 600;
 }
 
@@ -176,9 +176,9 @@
   height: 28px;
   padding: 0 10px;
   border-radius: 999px;
-  background: #eff5ff;
-  border: 1px solid #cfe0ff;
-  color: #1f6feb;
+  background: var(--primary-light);
+  border: 1px solid var(--primary-color);
+  color: var(--primary-color);
 }
 
 /* Generic row wrapper for putting cards next to each other */
@@ -213,7 +213,7 @@
   margin: 0;
   font-size: 1.1rem;
   font-weight: 700;
-  color: #111827;
+  color: var(--text-primary);
 }
 
 .home-page .home-summary-strip .home-summary-item:first-child .home-summary-label {
@@ -318,7 +318,7 @@
 
 .home-page .home-row .event-indicator {
   margin-top: auto;
-  background: #1f6feb;
+  background: var(--primary-color);
   color: white;
   border-radius: 10px;
   padding: 0 3px;
@@ -368,7 +368,7 @@
 
 .home-page .room-booking-time {
   font-size: 0.8rem;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 /* Notifications card styling */
@@ -427,9 +427,9 @@
   width: auto;
   max-width: 100%;
   border-radius: 10px;
-  border: 1px solid #e0e0e0;
-  background: #f9fafc;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.06);
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 16px;
   min-height: 132px;
   display: flex;
@@ -467,14 +467,18 @@
 }
 
 .btn-today-create-event {
-  background: #1f6feb;
+  background: var(--primary-color);
   color: white;
   border: none;
   padding: 10px 16px;
   border-radius: 8px;
-  font-size: 0. ninerem;
+  font-size: 0.9rem;
   cursor: pointer;
   transition: background 0.2s;
+}
+
+.btn-today-create-event:hover {
+  background: var(--primary-hover);
 }
 
 .home-page .home-calendar-section {
@@ -524,7 +528,7 @@
 }
 
 .home-page .home-upcoming-panel .btn-icon {
-  background: #f0f0f0;
+  background: var(--bg-tertiary);
   border: none;
   border-radius: 50%;
   width: 36px;
@@ -535,10 +539,11 @@
   align-items: center;
   justify-content: center;
   transition: background 0.2s, color 0.2s;
+  color: var(--text-primary);
 }
 
 .home-page .home-upcoming-panel .btn-icon.primary {
-  background: #1f6feb;
+  background: var(--primary-color);
   color: white;
 }
 
@@ -622,7 +627,7 @@
 .home-page .home-upcoming-card .upcoming-description {
   margin: 6px 0;
   font-size: 0.85rem;
-  color: #4b5563;
+  color: var(--text-secondary);
   display: -webkit-box;
   -webkit-line-clamp: 2;
   line-clamp: 2;
@@ -633,17 +638,17 @@
 .home-page .home-upcoming-card .upcoming-location {
   margin: 4px 0 0;
   font-size: 0.8rem;
-  color: #6b7280;
+  color: var(--text-tertiary);
 }
 
 .home-page .home-upcoming-panel .upcoming-empty {
   margin: 0;
   padding: 16px;
-  border: 1px dashed #c7cede;
+  border: 1px dashed var(--border-color);
   border-radius: 8px;
   text-align: center;
-  color: #6b7280;
-  background: #fdfdfd;
+  color: var(--text-secondary);
+  background: var(--bg-tertiary);
 }
 
 .home-page .home-upcoming-panel .upcoming-footer {
@@ -651,11 +656,11 @@
   justify-content: center;
   align-items: center;
   padding-top: 8px;
-  border-top: 1px solid #e6e9f2;
+  border-top: 1px solid var(--border-color);
 }
 
 .home-page .home-upcoming-panel .upcoming-page-info {
   font-size: 0.85rem;
-  color: #6b7280;
+  color: var(--text-secondary);
   font-weight: 500;
 }
