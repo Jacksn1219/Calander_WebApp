@@ -65,22 +65,9 @@ namespace Calender_WebApp.Models
         public TimeSpan EndTime { get; set; }
 
         /// <summary>
-        /// ID of the event associated with the booking.
-        /// </summary>
-        [Column("event_id", Order = 5)]
-        [ForeignKey(nameof(Event))]
-        public int? EventId { get; set; }
-
-        /// <summary>
-        /// Navigation property for the related event.
-        /// </summary>
-        [JsonIgnore]
-        public virtual EventsModel? Event { get; set; }
-
-        /// <summary>
         /// Purpose of the booking.
         /// </summary>
-        [Column("purpose", Order = 6)]
+        [Column("purpose", Order = 5)]
         [Required]
         public string Purpose { get; set; } = string.Empty;
     }

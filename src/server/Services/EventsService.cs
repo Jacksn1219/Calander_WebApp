@@ -125,40 +125,22 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     private async Task SyncRoomBookingAsync(EventsModel persistedEvent, EventsModel payload)
     {
-        // If no booking is provided, detach any existing booking linked to this event.
-        if (!payload.BookingId.HasValue)
+        // If a booking is provided, validate the timing matches
+        if (payload.BookingId.HasValue)
         {
-            var existing = (await _roombookingsService.Get().ConfigureAwait(false))
-                .FirstOrDefault(rb => rb.EventId == persistedEvent.Id);
-
-            if (existing != null)
+            var booking = await _roombookingsService.GetByIdAsync(payload.BookingId.Value).ConfigureAwait(false);
+            if (booking == null)
             {
-                await _roombookingsService.Delete(existing).ConfigureAwait(false);
+                throw new InvalidOperationException("Booking not found for the provided bookingId.");
             }
-            return;
-        }
 
-        var booking = await _roombookingsService.GetByIdAsync(payload.BookingId.Value).ConfigureAwait(false);
-        if (booking == null)
-        {
-            throw new InvalidOperationException("Booking not found for the provided bookingId.");
+            var bookingStart = booking.BookingDate.Date.Add(booking.StartTime);
+            var bookingEnd = booking.BookingDate.Date.Add(booking.EndTime);
+            if (bookingStart != payload.EventDate || bookingEnd != payload.EndTime)
+            {
+                throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
+            }
         }
-
-        if (booking.EventId.HasValue && booking.EventId != persistedEvent.Id)
-        {
-            throw new InvalidOperationException("The provided booking is already linked to another event.");
-        }
-
-        var bookingStart = booking.BookingDate.Date.Add(booking.StartTime);
-        var bookingEnd = booking.BookingDate.Date.Add(booking.EndTime);
-        if (bookingStart != payload.EventDate || bookingEnd != payload.EndTime)
-        {
-            throw new InvalidOperationException("Event start/end must match the booking window. Update the booking first.");
-        }
-
-        // Link booking to event
-        booking.EventId = persistedEvent.Id;
-        await _roombookingsService.Put(booking.Id, booking).ConfigureAwait(false);
     }
 
     // Delete
@@ -171,15 +153,14 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             throw new InvalidOperationException("Event not found.");
         }
 
-        // Delete related room bookings using the service (generates canceled notifications)
-        var relatedBookings = await _context.Set<RoomBookingsModel>()
-            .Where(rb => rb.EventId == id)
-            .ToListAsync()
-            .ConfigureAwait(false);
-
-        foreach (var booking in relatedBookings)
+        // Delete related room booking if exists (using the service to generate canceled notifications)
+        if (eventToDelete.BookingId.HasValue)
         {
-            await _roombookingsService.Delete(booking).ConfigureAwait(false);
+            var booking = await _roombookingsService.GetByIdAsync(eventToDelete.BookingId.Value).ConfigureAwait(false);
+            if (booking != null)
+            {
+                await _roombookingsService.Delete(booking).ConfigureAwait(false);
+            }
         }
 
         // Delete related event participations using the service (generates "Event Canceled" notifications)
