@@ -13,10 +13,10 @@
 }
 
 .booking-card {
-  background-color: white;
+  background-color: var(--bg-secondary);
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(16,24,40,0.08);
+  box-shadow: 0 6px 20px var(--shadow-md);
   width: 100%;
   max-width: 420px;
   display: flex;
@@ -25,21 +25,35 @@
 }
 
 .message {
-  color:rgb(226, 0, 0);
+  color: var(--danger-color);
 }
 
 .booking-card input,
 .booking-card select,
 .booking-card textarea {
   padding: 0.7rem;
-  border: 1px solid #ccc;
+  border: 1px solid var(--input-border);
   border-radius: 8px;
   font-size: 1rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.booking-card input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: var(--calendar-picker-filter);
+  cursor: pointer;
+}
+
+.booking-card input[type="date"]::-webkit-datetime-edit-text,
+.booking-card input[type="date"]::-webkit-datetime-edit-month-field,
+.booking-card input[type="date"]::-webkit-datetime-edit-day-field,
+.booking-card input[type="date"]::-webkit-datetime-edit-year-field {
+  color: var(--text-primary);
 }
 
 .booking-card button {
   padding: 0.75rem;
-  background-color: #1f6feb;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 8px;
@@ -49,14 +63,14 @@
 }
 
 .booking-card button:hover {
-  background-color: #2563eb;
+  background-color: var(--primary-hover);
 }
 
 .existing-bookings {
-  background-color: white;
+  background-color: var(--bg-secondary);
   padding: 24px;
   border-radius: 8px;
-  box-shadow: 0 6px 20px rgba(16,24,40,0.08);
+  box-shadow: 0 6px 20px var(--shadow-md);
   max-width: 420px;
   width: 100%;
 }
@@ -77,7 +91,7 @@
   transition: all 0.3s ease;
   color: white;
   border-radius: 40px;
-  background: #01a211;
+  background: var(--success-color);
 }
 
 .calendar-day:hover .add-roombooking {
@@ -85,7 +99,7 @@
 }
 
 .add-roombooking:hover {
-  background: #006e0b;
+  background: var(--success-hover);
 }
 
 .booking-room {

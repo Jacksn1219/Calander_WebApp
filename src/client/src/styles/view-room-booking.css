@@ -13,18 +13,20 @@
 }
 
 .fancy-table th {
-  background: #f4f6f8;
+  background: var(--bg-tertiary);
   text-align: left;
   padding: 10px;
+  color: var(--text-primary);
 }
 
 .fancy-table td {
   padding: 8px 10px;
-  border-bottom: 1px solid #e0e0e0;
+  border-bottom: 1px solid var(--border-color);
+  color: var(--text-primary);
 }
 
 .fancy-table tr:hover {
-  background: #fafafa;
+  background: var(--bg-tertiary);
 }
 
 .actions {
@@ -32,9 +34,9 @@
 }
 
 .edit-button {
-  background-color: #dbeafe;
-  color: #1e3a8a;
-  border: 1px solid #93c5fd;
+  background-color: var(--primary-color);
+  color: white;
+  border: 1px solid var(--primary-color);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
@@ -43,13 +45,13 @@
 }
 
 .edit-button:hover {
-  background-color: #bfdbfe;
+  background-color: var(--primary-hover);
 }
 
 .delete-button {
-  background-color: #fee2e2;
-  color: #7f1d1d;
-  border: 1px solid #fca5a5;
+  background-color: var(--danger-color);
+  color: white;
+  border: 1px solid var(--danger-color);
   padding: 0.5rem 0.75rem;
   border-radius: 6px;
   cursor: pointer;
@@ -58,5 +60,5 @@
 }
 
 .delete-button:hover {
-  background-color: #fecaca;
+  background-color: var(--danger-hover);
 }

@@ -482,12 +482,19 @@ SIDEBAR HOOKS
  Custom hook for sidebar logic
  */
 export const useSidebar = () => {
-  const [isCollapsed, setIsCollapsed] = useState(false);
+  const [isCollapsed, setIsCollapsed] = useState(() => {
+    const saved = localStorage.getItem('sidebarCollapsed');
+    return saved === 'true';
+  });
   const navigate = useNavigate();
   const { logout } = useAuth();
 
   const toggleSidebar = useCallback(() => {
-    setIsCollapsed(prev => !prev);
+    setIsCollapsed(prev => {
+      const newValue = !prev;
+      localStorage.setItem('sidebarCollapsed', String(newValue));
+      return newValue;
+    });
   }, []);
 
   const handleLogout = useCallback(() => {

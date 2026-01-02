@@ -13,7 +13,7 @@
 }
 
 .employee-panel-page .muted {
-  color: #6b7280;
+  color: var(--text-secondary);
   font-size: 0.95rem;
 }
 
@@ -40,9 +40,9 @@
 }
 
 .employee-panel-page .calendar-container {
-  background: white;
+  background: var(--bg-secondary);
   border-radius: 8px;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 12px;
   /* max-width removed to allow side-by-side layout */
 }
@@ -79,10 +79,12 @@
 .employee-panel-page .login-form select {
   width: 100%;
   padding: 8px;
-  border: 1px solid #e5e7eb;
+  border: 1px solid var(--input-border);
   border-radius: 4px;
   margin-bottom: 0.7rem;
   font-size: 1rem;
+  background: var(--input-bg);
+  color: var(--text-primary);
 }
 
 .employee-panel-page .password-input-container {

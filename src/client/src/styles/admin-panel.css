@@ -2,7 +2,7 @@
 .admin-panel-page {
   display: flex;
   min-height: 100vh;
-  background: #f7f8fa;
+  background: var(--bg-primary);
 }
 
 .admin-panel-page .admin-panel-header {
@@ -15,7 +15,7 @@
 }
 
 .admin-panel-page .admin-panel-header .muted {
-  color: #888;
+  color: var(--text-secondary);
   font-size: 1.1rem;
 }
 
@@ -28,9 +28,9 @@
 }
 
 .admin-panel-page .admin-panel-card {
-  background: #fff;
+  background: var(--bg-secondary);
   border-radius: 10px;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.07);
+  box-shadow: 0 2px 8px var(--shadow);
   padding: 2rem 1.5rem;
   min-width: 320px;
   max-width: 1200px;
@@ -44,15 +44,16 @@
 .admin-panel-page .admin-panel-card h2 {
   margin-top: 0;
   font-size: 1.3rem;
+  color: var(--text-primary);
 }
 
 .admin-panel-page .admin-panel-card p {
-  color: #666;
+  color: var(--text-secondary);
   margin-bottom: 1.2rem;
 }
 
 .admin-panel-page .btn-today {
-  background: #007bff;
+  background: var(--primary-color);
   color: #fff;
   border: none;
   border-radius: 5px;
@@ -63,5 +64,5 @@
 }
 
 .admin-panel-page .btn-today:hover {
-  background: #0056b3;
+  background: var(--primary-hover);
 }
