@@ -263,6 +263,15 @@ const Calendar: React.FC = () => {
                         {event.description && (
                           <p className="upcoming-description">{event.description}</p>
                         )}
+                        {event.location && !event.bookingId && (
+                          <p className="upcoming-location">{event.location}</p>
+                        )}
+                        {event.bookingId && event.roomName && (
+                          <p className="upcoming-location">
+                            {event.roomName}
+                            {event.roomLocation && ` — ${event.roomLocation}`}
+                          </p>
+                        )}
                         <span className="upcoming-meta">{event.acceptedCount} attending</span>
 
                       </div>
