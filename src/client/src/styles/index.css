@@ -12,11 +12,11 @@
   --shadow: rgba(0, 0, 0, 0.1);
   --shadow-md: rgba(0, 0, 0, 0.15);
   --shadow-lg: rgba(0, 0, 0, 0.2);
-  --primary-color: #1f6feb;
-  --primary-hover: #0969da;
+  --primary-color: #1ed02d;
+  --primary-hover: #1a8a10;
   --primary-light: #dbeafe;
-  --danger-color: #da3633;
-  --danger-hover: #c92a2a;
+  --danger-color: #e21818;
+  --danger-hover: #b10000;
   --success-color: #10b981;
   --success-hover: #059669;
   --warning-color: #f59e0b;
