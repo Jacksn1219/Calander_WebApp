@@ -18,7 +18,6 @@ public class EventParticipationController : ControllerBase
 		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
-	// GET /api/event-participation
 	[HttpGet]
 	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetAll()
 	{
@@ -26,7 +25,6 @@ public class EventParticipationController : ControllerBase
 		return Ok(participations);
 	}
 
-	// GET /api/event-participation/event/{eventId}
 	[HttpGet("event/{eventId:int}")]
 	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByEvent(int eventId)
 	{
@@ -34,38 +32,32 @@ public class EventParticipationController : ControllerBase
 		return Ok(participations);
 	}
 
-	// GET /api/event-participation/user/{userId}
 	[HttpGet("user/{userId:int}")]
 	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)
 	{
-		// You need to implement GetByUser in your service if needed, or remove this endpoint.
 		var participations = await _eventParticipationService.GetParticipantsByUserIdAsync(userId).ConfigureAwait(false);
 		return Ok(participations);
 	}
 
-	// GET /api/event-participation/event/{eventId}/user/{userId}
 	[HttpGet("event/{eventId:int}/user/{userId:int}")]
 	public async Task<ActionResult<EventParticipationModel>> CheckParticipation(int eventId, int userId)
 	{
 		var isParticipating = await _eventParticipationService.IsUserParticipatingAsync(eventId, userId).ConfigureAwait(false);
 		if (!isParticipating)
 			return NotFound();
-		// Optionally, you can return the participation record if you add a method for that in your service.
 		return Ok(new { EventId = eventId, UserId = userId, IsParticipating = true });
 	}
 
-	// POST /api/event-participation
 	[HttpPost]
 	public async Task<ActionResult<EventParticipationModel>> Create([FromBody] EventParticipationModel participation)
 	{
-		Console.WriteLine("Create participation called");
-		if (participation == null){
-			Console.WriteLine("wrong input"	);
+		if (participation == null)
+		{
 			return BadRequest("Participation payload must be provided.");
 		}
 
 		if (!ModelState.IsValid)
-		{	Console.WriteLine("invalid model state"	);		
+		{
 			return ValidationProblem(ModelState);
 		}
 		try
@@ -110,7 +102,6 @@ public class EventParticipationController : ControllerBase
 		}
 	}
 
-	// DELETE /api/event-participation
 	public class DeleteParticipationRequest
 	{
 		public int EventId { get; set; }

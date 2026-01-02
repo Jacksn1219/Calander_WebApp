@@ -50,16 +50,13 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             .ToListAsync();
     }
 
-    // Add any additional methods specific to OfficeAttendance here if needed
     public async Task<OfficeAttendanceModel> UpsertAttendanceAsync(
     int userId,
     DateTime date,
     AttendanceStatus status)
     {
-        // Normalize date (important)
         var normalizedDate = date.Date;
 
-        // Probeer bestaande attendance te vinden
         var existing = await _dbSet
             .FirstOrDefaultAsync(a =>
                 a.UserId == userId &&
@@ -68,7 +65,6 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
 
         if (existing != null)
         {
-            // Update bestaande record
             existing.Status = status;
 
             _dbSet.Update(existing);
@@ -77,7 +73,6 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             return existing;
         }
 
-        // Bestaat nog niet → nieuw record aanmaken
         var newAttendance = new OfficeAttendanceModel
         {
             UserId = userId,

@@ -22,6 +22,4 @@ public class AdminsService : CrudService<AdminsModel>, IAdminsService
         return await _dbSet.FirstOrDefaultAsync(a => a.Employee != null && a.Employee.Name == username).ConfigureAwait(false)
               ?? throw new InvalidOperationException("Admin not found.");
     }
-
-    //Any additional methods specific to Admins can be added here
 }

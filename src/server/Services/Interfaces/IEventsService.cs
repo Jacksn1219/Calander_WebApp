@@ -6,7 +6,5 @@ namespace Calender_WebApp.Services.Interfaces
     {
         Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId);
         Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate);
-
-        // Add any additional methods specific to Events here if needed
     }
 }

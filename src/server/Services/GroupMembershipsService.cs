@@ -3,7 +3,7 @@ using Calender_WebApp.Models.Interfaces;
 using Calender_WebApp.Services.Interfaces;
 using Calender_WebApp.Utils;
 using Microsoft.EntityFrameworkCore;
-// new 
+
 namespace Calender_WebApp.Services;
 
 /// <summary>
@@ -82,7 +82,6 @@ public class GroupMembershipsService : IGroupMembershipsService
         if (exists)
             throw new InvalidOperationException("Membership already exists.");
 
-        // Validate model using whitelist util
         var inputDict = typeof(GroupMembershipsModel)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id) && p.Name != "Employee" && p.Name != "Group")
@@ -145,6 +144,4 @@ public class GroupMembershipsService : IGroupMembershipsService
     /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
     public Task<GroupMembershipsModel> Patch(int userId, GroupMembershipsModel newTEntity)
         => throw new NotSupportedException("Use Post/Delete to add/remove memberships.");
-
-    // Add additional services that are not related to CRUD here
 }

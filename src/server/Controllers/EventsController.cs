@@ -21,7 +21,6 @@ namespace Calender_WebApp.Controllers
             _eventparticipationService = eventparticipationService;
         }
 
-        // GET /api/events
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EventsModel>>> GetAll()
         {
@@ -29,7 +28,6 @@ namespace Calender_WebApp.Controllers
             return Ok(events);
         }
 
-        // GET /api/events/{id}
         [HttpGet("{id}")]
         public async Task<ActionResult<EventsModel>> GetEventByEventId(int id)
         {
@@ -43,7 +41,6 @@ namespace Calender_WebApp.Controllers
             }
         }
 
-        // GET /api/events/by-user/{userId}
         [HttpGet("by-user/{userId}")]
         public async Task<ActionResult<IEnumerable<EventsModel>>> GetEventsByUser(int userId)
         {
@@ -51,7 +48,6 @@ namespace Calender_WebApp.Controllers
             return Ok(events);
         }
 
-        // GET /api/events/upcoming?fromDate={date}
         [HttpGet("upcoming")]
         public async Task<ActionResult<IEnumerable<EventsModel>>> GetUpcomingEvents([FromQuery] DateTime fromDate)
         {
@@ -59,9 +55,7 @@ namespace Calender_WebApp.Controllers
             return Ok(events);
         }
 
-        // POST /api/events
         [HttpPost]
-
         public async Task<ActionResult<EventsModel>> CreateEvent([FromBody] EventsModel newEvent)
         {
             if (newEvent == null)
@@ -89,7 +83,6 @@ namespace Calender_WebApp.Controllers
             }
         }
 
-        // PUT /api/events/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin , SuperAdmin")]
         public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventsModel updatedEvent)
@@ -119,7 +112,6 @@ namespace Calender_WebApp.Controllers
             }
         }
 
-        // DELETE /api/events/{id}
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin , SuperAdmin")]
         public async Task<IActionResult> DeleteEvent(int id)

@@ -52,7 +52,6 @@ public class RoomsController : ControllerBase
     [HttpGet("{id}/availability")]
     public async Task<ActionResult<bool>> CheckAvailability(int id, [FromQuery] DateTime start, [FromQuery] DateTime end)
     {
-        // Validate query parameters
         if (start == default || end == default)
         {
             return BadRequest("Invalid time range: start and end must be valid date-time values.");
@@ -65,7 +64,6 @@ public class RoomsController : ControllerBase
 
         try
         {
-            // Ensure room exists; service throws InvalidOperationException when not found
             await _roomsService.GetById(id).ConfigureAwait(false);
 
             var isAvailable = await _roomsService.IsRoomAvailableAsync(id, start, end).ConfigureAwait(false);
@@ -93,8 +91,7 @@ public class RoomsController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-        
-        // Check for duplicate room name
+        // MOVE TO SERVICE START
         try
         {
             var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
@@ -105,8 +102,8 @@ public class RoomsController : ControllerBase
         }
         catch (InvalidOperationException)
         {
-            // Room doesn't exist, which is fine - continue
         }
+        // MOVE TO SERVICE END
         try
         {
             var createdRoom = await _roomsService.Post(room).ConfigureAwait(false);
@@ -134,7 +131,7 @@ public class RoomsController : ControllerBase
             return ValidationProblem(ModelState);
         }
         
-        // Check for duplicate room name (excluding the current room being updated)
+        // MOVE TO SERVICE START
         try
         {
             var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
@@ -145,8 +142,8 @@ public class RoomsController : ControllerBase
         }
         catch (InvalidOperationException)
         {
-            // Room doesn't exist, which is fine for update - continue
         }
+        // MOVE TO SERVICE END
         
         try
         {

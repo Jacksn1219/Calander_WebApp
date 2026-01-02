@@ -20,7 +20,6 @@ public class RoomBookingsController : ControllerBase
 		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
-	// GET /api/room-bookings — Get all bookings
 	[HttpGet]
 	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetAll()
 	{
@@ -28,7 +27,6 @@ public class RoomBookingsController : ControllerBase
 		return Ok(bookings);
 	}
 
-	// GET /api/room-bookings/{id} — Get booking by ID
 	[HttpGet("{id:int}")]
 	public async Task<ActionResult<RoomBookingsModel>> GetById(int id)
 	{
@@ -46,7 +44,6 @@ public class RoomBookingsController : ControllerBase
 		}
 	}
 
-	// GET /api/room-bookings/room/{roomId} — Get bookings by room
 	[HttpGet("room/{roomId:int}")]
 	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetByRoom(int roomId)
 	{
@@ -54,7 +51,6 @@ public class RoomBookingsController : ControllerBase
 		return Ok(bookings);
 	}
 
-	// GET /api/room-bookings/user/{userId} — Get bookings by user
 	[HttpGet("user/{userId:int}")]
 	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetByUser(int userId)
 	{
@@ -62,7 +58,6 @@ public class RoomBookingsController : ControllerBase
 		return Ok(bookings);
 	}
 
-	// GET /api/room-bookings/available?start={start}&end={end} — Get available rooms for date range
 	[HttpGet("available")]
 	public async Task<ActionResult<IEnumerable<RoomsModel>>> GetAvailableRooms([FromQuery] DateTime start, [FromQuery] DateTime end)
 	{
@@ -70,7 +65,6 @@ public class RoomBookingsController : ControllerBase
 		return Ok(rooms);
 	}
 
-	// POST /api/room-bookings — Create new booking
 	[HttpPost]
 	public async Task<ActionResult<RoomBookingsModel>> Create([FromBody] RoomBookingsModel booking)
 	{
@@ -83,7 +77,6 @@ public class RoomBookingsController : ControllerBase
 		try
 		{
 			var created = await _roomBookingsService.Post(booking).ConfigureAwait(false);
-			// There is no GetById for bookings; return created payload
 			return Ok(created);
 		}
 		catch (ArgumentException ex)
@@ -106,7 +99,6 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewStartTime { get; set; }
 	}
 
-	// PUT /api/room-bookings/{booking_id} — Update booking (entire booking)
 	[HttpPut("{bookingid}")]
 	public async Task<ActionResult<RoomBookingsModel>> Update(int bookingid, [FromBody] RoomBookingsModel booking)
 	{
@@ -123,7 +115,6 @@ public class RoomBookingsController : ControllerBase
 		}
 		catch (InvalidOperationException ex)
 		{
-			// Check if it's a "not found" error or a conflict error
 			if (ex.Message.Contains("Entity not found"))
 				return NotFound(ex.Message);
 			else
@@ -134,7 +125,6 @@ public class RoomBookingsController : ControllerBase
 			return BadRequest(ex.Message);
 		}
 	}
-	// PATCH /api/room-bookings/update-start-time — Update booking start time
 	[HttpPatch("update-start-time")]
 	public async Task<ActionResult<RoomBookingsModel>> UpdateStartTime([FromBody] UpdateStartTimeRequest request)
 	{
@@ -143,6 +133,7 @@ public class RoomBookingsController : ControllerBase
 
 		try
 		{
+			// MOVE TO SERVICE START
 			var updated = await _roomBookingsService.UpdateStartTime(
 				new RoomBookingsModel
 				{
@@ -155,6 +146,7 @@ public class RoomBookingsController : ControllerBase
 				},
 				request.NewStartTime
 			).ConfigureAwait(false);
+			// MOVE TO SERVICE END
 
 			return Ok(updated);
 		}
@@ -178,7 +170,6 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewEndTime { get; set; }
 	}
 
-	// PATCH /api/room-bookings/update-end-time — Update booking end time
 	[HttpPatch("update-end-time")]
 	public async Task<ActionResult<RoomBookingsModel>> UpdateEndTime([FromBody] UpdateEndTimeRequest request)
 	{
@@ -187,6 +178,7 @@ public class RoomBookingsController : ControllerBase
 
 		try
 		{
+			// MOVE TO SERVICE START
 			var updated = await _roomBookingsService.UpdateEndTime(
 				new RoomBookingsModel
 				{
@@ -199,6 +191,7 @@ public class RoomBookingsController : ControllerBase
 				},
 				request.NewEndTime
 			).ConfigureAwait(false);
+			// MOVE TO SERVICE END
 
 			return Ok(updated);
 		}
@@ -221,7 +214,6 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan EndTime { get; set; }
 	}
 
-	// DELETE /api/room-bookings — Delete booking (body: booking details)
 	[HttpDelete]
 	public async Task<IActionResult> Delete([FromBody] DeleteBookingRequest request)
 	{

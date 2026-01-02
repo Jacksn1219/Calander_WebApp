@@ -45,7 +45,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             .ToListAsync();
     }
 
-    // Put
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
 
@@ -55,15 +54,12 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
         var updatedEvent =  await base.Put(id, updatedEntity);
         var oldEvent = await _dbSet.AsNoTracking().FirstOrDefaultAsync(e => e.Id == id);
-        // Update related reminders
         try
         {
-            // Update related reminders with old and new event data
             await _eventparticipationService.UpdateEventRemindersAsync(id, oldEvent, updatedEvent).ConfigureAwait(false);
         }
         catch (Exception ex)
         {
-            // Log the exception or handle it as needed
             Console.WriteLine($"Failed to update event reminders: {ex.Message}");
         }
 
@@ -125,7 +121,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
 
     private async Task SyncRoomBookingAsync(EventsModel persistedEvent, EventsModel payload)
     {
-        // If a booking is provided, validate the timing matches
         if (payload.BookingId.HasValue)
         {
             var booking = await _roombookingsService.GetByIdAsync(payload.BookingId.Value).ConfigureAwait(false);
@@ -143,17 +138,14 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         }
     }
 
-    // Delete
     public override async Task<EventsModel> Delete(int id)
     {
-        // Get the event
         var eventToDelete = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (eventToDelete == null)
         {
             throw new InvalidOperationException("Event not found.");
         }
 
-        // Delete related room booking if exists (using the service to generate canceled notifications)
         if (eventToDelete.BookingId.HasValue)
         {
             var booking = await _roombookingsService.GetByIdAsync(eventToDelete.BookingId.Value).ConfigureAwait(false);
@@ -163,7 +155,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             }
         }
 
-        // Delete related event participations using the service (generates "Event Canceled" notifications)
         var relatedParticipations = await _context.Set<EventParticipationModel>()
             .Where(ep => ep.EventId == id)
             .ToListAsync()
@@ -174,7 +165,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             await _eventparticipationService.Delete(participation, isEventCanceled: true).ConfigureAwait(false);
         }
 
-        // Mark all existing reminders for this event as read (except the canceled reminders that were just created)
         var relatedReminders = await _context.Set<RemindersModel>()
             .Where(r => r.RelatedEventId == id && 
                    r.ReminderType != reminderType.EventParticipationCanceled && 
@@ -187,12 +177,9 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             reminder.IsRead = true;
         }
 
-        // Finally, delete the event itself
         _dbSet.Remove(eventToDelete);
         await _context.SaveChangesAsync().ConfigureAwait(false);
         
         return eventToDelete;
     }
-
-    // Add additional services that are not related to CRUD here
 }
