@@ -2305,6 +2305,7 @@ export const useRoomsAdmin = () => {
       }
 
       await loadRooms();
+      alert(`Room ${mode === 'create' ? 'created' : 'updated'} successfully.`);
       if (mode === 'create') {
         resetCreateForm();
       } else {

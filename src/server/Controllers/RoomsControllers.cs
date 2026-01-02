@@ -179,5 +179,11 @@ public class RoomsController : ControllerBase
         {
             return NotFound();
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) 
+            when (ex.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx 
+                  && sqliteEx.SqliteErrorCode == 19)
+        {
+            return Conflict("Cannot delete room because it has existing bookings. Delete all bookings for this room first.");
+        }
     }
 }
