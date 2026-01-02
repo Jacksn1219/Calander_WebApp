@@ -83,11 +83,29 @@ const Notifications: React.FC = () => {
         <div className="notifications-container">
           {/* Header */}
           <div className="notifications-header">
-            <div>
-              <h1>Notifications</h1>
-              <p>
-                {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
-              </p>
+            <h1>Notifications</h1>
+            <p className="notifications-status">
+              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+            </p>
+          </div>
+
+          {/* Filter Tabs with Mark All Button */}
+          <div className="notifications-tabs-wrapper">
+            <div className="notifications-tabs">
+              {(['all', 'unread', 'read'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`notifications-tab ${filter === f ? 'active' : ''}`}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f === 'unread' && unreadCount > 0 && (
+                    <span className="notifications-tab-badge">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
             {unreadCount > 0 && (
               <button
@@ -97,24 +115,6 @@ const Notifications: React.FC = () => {
                 Mark all as read
               </button>
             )}
-          </div>
-
-          {/* Filter Tabs */}
-          <div className="notifications-tabs">
-            {(['all', 'unread', 'read'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`notifications-tab ${filter === f ? 'active' : ''}`}
-              >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-                {f === 'unread' && unreadCount > 0 && (
-                  <span className="notifications-tab-badge">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-            ))}
           </div>
 
           {/* Loading State */}
