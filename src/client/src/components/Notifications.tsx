@@ -82,14 +82,16 @@ const Notifications: React.FC = () => {
       <main className="main-content">
         <div className="notifications-container">
           {/* Header */}
-          <div className="notifications-header">
-            <h1>Notifications</h1>
-            <p className="notifications-status">
-              {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
-            </p>
+          <div className="notifications-header-card">
+            <div className="notifications-header">
+              <h1>Notifications</h1>
+              <p className="notifications-status">
+                {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+              </p>
+            </div>
           </div>
 
-          {/* Filter Tabs with Mark All Button */}
+          {/* Filter Tabs with Mark All Button - Outside card */}
           <div className="notifications-tabs-wrapper">
             <div className="notifications-tabs">
               {(['all', 'unread', 'read'] as const).map((f) => (
@@ -116,6 +118,9 @@ const Notifications: React.FC = () => {
               </button>
             )}
           </div>
+
+          {/* Content Card */}
+          <div className="notifications-content-card">
 
           {/* Loading State */}
           {loading && (
@@ -210,6 +215,7 @@ const Notifications: React.FC = () => {
               })}
             </div>
           )}
+          </div>
         </div>
 
         <style>{`
