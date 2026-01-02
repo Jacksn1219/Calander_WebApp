@@ -36,7 +36,6 @@ namespace Calender_WebApp.Services
             if (existingEmployee == null)
                 throw new InvalidOperationException("Employee not found.");
 
-            // Check for unique email
             var emailOwner = await _dbSet
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Email == item.Email && e.Id != id)
@@ -44,7 +43,6 @@ namespace Calender_WebApp.Services
             if (emailOwner != null)
                 throw new InvalidOperationException("An employee with the same email already exists.");
 
-            // Update fields
             existingEmployee.Name = item.Name;
             existingEmployee.Email = item.Email;
             existingEmployee.Role = item.Role;
@@ -64,14 +62,12 @@ namespace Calender_WebApp.Services
             return existingEmployee;
         }
 
-        // Add additional services that are not related to CRUD here
         public override async Task<EmployeesModel> Post(EmployeesModel entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-			// check for unique email
-            var existingEmployee = await _dbSet
+			var existingEmployee = await _dbSet
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Email == entity.Email)
                 .ConfigureAwait(false);

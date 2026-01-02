@@ -78,7 +78,6 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
 
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
 
-        // Validate model using whitelist util (ignore properties without validators)
         var inputDict = typeof(TEntity)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
@@ -90,7 +89,6 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
         }
 
-        // Set to 0 for int, null for nullable types
         model.Id = default;
 
         var entry = await _dbSet.AddAsync(model).ConfigureAwait(false);
@@ -115,7 +113,6 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
 
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
 
-        // Validate model using whitelist util (ignore properties without validators)
         var inputDict = typeof(TEntity)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
@@ -126,7 +123,7 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
         }
 
-        newTEntity.Id = dbTEntity.Id; // Ensure the ID is not changed
+        newTEntity.Id = dbTEntity.Id; 
         _context.Entry(dbTEntity).CurrentValues.SetValues(newTEntity);
         await _context.SaveChangesAsync().ConfigureAwait(false);
         return dbTEntity;
@@ -144,13 +141,13 @@ public abstract class CrudService<TEntity> : ICrudService<TEntity> where TEntity
         if (newTEntity == null) throw new ArgumentNullException(nameof(newTEntity));
         var dbTEntity = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbTEntity == null) throw new InvalidOperationException("Entity not found.");
-
+    
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(TEntity).Name);
 
         foreach (var property in typeof(TEntity).GetProperties())
         {
-            if (property.Name == nameof(IDbItem.Id)) continue; // Don't update Id
-            if (validators != null && !validators.ContainsKey(property.Name)) continue; // Skip non-whitelisted properties
+            if (property.Name == nameof(IDbItem.Id)) continue;
+            if (validators != null && !validators.ContainsKey(property.Name)) continue; 
             var newValue = property.GetValue(newTEntity);
             if (newValue != null)
             {

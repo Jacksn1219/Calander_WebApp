@@ -51,10 +51,8 @@ public class RoomBookingsService : IRoomBookingsService
         if (booking == null)
             throw new InvalidOperationException("Booking not found.");
 
-        // Send canceled reminder before deleting booking
         var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
 
-        // Get Event associated with the booking, if any
         var relatedEvent = await _context.Events
             .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
                          e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
@@ -74,7 +72,6 @@ public class RoomBookingsService : IRoomBookingsService
             Message = $"Your room booking for Room {booking.RoomId} scheduled for {bookingDateTime:yyyy-MM-dd HH:mm} has been canceled."
         }).ConfigureAwait(false);
 
-        // Delete related reminders
         await _remindersService.DeleteRoomBookingRemindersAsync(booking.UserId, booking.RoomId, booking.BookingDate, booking.StartTime);
 
         _dbSet.Remove(booking);
@@ -117,7 +114,6 @@ public class RoomBookingsService : IRoomBookingsService
         var dbNewRoombooking = await _dbSet.FindAsync(id).ConfigureAwait(false);
         if (dbNewRoombooking == null) throw new InvalidOperationException("Entity not found.");
 
-        // Normalize date to date-only and times to minute precision (zero seconds)
         newNewRoombooking.BookingDate = newNewRoombooking.BookingDate.Date;
         newNewRoombooking.StartTime = new TimeSpan(newNewRoombooking.StartTime.Hours, newNewRoombooking.StartTime.Minutes, 0);
         newNewRoombooking.EndTime = new TimeSpan(newNewRoombooking.EndTime.Hours, newNewRoombooking.EndTime.Minutes, 0);
@@ -125,26 +121,22 @@ public class RoomBookingsService : IRoomBookingsService
         if (newNewRoombooking.EndTime <= newNewRoombooking.StartTime)
             throw new ArgumentException("EndTime must be greater than StartTime.");
 
-        // Load bookings for same room & date, excluding the current booking being updated
         var dayBookings = await _dbSet
             .Where(rb => rb.RoomId == newNewRoombooking.RoomId 
                       && rb.BookingDate == newNewRoombooking.BookingDate
                       && rb.Id != id)
             .ToListAsync();
 
-        // Check exact duplicate of slot
         var exactExists = dayBookings.Any(rb => rb.StartTime == newNewRoombooking.StartTime && rb.EndTime == newNewRoombooking.EndTime);
         if (exactExists)
             throw new InvalidOperationException("An identical booking slot already exists.");
 
-        // Overlap check in-memory for same room & date
         var overlaps = dayBookings.Any(rb => rb.StartTime < newNewRoombooking.EndTime && rb.EndTime > newNewRoombooking.StartTime);
         if (overlaps)
             throw new InvalidOperationException("Room is not available for the requested time window.");
 
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(RoomBookingsModel).Name);
 
-        // Validate model using whitelist util (ignore properties without validators)
         var inputDict = typeof(RoomBookingsModel)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
@@ -155,7 +147,7 @@ public class RoomBookingsService : IRoomBookingsService
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
         }
 
-        newNewRoombooking.Id = dbNewRoombooking.Id; // Ensure the ID is not changed
+        newNewRoombooking.Id = dbNewRoombooking.Id;
         _context.Entry(dbNewRoombooking).CurrentValues.SetValues(newNewRoombooking);
         await _context.SaveChangesAsync().ConfigureAwait(false);
         return dbNewRoombooking;
@@ -190,10 +182,8 @@ public class RoomBookingsService : IRoomBookingsService
         var oldEndTime = booking.EndTime;
         booking.StartTime = newStartTime;
 
-        // Create a new "changed" reminder instead of updating the existing one
         var bookingDateTime = booking.BookingDate.Add(newStartTime);
 
-        // Get Event associated with the booking, if any
         var relatedEvent = await _context.Events
             .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
                          e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
@@ -236,10 +226,8 @@ public class RoomBookingsService : IRoomBookingsService
         var oldEndTime = booking.EndTime;
         booking.EndTime = newEndTime;
         
-        // Create a new "changed" reminder
         var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
 
-        // Get Event associated with the booking, if any
         var relatedEvent = await _context.Events
             .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
                          e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
@@ -275,7 +263,6 @@ public class RoomBookingsService : IRoomBookingsService
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        // Normalize date to date-only and times to minute precision (zero seconds)
         model.BookingDate = model.BookingDate.Date;
         model.StartTime = new TimeSpan(model.StartTime.Hours, model.StartTime.Minutes, 0);
         model.EndTime = new TimeSpan(model.EndTime.Hours, model.EndTime.Minutes, 0);
@@ -283,23 +270,18 @@ public class RoomBookingsService : IRoomBookingsService
         if (model.EndTime <= model.StartTime)
             throw new ArgumentException("EndTime must be greater than StartTime.");
 
-        // Load bookings for same room & date; SQLite may not translate TimeSpan comparisons
         var dayBookings = await _dbSet
             .Where(rb => rb.RoomId == model.RoomId && rb.BookingDate == model.BookingDate)
             .ToListAsync();
 
-        // Check exact duplicate of slot
         var exactExists = dayBookings.Any(rb => rb.StartTime == model.StartTime && rb.EndTime == model.EndTime);
         if (exactExists)
             throw new InvalidOperationException("An identical booking slot already exists.");
 
-        // Overlap check in-memory for same room & date
         var overlaps = dayBookings.Any(rb => rb.StartTime < model.EndTime && rb.EndTime > model.StartTime);
         if (overlaps)
             throw new InvalidOperationException("Room is not available for the requested time window.");
 
-        // Validate model using whitelist util
-        // Build validation input excluding navigation properties and internal IDs
         var inputDict = typeof(RoomBookingsModel)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id)
@@ -311,14 +293,12 @@ public class RoomBookingsService : IRoomBookingsService
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
         }
 
-        // If model.Room is null, load it for reminder message
         if (model.Room == null) {
             model.Room = await _context.Rooms.FindAsync(model.RoomId).ConfigureAwait(false);
         }
 
         var entry = await _dbSet.AddAsync(model).ConfigureAwait(false);
 
-        // Get Event associated with the booking, if any
         var relatedEvent = await _context.Events
             .FirstOrDefaultAsync(e => e.BookingId == model.Id &&
                          e.EventDate == model.BookingDate.Add(model.StartTime) &&
@@ -375,12 +355,6 @@ public class RoomBookingsService : IRoomBookingsService
     /// <returns>A list of available rooms for the specified date range.</returns>
     public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
     {
-        // Improvement: consider time overlap, not only date.
-        // - Fetch bookings in the date range
-        // - For each room, exclude only if any booking overlaps the requested time window
-        // - Overlap rule: booking.StartTime < end.TimeOfDay && booking.EndTime > start.TimeOfDay
-        // Note: Evaluate TimeSpan comparisons in-memory to avoid EF/SQLite translation issues.
-
         var startDay = start.Date;
         var endDay = end.Date;
         var startTime = start.TimeOfDay;
@@ -414,7 +388,6 @@ public class RoomBookingsService : IRoomBookingsService
         var startTime = start.TimeOfDay;
         var endTime = end.TimeOfDay;
 
-        // SQLite provider struggles to translate TimeSpan comparisons; evaluate overlaps in-memory
         var dayBookings = await _dbSet
             .Where(rb => rb.RoomId == roomId && rb.BookingDate == day)
             .ToListAsync();
@@ -422,7 +395,4 @@ public class RoomBookingsService : IRoomBookingsService
         var hasOverlap = dayBookings.Any(rb => rb.StartTime < endTime && rb.EndTime > startTime);
         return !hasOverlap;
     }
-
-
-    // Add additional services that are not related to CRUD here
 }

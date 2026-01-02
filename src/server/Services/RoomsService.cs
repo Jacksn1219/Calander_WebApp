@@ -34,7 +34,6 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
         var startTime = start.TimeOfDay;
         var endTime = end.TimeOfDay;
 
-        // Query RoomBookings for bookings in the date range
         var bookingsInRange = await _context.Set<RoomBookingsModel>()
             .Where(rb => rb.BookingDate >= startDay && rb.BookingDate <= endDay)
             .ToListAsync();
@@ -45,7 +44,6 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
             .Distinct()
             .ToHashSet();
 
-        // Query RoomsModel for available rooms
         return await _dbSet
             .Where(room => room.Id.HasValue && !unavailableRoomIds.Contains(room.Id.Value) && room.Capacity >= capacity)
             .ToListAsync();
@@ -62,6 +60,4 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
     {
         return await _roomBookingsService.IsRoomAvailableAsync(roomId, start, end);
     }
-
-    // Add additional services that are not related to CRUD here
 }

@@ -56,14 +56,11 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     /// <returns>An array of reminders linked to the specified room booking.</returns>
     public async Task<RemindersModel[]> GetRemindersByRelatedRoomAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
     {
-        // Get the user's advance time to calculate the expected reminder time range
         var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
         var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
         
-        // Calculate the expected reminder time (booking time - advance time)
         var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
         
-        // Search with a small time window to account for potential timing differences
         var timeWindowStart = expectedReminderTime.AddMinutes(-5);
         var timeWindowEnd = expectedReminderTime.AddMinutes(5);
         
@@ -84,14 +81,11 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 
     public async Task<RemindersModel> DeleteRoomBookingRemindersAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
     {
-        // Get the user's advance time to calculate the expected reminder time range
         var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
         var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
         
-        // Calculate the expected reminder time (booking time - advance time)
         var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
         
-        // Search with a small time window to account for potential timing differences
         var timeWindowStart = expectedReminderTime.AddMinutes(-5);
         var timeWindowEnd = expectedReminderTime.AddMinutes(5);
         
@@ -158,20 +152,15 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        // Get user's reminder preferences
         var preferences = await _reminderPreferencesService.GetByUserId(model.UserId).ConfigureAwait(false);
         var userPreference = preferences.FirstOrDefault();
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time
-            // This is to be implemented when we start using the advance time in the RemindersModel for notification view. For now just have it be the event time.
-            // if (model.ReminderType != reminderType.EventParticipationCanceled && 
-            //     model.ReminderType != reminderType.RoomBookingCanceled) {
-            //     model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
-            // }
+            if (model.ReminderType != reminderType.EventParticipationCanceled && 
+                model.ReminderType != reminderType.RoomBookingCanceled) {
+            }
 
-            // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = model.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
@@ -183,14 +172,12 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
                 _ => true
             };
 
-            // If preference is disabled, mark the reminder as already read
             if (!isPreferenceEnabled)
             {
                 model.IsRead = true;
             }
         }
 
-        // Call base Post method to handle validation and database insertion
         return await base.Post(model).ConfigureAwait(false);
     }
 
@@ -202,16 +189,13 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     {
         if (newModel == null) throw new ArgumentNullException(nameof(newModel));
 
-        // Get user's reminder preferences
         var preferences = await _reminderPreferencesService.GetByUserId(newModel.UserId).ConfigureAwait(false);
         var userPreference = preferences.FirstOrDefault();
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time
             newModel.ReminderTime = newModel.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
 
-            // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = newModel.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
@@ -219,14 +203,12 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
                 _ => true
             };
 
-            // If preference is disabled, mark the reminder as already read
             if (!isPreferenceEnabled)
             {
                 newModel.IsRead = true;
             }
         }
 
-        // Call base Put method to handle validation and database update
         return await base.Put(id, newModel).ConfigureAwait(false);
     }
 
@@ -238,16 +220,13 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     {
         if (newModel == null) throw new ArgumentNullException(nameof(newModel));
 
-        // Get user's reminder preferences
         var preferences = await _reminderPreferencesService.GetByUserId(newModel.UserId).ConfigureAwait(false);
         var userPreference = preferences.FirstOrDefault();
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time
             newModel.ReminderTime = newModel.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
 
-            // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = newModel.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
@@ -255,16 +234,12 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
                 _ => true
             };
 
-            // If preference is disabled, mark the reminder as already read
             if (!isPreferenceEnabled)
             {
                 newModel.IsRead = true;
             }
         }
 
-        // Call base Patch method to handle validation and database update
         return await base.Patch(id, newModel).ConfigureAwait(false);
     }
-
-    // Add additional services that are not related to CRUD here
 }

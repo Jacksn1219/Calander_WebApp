@@ -57,26 +57,22 @@ public class EventParticipationService : IEventParticipationService
         if (participation == null)
             throw new InvalidOperationException("Participation record not found.");
     
-        // Get event details for the notification
         var eventModel = await _context.Set<EventsModel>()
             .AsNoTracking()
             .FirstOrDefaultAsync(e => e.Id == participation.EventId)
             .ConfigureAwait(false);
 
-        // Send notification before deleting participation
         if (eventModel != null)
         {
             string title, message;
             
             if (isEventCanceled)
             {
-                // Entire event was canceled
                 title = $"Event Canceled: {eventModel.Title}";
                 message = $"The event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm} has been canceled.";
             }
             else
             {
-                // User canceled their own participation
                 title = $"You are no longer participating: {eventModel.Title}";
                 message = $"You have canceled your participation for the event '{eventModel.Title}' scheduled for {eventModel.EventDate:yyyy-MM-dd HH:mm}.";
             }
@@ -92,7 +88,6 @@ public class EventParticipationService : IEventParticipationService
             }).ConfigureAwait(false);
         }
 
-        // Delete related reminders
         await _remindersService.DeleteEventParticipationRemindersAsync(participation.UserId, participation.EventId);
 
         _dbSet.Remove(participation);
@@ -133,12 +128,10 @@ public class EventParticipationService : IEventParticipationService
         if (await IsUserParticipatingAsync(participation.EventId, participation.UserId))
             throw new InvalidOperationException("User is already participating in this event.");
 
-        // check if status is valid
         if (!Enum.TryParse<ParticipationStatus>(participation.Status.ToString(), true, out var status))
             throw new ArgumentException("Invalid status value", nameof(participation.Status));
         
 
-        // Validate model using whitelist util (ignore navigation properties)
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(EventParticipationModel).Name);
         var inputDict = typeof(EventParticipationModel)
             .GetProperties()
@@ -152,7 +145,6 @@ public class EventParticipationService : IEventParticipationService
 
         var entry = await _dbSet.AddAsync(participation).ConfigureAwait(false);
         
-        // Mark any existing "no longer participating" notifications for this event as read
         var canceledReminders = await _context.Set<RemindersModel>()
             .Where(r => r.UserId == participation.UserId && 
                        r.RelatedEventId == participation.EventId && 
@@ -168,7 +160,6 @@ public class EventParticipationService : IEventParticipationService
         
         await _context.SaveChangesAsync().ConfigureAwait(false);
         
-        // Create reminder for the event participation
         DateTime eventDetails = await GetEventStartTimeAsync(participation.EventId).ConfigureAwait(false);
         EventsModel? eventModel = await _context.Set<EventsModel>()
             .AsNoTracking()
@@ -219,11 +210,9 @@ public class EventParticipationService : IEventParticipationService
     /// <exception cref="InvalidOperationException">Thrown when the participation record is not found.</exception>
     public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus)
     {
-        // Validate newStatus
         if (!Enum.TryParse<ParticipationStatus>(newStatus, true, out var status))
             throw new ArgumentException("Invalid status value", nameof(newStatus));
 
-        // Find the participation record
         var participation = await _dbSet.FirstOrDefaultAsync(ep => ep.UserId == userId && ep.EventId == eventId).ConfigureAwait(false);
         if (participation == null)
             throw new InvalidOperationException("Participation record not found.");
@@ -301,7 +290,6 @@ public class EventParticipationService : IEventParticipationService
             .Where(ep => ep.EventId == eventId)
             .ToArrayAsync();
 
-        // Get current event if not provided
         if (newEvent == null)
         {
             newEvent = await _context.Set<EventsModel>()
@@ -313,53 +301,44 @@ public class EventParticipationService : IEventParticipationService
                 throw new InvalidOperationException("Event not found.");
         }
 
-        // Build change message
         var changes = new List<string>();
         
         if (oldEvent != null)
         {
-            // Compare title
             if (oldEvent.Title != newEvent.Title)
             {
                 changes.Add($"\nTitle: '{oldEvent.Title}' → '{newEvent.Title}'");
             }
 
-            // Compare date/time
             if (oldEvent.EventDate != newEvent.EventDate)
             {
                 changes.Add($"\nTime: {oldEvent.EventDate:yyyy-MM-dd HH:mm} → {newEvent.EventDate:yyyy-MM-dd HH:mm}");
             }
 
-            // Compare endtime
             if (oldEvent.EndTime != newEvent.EndTime)
             {
                 changes.Add($"\nEnd Time: {oldEvent.EndTime:yyyy-MM-dd HH:mm} → {newEvent.EndTime:yyyy-MM-dd HH:mm}");
             }
 
-            // Compare location
             if (oldEvent.Location != newEvent.Location)
             {
                 changes.Add($"\nLocation: '{oldEvent.Location}' → '{newEvent.Location}'");
             }
 
-            // Compare description
             if (oldEvent.Description != newEvent.Description)
             {
                 changes.Add($"\nDescription changed.");
             }
         }
 
-        // Build message with event time info
         var eventTimeInfo = $"Event starts: {newEvent.EventDate:yyyy-MM-dd HH:mm}";
         var message = changes.Count > 0
             ? $"\nThe event has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
             : $"\nThe event has been updated.\n{eventTimeInfo}";
 
-        // Collect unique user IDs: owner + participants (no duplicates)
         var userIdsToNotify = new HashSet<int>(participants.Select(p => p.UserId));
         userIdsToNotify.Add(newEvent.CreatedBy);
 
-        // Send notification to owner and all participants
         foreach (var userId in userIdsToNotify)
         {
             await _remindersService.Post(new RemindersModel
@@ -376,6 +355,4 @@ public class EventParticipationService : IEventParticipationService
         await _context.SaveChangesAsync();
         return participants;
     }
-    
-    // Add additional services that are not related to CRUD here
 }

@@ -22,7 +22,6 @@ public class ReminderPreferencesService : CrudService<ReminderPreferencesModel>,
         
         var validators = ModelWhitelistUtil.GetValidatorsForModel(typeof(ReminderPreferencesModel).Name);
 
-        // Validate model using whitelist util (ignore properties without validators)
         var inputDict = typeof(ReminderPreferencesModel)
             .GetProperties()
             .Where(p => p.Name != nameof(IDbItem.Id))
@@ -111,6 +110,4 @@ public class ReminderPreferencesService : CrudService<ReminderPreferencesModel>,
         await _context.SaveChangesAsync();
         return preference;
     }
-
-    // Add additional services that are not related to CRUD here
 }
