@@ -1115,7 +1115,23 @@ export const  useAdministrativeDashboard = () => {
     try {
       const response = await apiFetch("/api/events");
       if (!response.ok) throw new Error("Failed to fetch events");
-      const data: EventItem[] = await response.json();
+      const rawData = await response.json();
+
+      // Normalize property names from backend (PascalCase/snake_case) to camelCase
+      const data: EventItem[] = rawData.map((ev: any) => {
+        return {
+          event_id: ev.event_id ?? ev.EventId ?? ev.Id,
+          title: ev.title ?? ev.Title ?? '',
+          description: ev.description ?? ev.Description ?? '',
+          eventDate: ev.eventDate ?? ev.EventDate ?? ev.event_date ?? '',
+          endTime: ev.endTime ?? ev.EndTime ?? ev.end_time ?? '',
+          location: ev.location ?? ev.Location ?? null,
+          roomId: ev.roomId ?? ev.RoomId ?? ev.room_id ?? undefined,
+          bookingId: ev.bookingId ?? ev.BookingId ?? ev.booking_id ?? ev.roomBookingId ?? ev.RoomBookingId ?? ev.room_booking_id ?? null,
+          createdBy: ev.createdBy ?? ev.CreatedBy ?? ev.created_by ?? 0,
+          expectedAttendees: ev.expectedAttendees ?? ev.ExpectedAttendees ?? ev.expected_attendees ?? null,
+        };
+      });
 
       setEvents(data);
 
@@ -1198,7 +1214,6 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
       createdBy: event.createdBy.toString(),
     });
   }, [event, onClose]);
-
   useEffect(() => {
     const canQuery = formData.date && formData.startTime && formData.endTime && formData.expectedAttendees > 0;
     if (!canQuery) {
@@ -1277,11 +1292,25 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
 
     try {
       let bookingId = formData.bookingId ?? event?.bookingId ?? null;
-
+      
+      // Get the current room ID - either from selectedRoomId or fetch from existing booking
+      let currentRoomId = selectedRoomId;
+      
+      if (bookingId && currentRoomId === null) {
+        // If we have a booking but no room selected, fetch the room from the booking
+        const bookingRes = await apiFetch(`/api/room-bookings/${bookingId}`);
+        if (bookingRes.ok) {
+          const bookingData = await bookingRes.json();
+          currentRoomId = bookingData.roomId ?? bookingData.RoomId ?? null;
+          // Also update state for future reference
+          setSelectedRoomId(currentRoomId);
+        }
+      }
+      
       // Only create/update room booking if a room is selected
-      if (selectedRoomId !== null) {
+      if (currentRoomId !== null) {
         const bookingPayload = {
-          roomId: selectedRoomId,
+          roomId: currentRoomId,
           userId: bookingOwner,
           bookingDate: `${formData.date}T00:00:00`,
           startTime: `${formData.startTime}:00`,
@@ -1381,6 +1410,7 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
     location: "",
     expectedAttendees: 1,
     createdBy: user?.userId,
+    bookingId: null as number | null,
   });
 
   // Track whether the location is from a room selection (actual room) or free-form typing
@@ -2165,7 +2195,7 @@ export const useRoomsAdmin = () => {
       }
       const data = await res.json();
       const mapped: RoomDto[] = (data || []).map((r: any) => ({
-        id: r.room_id ?? r.id ?? r.roomId ?? r.RoomId ?? 0,
+        room_id: r.room_id ?? r.id ?? r.roomId ?? r.RoomId ?? 0,
         roomName: r.room_name ?? r.roomName ?? r.RoomName ?? 'Room',
         capacity: r.capacity ?? r.Capacity ?? null,
         location: r.location ?? r.Location ?? '',
@@ -2275,6 +2305,7 @@ export const useRoomsAdmin = () => {
       }
 
       await loadRooms();
+      alert(`Room ${mode === 'create' ? 'created' : 'updated'} successfully.`);
       if (mode === 'create') {
         resetCreateForm();
       } else {

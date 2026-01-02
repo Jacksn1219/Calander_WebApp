@@ -89,12 +89,24 @@ public class RoomsController : ControllerBase
         {
             return BadRequest("Room payload must be provided.");
         }
-
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
         }
-
+        
+        // Check for duplicate room name
+        try
+        {
+            var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
+            if (existingRoom != null)
+            {
+                return Conflict("Room with the same name already exists.");
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Room doesn't exist, which is fine - continue
+        }
         try
         {
             var createdRoom = await _roomsService.Post(room).ConfigureAwait(false);
@@ -121,7 +133,21 @@ public class RoomsController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-
+        
+        // Check for duplicate room name (excluding the current room being updated)
+        try
+        {
+            var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
+            if (existingRoom != null && existingRoom.Id != id)
+            {
+                return Conflict("Room with the same name already exists.");
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Room doesn't exist, which is fine for update - continue
+        }
+        
         try
         {
             var updatedRoom = await _roomsService.Put(id, room).ConfigureAwait(false);
@@ -152,6 +178,19 @@ public class RoomsController : ControllerBase
         catch (KeyNotFoundException)
         {
             return NotFound();
+        }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            // Database-agnostic foreign key constraint check
+            var errorMessage = ex.InnerException?.Message ?? ex.Message;
+            if (errorMessage.Contains("foreign key", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("constraint", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("reference", StringComparison.OrdinalIgnoreCase))
+            {
+                return Conflict("Cannot delete room because it has existing bookings. Delete all bookings for this room first.");
+            }
+            
+            throw; // Re-throw if it's not a foreign key constraint issue
         }
     }
 }

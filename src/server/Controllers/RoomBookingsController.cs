@@ -28,6 +28,24 @@ public class RoomBookingsController : ControllerBase
 		return Ok(bookings);
 	}
 
+	// GET /api/room-bookings/{id} — Get booking by ID
+	[HttpGet("{id:int}")]
+	public async Task<ActionResult<RoomBookingsModel>> GetById(int id)
+	{
+		try
+		{
+			var booking = await _roomBookingsService.GetByIdAsync(id).ConfigureAwait(false);
+			if (booking == null)
+				return NotFound($"Booking with ID {id} not found.");
+			
+			return Ok(booking);
+		}
+		catch (Exception ex)
+		{
+			return StatusCode(500, $"Internal server error: {ex.Message}");
+		}
+	}
+
 	// GET /api/room-bookings/room/{roomId} — Get bookings by room
 	[HttpGet("room/{roomId:int}")]
 	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetByRoom(int roomId)
@@ -103,9 +121,13 @@ public class RoomBookingsController : ControllerBase
 			var updated = await _roomBookingsService.Put(bookingid, booking).ConfigureAwait(false);
 			return Ok(updated);
 		}
-		catch (InvalidOperationException)
+		catch (InvalidOperationException ex)
 		{
-			return NotFound();
+			// Check if it's a "not found" error or a conflict error
+			if (ex.Message.Contains("Entity not found"))
+				return NotFound(ex.Message);
+			else
+				return Conflict(ex.Message);
 		}
 		catch (ArgumentException ex)
 		{

@@ -21,6 +21,7 @@ export const apiFetch = async (path: string, options: RequestInit = {}) => {
 
     // 401 → not logged in
     if (response.status === 401) {
+      alert('Your session is invalid. Please log in again.');
       window.location.href = '/login';
     }
 
