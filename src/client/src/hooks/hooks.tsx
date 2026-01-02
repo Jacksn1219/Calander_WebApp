@@ -1279,7 +1279,6 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
           bookingDate: `${formData.date}T00:00:00`,
           startTime: `${formData.startTime}:00`,
           endTime: `${formData.endTime}:00`,
-          eventId: event?.event_id ?? null,
           purpose: formData.title,
         };
 
@@ -1473,7 +1472,6 @@ export const useCreateEvent = (onClose: () => void, reloadEvents: () => void, de
           bookingDate: `${formData.date}T00:00:00`,
           startTime: `${formData.startTime}:00`,
           endTime: `${formData.endTime}:00`,
-          eventId: null,
           purpose: formData.title,
         };
 
@@ -2865,7 +2863,6 @@ export const useViewRoomBookingsDialog = (onClose: () => void, roomBookings: Roo
         bookingDate: editingBooking.bookingDate,
         startTime: editingBooking.startTime.slice(0, 5),
         endTime: editingBooking.endTime.slice(0, 5),
-        eventId: null,
         purpose: editingBooking.purpose,
       }),
     });

@@ -54,11 +54,15 @@ namespace Calender_WebApp.Models
         public string? Location { get; set; }
 
         /// <summary>
-        /// ID of the room booking associated with this event (optional).
+        /// Foreign key to the room booking associated with this event (optional).
         /// </summary>
         [Column("booking_id", Order = 6)]
         [ForeignKey(nameof(Booking))]
         public int? BookingId { get; set; }
+
+        /// <summary>
+        /// Navigation property for the room booking associated with this event (optional).
+        /// </summary>
         [JsonIgnore]
         public virtual RoomBookingsModel? Booking { get; set; }
 
