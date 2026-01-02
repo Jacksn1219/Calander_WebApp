@@ -35,6 +35,20 @@
   --calendar-day-hover: #f7f9fc;
   --calendar-day-today: #e3f2fd;
   --calendar-picker-filter: invert(0);
+  
+  /* Button colors */
+  --primary-btn-bg: #2563eb;
+  --primary-btn-hover: #1d4ed8;
+  --primary-btn-text: #ffffff;
+  --primary-btn-disabled: #a5b4fc;
+  --success-btn-bg: #16a34a;
+  --success-btn-hover: #15803d;
+  --success-btn-disabled: #bbf7d0;
+  --danger-btn-bg: #dc2626;
+  --danger-btn-hover: #b91c1c;
+  --danger-btn-disabled: #fecaca;
+  --error-text: #b91c1c;
+  --error-bg: #fee2e2;
 }
 
 [data-theme='dark'] {
@@ -74,6 +88,20 @@
   --calendar-day-hover: #1e3350;
   --calendar-day-today: #1e40af;   /* Vandaag highlight */
   --calendar-picker-filter: invert(1);  /* Wit maken in dark mode */
+  
+  /* Button colors */
+  --primary-btn-bg: #3b82f6;
+  --primary-btn-hover: #60a5fa;
+  --primary-btn-text: #ffffff;
+  --primary-btn-disabled: #1e3a8a;
+  --success-btn-bg: #10b981;
+  --success-btn-hover: #34d399;
+  --success-btn-disabled: #064e3b;
+  --danger-btn-bg: #ef4444;
+  --danger-btn-hover: #f87171;
+  --danger-btn-disabled: #7f1d1d;
+  --error-text: #ef4444;
+  --error-bg: #450a0a;
 }
 
 body {
