@@ -179,11 +179,18 @@ public class RoomsController : ControllerBase
         {
             return NotFound();
         }
-        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex) 
-            when (ex.InnerException is Microsoft.Data.Sqlite.SqliteException sqliteEx 
-                  && sqliteEx.SqliteErrorCode == 19)
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
         {
-            return Conflict("Cannot delete room because it has existing bookings. Delete all bookings for this room first.");
+            // Database-agnostic foreign key constraint check
+            var errorMessage = ex.InnerException?.Message ?? ex.Message;
+            if (errorMessage.Contains("foreign key", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("constraint", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("reference", StringComparison.OrdinalIgnoreCase))
+            {
+                return Conflict("Cannot delete room because it has existing bookings. Delete all bookings for this room first.");
+            }
+            
+            throw; // Re-throw if it's not a foreign key constraint issue
         }
     }
 }
