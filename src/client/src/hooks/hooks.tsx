@@ -1292,7 +1292,6 @@ export const useEditEvent = (event: EventItem | undefined, onClose: () => void, 
 
     try {
       let bookingId = formData.bookingId ?? event?.bookingId ?? null;
-      console.log('Initial bookingId:', bookingId);
       
       // Get the current room ID - either from selectedRoomId or fetch from existing booking
       let currentRoomId = selectedRoomId;
