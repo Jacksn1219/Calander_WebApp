@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../UI/Sidebar';
 import { useReminders, getRoomById, RoomDto } from '../hooks/hooks';
+
+import { formatDateOnly, formatTimeOnly } from '../utils/dateFormatters';
 import '../styles/index.css';
 import '../styles/notifications-page.css';
 import '../styles/reminder-notification.css';
@@ -31,34 +33,6 @@ const Notifications: React.FC = () => {
       }
     });
   }, [reminders]);
-
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('nl-NL', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
-
-  const formatDateOnly = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('nl-NL', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const formatTimeOnly = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('nl-NL', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
 
   const handleMarkAsRead = async (reminderId: number) => {
     try {

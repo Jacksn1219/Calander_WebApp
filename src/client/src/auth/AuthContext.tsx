@@ -1,14 +1,8 @@
 import { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { apiFetch } from '../config/api';
+import { User } from '../types/user_types';
 
-export interface User {
-  userId?: number;
-  name?: string;
-  email: string;
-  role: 'Admin' | 'User'| 'SuperAdmin';
-  isSuperAdmin?: boolean;
-  token?: string;
-}
+export type { User };
 
 interface AuthContextType {
   user: User | null;
