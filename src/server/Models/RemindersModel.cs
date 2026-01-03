@@ -6,14 +6,6 @@ using Calender_WebApp.Models.Interfaces;
 
 namespace Calender_WebApp.Models
 {
-    /// <summary>
-    /// EventParticipation: Reminder for an upcoming event the user is attending.
-    /// RoomBooking: Reminder for an upcoming room reservation.
-    /// EventParticipationChanged: Notification that event details were modified.
-    /// RoomBookingChanged: Notification that booking details were modified.
-    /// EventParticipationCanceled: Notification that an event was canceled.
-    /// RoomBookingCanceled: Notification that a room booking was canceled.
-    /// </summary>
     public enum reminderType
     {
         EventParticipation,
@@ -25,73 +17,95 @@ namespace Calender_WebApp.Models
     }
 
     /// <summary>
-    /// Notification reminders for events and room bookings.
-    /// ReminderTime already has the user's preference advance time subtracted (ready to display).
-    /// Each reminder is tied to both a room and an event, even if only one is relevant (due to schema design).
-    /// 
-    /// Primary Key: Id (reminder_id)
-    /// Foreign Keys:
-    /// - UserId (user_id) → EmployeesModel.Id (user receiving this reminder)
-    /// - RelatedRoomId (related_room_id) → RoomsModel.Id (associated room)
-    /// - RelatedEventId (related_event_id) → EventsModel.Id (associated event)
-    /// Bidirectional Relationships:
-    /// - User ↔ EmployeesModel.Reminders
-    /// - RelatedRoom ↔ RoomsModel.Reminders
-    /// - RelatedEvent ↔ EventsModel.Reminders
+    /// Represents a reminder in the system.
     /// </summary>
     [Table("reminders")]
     public class RemindersModel : IDbItem
     {
+        /// <summary>
+        /// Primary key for the Reminder entity.
+        /// </summary>
         [Key]
         [JsonPropertyName("reminder_id")]
         [Column("reminder_id", Order = 0)]
         public int? Id { get; set; }
 
+        /// <summary>
+        /// ID of the user who created the reminder.
+        /// </summary>
         [Column("user_id", Order = 1)]
         [ForeignKey(nameof(User))]
         public int UserId { get; set; }
 
+        /// <summary>
+        /// Type of the event.
+        /// </summary>
         [Required]
         [Column("reminder_type", Order = 2)]
         public reminderType ReminderType { get; set; }
 
+        /// <summary>
+        /// ID of the related entity's room (if applicable).
+        /// </summary>
         [Required]
         [Column("related_room_id", Order = 4)]
         [ForeignKey(nameof(RelatedRoom))]
         public int RelatedRoomId { get; set; }
 
+        /// <summary>
+        /// ID of the related entity's event id (if applicable).
+        /// </summary>
         [Required]
         [Column("related_event_id", Order = 5)]
         [ForeignKey(nameof(RelatedEvent))]
         public int RelatedEventId { get; set; }
         
+
         /// <summary>
-        /// Time when the reminder should be sent. User's preference advance time already subtracted.
+        /// Time when the reminder should be sent. Excluding the reminder preference time.
         /// </summary>
         [Required]
         [Column("reminder_time", Order = 6)]
         public DateTime ReminderTime { get; set; }
 
+        /// <summary>
+        /// Indicates whether the reminder has been read.
+        /// </summary>
         [Required]
         [Column("is_read", Order = 7)]
         public bool IsRead { get; set; } = false;
 
+        /// <summary>
+        /// Title of the reminder.
+        /// </summary>
         [Required]
         [Column("title", Order = 8)]
         public string Title { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Message of the reminder.
+        /// </summary>
         [Required]
         [Column("message", Order = 9)]
         public string Message { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Navigation property for the employee who created the event.
+        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual EmployeesModel? User { get; set; }
 
+        /// <summary>
+        /// Navigation property for the related room.
+        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual RoomsModel? RelatedRoom { get; set; }
 
+        /// <summary>
+        /// Navigation property for the related event.
+        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual EventsModel? RelatedEvent { get; set; }
