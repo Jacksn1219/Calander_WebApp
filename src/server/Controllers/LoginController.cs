@@ -50,31 +50,20 @@ namespace Calender_WebApp.Controllers
         [HttpGet("me")]
         public IActionResult Me()
         {
-            // MOVE TO SERVICE START
             var authHeader = Request.Headers["Authorization"].ToString();
+            var userInfo = _authService.GetCurrentUser(authHeader);
 
-            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+            if (userInfo == null)
                 return Unauthorized();
 
-            var token = authHeader["Bearer ".Length..].Trim();
-            var principal = _authService.ValidateToken(token);
-
-            if (principal == null)
-                return Unauthorized();
-
-            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
-            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
-            var role = principal.FindFirst(ClaimTypes.Role)?.Value;
-            var name = principal.FindFirst(ClaimTypes.Name)?.Value;
-            // MOVE TO SERVICE END
             return Ok(new
             {
                 user = new
                 {
-                    userId,
-                    email,
-                    role,
-                    name
+                    userId = userInfo.Value.userId,
+                    email = userInfo.Value.email,
+                    role = userInfo.Value.role,
+                    name = userInfo.Value.name
                 }
             });
         }

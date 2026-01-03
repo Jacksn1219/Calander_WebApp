@@ -133,7 +133,6 @@ public class RoomBookingsController : ControllerBase
 
 		try
 		{
-			// MOVE TO SERVICE START
 			var updated = await _roomBookingsService.UpdateStartTime(
 				new RoomBookingsModel
 				{
@@ -146,7 +145,6 @@ public class RoomBookingsController : ControllerBase
 				},
 				request.NewStartTime
 			).ConfigureAwait(false);
-			// MOVE TO SERVICE END
 
 			return Ok(updated);
 		}
@@ -178,7 +176,6 @@ public class RoomBookingsController : ControllerBase
 
 		try
 		{
-			// MOVE TO SERVICE START
 			var updated = await _roomBookingsService.UpdateEndTime(
 				new RoomBookingsModel
 				{
@@ -191,7 +188,6 @@ public class RoomBookingsController : ControllerBase
 				},
 				request.NewEndTime
 			).ConfigureAwait(false);
-			// MOVE TO SERVICE END
 
 			return Ok(updated);
 		}

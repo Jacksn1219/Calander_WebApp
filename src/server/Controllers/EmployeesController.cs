@@ -91,14 +91,11 @@ public class EmployeesController : ControllerBase
 			{
 				return StatusCode(500, "Failed to create employee: ID was not generated.");
 			}
-
-			// MOVE TO SERVICE START
 			var reminderPreferences = new ReminderPreferencesModel
 			{
 				Id = createdEmployee.Id.Value
 			};
 			await _reminderPreferencesService.Post(reminderPreferences).ConfigureAwait(false);
-			// MOVE TO SERVICE END
 
 			return CreatedAtAction(nameof(GetById), new { id = createdEmployee.Id }, createdEmployee);
 		}
@@ -128,7 +125,6 @@ public class EmployeesController : ControllerBase
 
 		try
 		{
-			// MOVE TO SERVICE START
 			var updatedEmployee = await _employeesService.Put(id,
 			new EmployeesModel
 			{
@@ -138,7 +134,6 @@ public class EmployeesController : ControllerBase
 				Role = employee.Role,
 				Password = employee.Password ?? string.Empty
 			}).ConfigureAwait(false);
-			// MOVE TO SERVICE END
 			return Ok(updatedEmployee);
 		}
 		catch (InvalidOperationException)

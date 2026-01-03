@@ -95,5 +95,30 @@ namespace Calender_WebApp.Services
                 return null;
             }
         }
+
+        /// <summary>
+        /// Extracts current user information from Authorization header.
+        /// </summary>
+        public (string userId, string email, string role, string name)? GetCurrentUser(string authHeader)
+        {
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return null;
+
+            var token = authHeader["Bearer ".Length..].Trim();
+            var principal = ValidateToken(token);
+
+            if (principal == null)
+                return null;
+
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            var role = principal.FindFirst(ClaimTypes.Role)?.Value;
+            var name = principal.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (userId == null || email == null || role == null || name == null)
+                return null;
+
+            return (userId, email, role, name);
+        }
     }
 }

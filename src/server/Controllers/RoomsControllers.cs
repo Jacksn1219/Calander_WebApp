@@ -91,19 +91,13 @@ public class RoomsController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-        // MOVE TO SERVICE START
-        try
+
+        var isNameAvailable = await _roomsService.ValidateRoomNameForCreate(room.RoomName).ConfigureAwait(false);
+        if (!isNameAvailable)
         {
-            var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
-            if (existingRoom != null)
-            {
-                return Conflict("Room with the same name already exists.");
-            }
+            return Conflict("Room with the same name already exists.");
         }
-        catch (InvalidOperationException)
-        {
-        }
-        // MOVE TO SERVICE END
+
         try
         {
             var createdRoom = await _roomsService.Post(room).ConfigureAwait(false);
@@ -131,19 +125,11 @@ public class RoomsController : ControllerBase
             return ValidationProblem(ModelState);
         }
         
-        // MOVE TO SERVICE START
-        try
+        var isNameAvailable = await _roomsService.ValidateRoomNameForUpdate(id, room.RoomName).ConfigureAwait(false);
+        if (!isNameAvailable)
         {
-            var existingRoom = await _roomsService.GetRoomByNameAsync(room.RoomName).ConfigureAwait(false);
-            if (existingRoom != null && existingRoom.Id != id)
-            {
-                return Conflict("Room with the same name already exists.");
-            }
+            return Conflict("Room with the same name already exists.");
         }
-        catch (InvalidOperationException)
-        {
-        }
-        // MOVE TO SERVICE END
         
         try
         {

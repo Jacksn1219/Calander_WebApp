@@ -1,4 +1,5 @@
 using Calender_WebApp.Models;
+using System.Security.Claims;
 
 namespace Calender_WebApp.Services.Interfaces
 {
@@ -14,5 +15,7 @@ namespace Calender_WebApp.Services.Interfaces
     {
         EmployeesModel? ValidateUser(string email, string password);
         string GenerateToken(EmployeesModel user);
+        ClaimsPrincipal? ValidateToken(string token);
+        (string userId, string email, string role, string name)? GetCurrentUser(string authHeader);
     }
 }
