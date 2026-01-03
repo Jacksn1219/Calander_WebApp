@@ -36,6 +36,10 @@ interface UpcomingEventSummary {
   description?: string;
   timeLabel: string;
   acceptedCount: number;
+  location?: string;
+  bookingId?: number;
+  roomName?: string;
+  roomLocation?: string;
 }
 
 
@@ -260,7 +264,6 @@ export const useUserRoomBookings = (userId?: number) => {
           const datePart = date.split('T')[0];
           return `${datePart}T${time}`;
         };
-
         let roomName = "TEST";
         if (b.roomId !== undefined && b.roomId !== null) {
           try {
@@ -553,7 +556,41 @@ EVENT DIALOG & CALENDAR HOOKS
 export const useEventDialog = (events: any[], onStatusChange?: () => void,onClose?: () => void) => {
   const [selectedEvent, setSelectedEvent] = useState<any | null>(events.length === 1 ? events[0] : null);
   const [userParticipationStatus, setUserParticipationStatus] = useState<string>('not-registered');
+  const [roomDetails, setRoomDetails] = useState<RoomDto | null>(null);
   const { user } = useAuth();
+
+  // Fetch room details when selectedEvent has a bookingId
+  useEffect(() => {
+    if (!selectedEvent?.bookingId) {
+      setRoomDetails(null);
+      return;
+    }
+
+    const fetchRoomDetails = async () => {
+      try {
+        // First fetch the booking to get the roomId
+        const bookingResponse = await apiFetch(`/api/room-bookings/${selectedEvent.bookingId}`);
+        if (bookingResponse.ok) {
+          const bookingData = await bookingResponse.json();
+          const roomId = bookingData.roomId ?? bookingData.RoomId ?? bookingData.room_id;
+          
+          if (roomId) {
+            // Then fetch the room details using the roomId
+            const roomResponse = await apiFetch(`/api/rooms/${roomId}`);
+            if (roomResponse.ok) {
+              const room: RoomDto = await roomResponse.json();
+              setRoomDetails(room);
+            }
+          }
+        }
+      } catch (error) {
+        console.error(`Failed to fetch room for booking ${selectedEvent.bookingId}:`, error);
+        setRoomDetails(null);
+      }
+    };
+
+    fetchRoomDetails();
+  }, [selectedEvent?.bookingId]);
 
   // keep participation status in sync with the selected event
   useEffect(() => {
@@ -673,6 +710,7 @@ export const useEventDialog = (events: any[], onStatusChange?: () => void,onClos
     formatTime,
     handleAttend,
     handleUnattend,
+    roomDetails,
   };
 };
 
@@ -695,6 +733,7 @@ export const useCalendar = () => {
   const [listMonthOffset, setListMonthOffset] = useState(0);
   const [eventPage, setEventPage] = useState(0);
   const [maxUpcomingEvents, setMaxUpcomingEvents] = useState(DEFAULT_UPCOMING_EVENTS);
+  const [roomsById, setRoomsById] = useState<Record<number, RoomDto>>({});
 
   const calendarGridRef = useRef<HTMLDivElement>(null);
   const upcomingHeaderRef = useRef<HTMLDivElement>(null);
@@ -835,10 +874,41 @@ export const useCalendar = () => {
     return monthlyEvents.slice(start, start + maxUpcomingEvents);
   }, [monthlyEvents, eventPage, maxUpcomingEvents]);
 
+  // Fetch room details for events with bookingId
+  useEffect(() => {
+    const bookingIds = Array.from(new Set(monthlyEvents.map(ev => ev.bookingId).filter((id): id is number => id != null)));
+    
+    bookingIds.forEach(async (bookingId) => {
+      if (!roomsById[bookingId]) {
+        try {
+          // First fetch the booking to get the roomId
+          const bookingResponse = await apiFetch(`/api/room-bookings/${bookingId}`);
+          if (bookingResponse.ok) {
+            const bookingData = await bookingResponse.json();
+            const roomId = bookingData.roomId ?? bookingData.RoomId ?? bookingData.room_id;
+            
+            if (roomId) {
+              // Then fetch the room details using the roomId
+              const roomResponse = await apiFetch(`/api/rooms/${roomId}`);
+              if (roomResponse.ok) {
+                const room: RoomDto = await roomResponse.json();
+                // Store using bookingId as key so we can look it up by ev.bookingId
+                setRoomsById(prev => ({ ...prev, [bookingId]: room }));
+              }
+            }
+          }
+        } catch (error) {
+          console.error(`Failed to fetch room for booking ${bookingId}:`, error);
+        }
+      }
+    });
+  }, [monthlyEvents, roomsById]);
+
   const upcomingEvents = useMemo<UpcomingEventSummary[]>(() => {
     return pagedEvents.map(event => {
       const eventDate = new Date(event.eventDate);
       const acceptedCount = event.participants.filter(p => p.status === 'Accepted').length;
+      const room = event.bookingId ? roomsById[event.bookingId] : undefined;
       return {
         eventId: event.eventId,
         date: eventDate,
@@ -848,9 +918,13 @@ export const useCalendar = () => {
         description: event.description,
         timeLabel: timeFormatter.format(eventDate),
         acceptedCount,
+        location: event.location,
+        bookingId: event.bookingId,
+        roomName: room?.roomName,
+        roomLocation: room?.location,
       };
     });
-  }, [pagedEvents, timeFormatter, isAcceptedByUser]);
+  }, [pagedEvents, timeFormatter, isAcceptedByUser, roomsById]);
 
   const listMonthLabel = useMemo(() => (
     `${MONTH_NAMES[listMonth.getMonth()]} ${listMonth.getFullYear()}`
@@ -1988,20 +2062,31 @@ export const useHomeDashboard = () => {
     };
   }, [events, user?.userId]);
 
-  // Fetch room details for events with roomId
+  // Fetch room details for events with bookingId
   useEffect(() => {
-    const roomIds = Array.from(new Set(upcomingEvents.map(ev => ev.bookingId).filter((id): id is number => id != null)));
+    const bookingIds = Array.from(new Set(upcomingEvents.map(ev => ev.bookingId).filter((id): id is number => id != null)));
     
-    roomIds.forEach(async (roomId) => {
-      if (!roomsById[roomId]) {
+    bookingIds.forEach(async (bookingId) => {
+      if (!roomsById[bookingId]) {
         try {
-          const response = await apiFetch(`/api/rooms/${roomId}`);
-          if (response.ok) {
-            const room: RoomDto = await response.json();
-            setRoomsById(prev => ({ ...prev, [roomId]: room }));
+          // First fetch the booking to get the roomId
+          const bookingResponse = await apiFetch(`/api/room-bookings/${bookingId}`);
+          if (bookingResponse.ok) {
+            const bookingData = await bookingResponse.json();
+            const roomId = bookingData.roomId ?? bookingData.RoomId ?? bookingData.room_id;
+            
+            if (roomId) {
+              // Then fetch the room details using the roomId
+              const roomResponse = await apiFetch(`/api/rooms/${roomId}`);
+              if (roomResponse.ok) {
+                const room: RoomDto = await roomResponse.json();
+                // Store using bookingId as key so we can look it up by ev.bookingId
+                setRoomsById(prev => ({ ...prev, [bookingId]: room }));
+              }
+            }
           }
         } catch (error) {
-          console.error(`Failed to fetch room ${roomId}:`, error);
+          console.error(`Failed to fetch room for booking ${bookingId}:`, error);
         }
       }
     });

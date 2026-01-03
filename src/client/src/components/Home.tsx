@@ -284,6 +284,9 @@ const Home: React.FC = () => {
                               {roomsById[ev.bookingId].location && ` — ${roomsById[ev.bookingId].location}`}
                             </p>
                           )}
+                          <span className="upcoming-meta">
+                            {ev.participants.filter(p => p.status === 'Accepted').length} attending
+                          </span>
                         </div>
                       </button>
                     );
