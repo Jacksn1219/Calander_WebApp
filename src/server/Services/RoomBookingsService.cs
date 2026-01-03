@@ -7,7 +7,19 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing room bookings.
+/// Manages room bookings with overlap detection and automatic reminder generation.
+/// 
+/// Business Logic:
+/// - Normalizes dates to midnight and times to hour:minute precision
+/// - Validates EndTime > StartTime
+/// - Prevents overlapping bookings for same room on same day
+/// - Prevents exact duplicate bookings
+/// - Creates automatic reminders on booking creation
+/// - Sends change notifications when booking times updated
+/// - Uses composite key deletion (RoomId + UserId + Date + Times)
+/// 
+/// Dependencies:
+/// - IRemindersService for automatic reminder creation and change notifications
 /// </summary>
 public class RoomBookingsService : IRoomBookingsService
 {
@@ -22,21 +34,13 @@ public class RoomBookingsService : IRoomBookingsService
         _remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
     }
 
-    /// <summary>
-    /// Deletes a room booking by its ID is not supported. Use the Delete method with the model instead.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Thrown when attempting to delete a room booking by ID.</exception>
     public Task<RoomBookingsModel> Delete(int id)
         => throw new NotSupportedException("Direct deletion by ID is not supported for RoomBookings. Implement custom deletion logic if needed.");
 
     /// <summary>
-    /// Deletes a room booking based on the provided model details.
+    /// Deletes booking using composite key and sends cancellation notification.
+    /// Soft-deletes related reminders by marking as read.
     /// </summary>
-    /// <param name="model">The room booking model containing details to identify the booking.</param>
-    /// <returns>The deleted room booking.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> Delete(RoomBookingsModel model)
     {
         var normalizedDate = model.BookingDate.Date;
@@ -79,35 +83,24 @@ public class RoomBookingsService : IRoomBookingsService
         return booking;
     }
     
-    /// <summary>
-    /// Gets all entities of type RoomBookingsModel.
-    /// </summary>
-    /// <returns>List of RoomBookingsModel</returns>
     public virtual async Task<RoomBookingsModel[]> Get()
         => await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
     
-    /// <summary>
-    /// Gets a room booking by its ID.
-    /// </summary>
-    /// <param name="id">Booking identifier.</param>
-    /// <returns>The booking.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> GetById(int id)
     {
         var booking = await _dbSet.AsNoTracking().FirstOrDefaultAsync(rb => rb.Id == id).ConfigureAwait(false);
         return booking ?? throw new InvalidOperationException("Booking not found.");
     }
 
-    /// <summary>
-    /// Fetch a room booking by its primary key (nullable variant).
-    /// </summary>
-    /// <param name="id">Booking identifier.</param>
-    /// <returns>The booking or null when not found.</returns>
     public async Task<RoomBookingsModel?> GetByIdAsync(int id)
     {
         return await _dbSet.AsNoTracking().FirstOrDefaultAsync(rb => rb.Id == id).ConfigureAwait(false);
     }
 
+    /// <summary>
+    /// Updates booking with time normalization, overlap detection, and duplicate prevention.
+    /// Validates EndTime > StartTime and checks for conflicting bookings on same day.
+    /// </summary>
     public async Task<RoomBookingsModel> Put(int id, RoomBookingsModel newNewRoombooking)
     {
         if (newNewRoombooking == null) throw new ArgumentNullException(nameof(newNewRoombooking));
@@ -152,23 +145,13 @@ public class RoomBookingsService : IRoomBookingsService
         await _context.SaveChangesAsync().ConfigureAwait(false);
         return dbNewRoombooking;
     }
-    /// <summary>
-    /// Covers the Patch method from CrudService, but is not supported.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="newTEntity"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Thrown when attempting to update a room booking.</exception>
     public Task<RoomBookingsModel> Patch(int userId, RoomBookingsModel newNewRoombooking)
         => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
 
     /// <summary>
-    /// Updates the start time of an existing room booking.
+    /// Updates booking start time and sends detailed change notification.
+    /// Notification includes old/new times and linked event information.
     /// </summary>
-    /// <param name="entity"></param>
-    /// <param name="newStartTime"></param>
-    /// <returns>The updated room booking.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> UpdateStartTime(RoomBookingsModel entity, TimeSpan newStartTime)
     {
         var day = entity.BookingDate.Date;
@@ -208,12 +191,9 @@ public class RoomBookingsService : IRoomBookingsService
     }
 
     /// <summary>
-    /// Updates the end time of an existing room booking.
+    /// Updates booking end time and sends detailed change notification.
+    /// Notification includes old/new times and linked event information.
     /// </summary>
-    /// <param name="entity"></param>
-    /// <param name="newEndTime"></param>
-    /// <returns>The updated room booking.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the booking is not found.</exception>
     public async Task<RoomBookingsModel> UpdateEndTime(RoomBookingsModel entity, TimeSpan newEndTime)
     {
         var day = entity.BookingDate.Date;
@@ -252,13 +232,9 @@ public class RoomBookingsService : IRoomBookingsService
     }
 
     /// <summary>
-    /// Creates a new room booking.
+    /// Creates booking with overlap detection, duplicate prevention, and automatic reminder generation.
+    /// Validates times, checks for conflicts, and creates reminder with room details.
     /// </summary>
-    /// <param name="model"></param>
-    /// <returns>The created room booking.</returns>
-    /// <exception cref="ArgumentNullException">Thrown when the model is null.</exception>
-    /// <exception cref="InvalidOperationException">Thrown when the booking already exists.</exception>
-    /// <exception cref="ArgumentException">Thrown when the model validation fails.</exception>
     public async Task<RoomBookingsModel> Post(RoomBookingsModel model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
@@ -322,11 +298,6 @@ public class RoomBookingsService : IRoomBookingsService
         return entry.Entity;
     }
 
-    /// <summary>
-    /// Gets all bookings for a specific room.
-    /// </summary>
-    /// <param name="roomId">The ID of the room.</param>
-    /// <returns>A list of room bookings for the specified room.</returns>
     public async Task<List<RoomBookingsModel>> GetBookingsForRoomAsync(int roomId)
     {
         return await _dbSet
@@ -334,11 +305,6 @@ public class RoomBookingsService : IRoomBookingsService
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Gets all bookings for a specific user.
-    /// </summary>
-    /// <param name="userId">The ID of the user.</param>
-    /// <returns>A list of room bookings for the specified user.</returns>
     public async Task<List<RoomBookingsModel>> GetBookingsByUserIdAsync(int userId)
     {
         return await _dbSet
@@ -347,12 +313,6 @@ public class RoomBookingsService : IRoomBookingsService
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Gets all available rooms for the given date range.
-    /// </summary>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns>A list of available rooms for the specified date range.</returns>
     public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
     {
         var startDay = start.Date;
@@ -375,13 +335,6 @@ public class RoomBookingsService : IRoomBookingsService
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Checks if a room is available for the given date and time range.
-    /// </summary>
-    /// <param name="roomId"></param>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns>The availability status of the room.</returns>
     public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
     {
         var day = start.Date;

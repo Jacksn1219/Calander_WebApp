@@ -5,7 +5,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing reminders, including CRUD and custom operations.
+/// Manages reminders with preference-based timing and soft deletion via IsRead flag.
+/// 
+/// Business Logic:
+/// - Automatically adjusts ReminderTime based on user advance minutes preference
+/// - Soft deletes reminders by marking IsRead=true instead of physical deletion
+/// - Marks reminders as read when corresponding preference is disabled
+/// - Uses time windows (±5 minutes) for reminder lookups to handle timing variations
+/// - Filters due reminders where ReminderTime <= current time
+/// 
+/// Dependencies:
+/// - IReminderPreferencesService for user notification preferences and timing
 /// </summary>
 public class RemindersService : CrudService<RemindersModel>, IRemindersService
 {
@@ -18,11 +28,6 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 
     
 
-    /// <summary>
-    /// Retrieves all reminders for a specific user.
-    /// </summary>
-    /// <param name="userId">The ID of the user.</param>
-    /// <returns>An array of reminders associated with the user.</returns>
     public Task<RemindersModel[]> GetByUserId(int userId)
     {
         return _dbSet
@@ -32,12 +37,8 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 
     /// <summary>
     /// Retrieves unread reminders that are due (ReminderTime has passed).
-    /// Only returns reminders where ReminderTime is less than or equal to the current time.
+    /// Used to fetch reminders that should be displayed now.
     /// </summary>
-    /// <param name="userId">The ID of the user.</param>
-    /// <param name="fromTime">The start time of the range (typically DateTime.MinValue).</param>
-    /// <param name="toTime">The end time of the range (typically DateTime.UtcNow).</param>
-    /// <returns>An array of due reminders that haven't been read yet.</returns>
     public Task<RemindersModel[]> GetNextRemindersAsync(int userId, DateTime fromTime, DateTime toTime)
     {
         return _dbSet
@@ -46,14 +47,9 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     }
 
     /// <summary>
-    /// Retrieves reminders associated with a specific room booking.
-    /// Note: Since reminders are stored with advance time already subtracted, we search by related IDs and approximate time.
+    /// Retrieves reminders for room booking using time window matching (±5 minutes).
+    /// Calculates expected reminder time by subtracting user's advance minutes from booking time.
     /// </summary>
-    /// <param name="relatedUserId">The ID of the user.</param>
-    /// <param name="relatedRoomId">The ID of the room.</param>
-    /// <param name="bookingDate">The date of the booking.</param>
-    /// <param name="startTime">The start time of the booking.</param>
-    /// <returns>An array of reminders linked to the specified room booking.</returns>
     public async Task<RemindersModel[]> GetRemindersByRelatedRoomAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
     {
         var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
@@ -79,6 +75,10 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
             .ToArrayAsync();
     }
 
+    /// <summary>
+    /// Soft deletes room booking reminders by marking as read (preserves cancellation notifications).
+    /// Uses time window (±5 minutes) to find reminders.
+    /// </summary>
     public async Task<RemindersModel> DeleteRoomBookingRemindersAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
     {
         var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
@@ -112,6 +112,9 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         return reminders.First();
     }
 
+    /// <summary>
+    /// Soft deletes event participation reminders by marking as read (preserves cancellation notifications).
+    /// </summary>
     public async Task<RemindersModel> DeleteEventParticipationRemindersAsync(int relatedUserId, int relatedEventId)
     {
         var reminders = await _dbSet
@@ -145,8 +148,9 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     }
 
     /// <summary>
-    /// Creates a new reminder, adjusting the ReminderTime based on user preferences.
-    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// Creates reminder with preference-based soft deletion.
+    /// Marks reminder as read immediately if corresponding user preference is disabled.
+    /// Cancellation notifications always created regardless of preferences.
     /// </summary>
     public override async Task<RemindersModel> Post(RemindersModel model)
     {
@@ -182,8 +186,8 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     }
 
     /// <summary>
-    /// Updates an existing reminder, adjusting the ReminderTime based on user preferences.
-    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// Updates reminder with preference-based soft deletion.
+    /// Marks as read if corresponding preference is disabled.
     /// </summary>
     public override async Task<RemindersModel> Put(int id, RemindersModel newModel)
     {
@@ -213,8 +217,8 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     }
 
     /// <summary>
-    /// Partially updates an existing reminder, adjusting the ReminderTime based on user preferences.
-    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// Partially updates reminder with preference-based soft deletion.
+    /// Marks as read if corresponding preference is disabled.
     /// </summary>
     public override async Task<RemindersModel> Patch(int id, RemindersModel newModel)
     {

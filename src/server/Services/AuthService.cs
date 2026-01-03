@@ -7,6 +7,18 @@ using System.Text;
 
 namespace Calender_WebApp.Services
 {
+    /// <summary>
+    /// Manages authentication operations including user validation and JWT token generation.
+    /// 
+    /// Business Logic:
+    /// - Validates user credentials using BCrypt password verification
+    /// - Generates JWT tokens with user claims for session management
+    /// - Includes token validation for security verification
+    /// 
+    /// Dependencies:
+    /// - IConfiguration for JWT settings (key, issuer, audience, expiration)
+    /// - AppDbContext for employee data access
+    /// </summary>
     public class AuthService : IAuthService
     {
 

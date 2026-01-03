@@ -4,7 +4,14 @@ using Calender_WebApp.Services.Interfaces;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing groups, including CRUD and custom operations.
+/// Manages groups with membership-based filtering capabilities.
+/// 
+/// Business Logic:
+/// - Retrieves groups through membership relationships
+/// - Standard CRUD operations inherited from base class
+/// 
+/// Dependencies:
+/// - IGroupMembershipsService for membership lookups
 /// </summary>
 public class GroupsService : CrudService<GroupsModel>, IGroupsService
 {
@@ -15,11 +22,6 @@ public class GroupsService : CrudService<GroupsModel>, IGroupsService
         _groupMembershipsService = groupMembershipsService;
     }
 
-    /// <summary>
-    /// Get all groups a user is a member of
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns>A list of groups the user is a member of.</returns>
     public async Task<List<GroupsModel>> GetGroupsByUserAsync(int userId)
     {
         var memberships = await _groupMembershipsService.GetMembershipsByUserIdAsync(userId);
