@@ -6,7 +6,12 @@ using Calender_WebApp.Models.Interfaces;
 namespace Calender_WebApp.Models
 {
     /// <summary>
-    /// Represents the roles available for employees.
+    /// Defines role-based access levels for employees in the system.
+    /// 
+    /// Values:
+    /// - User: Standard employee with basic access (create events, book rooms, view own data)
+    /// - Admin: Elevated user with management capabilities (defined by AdminPermission flags)
+    /// - SuperAdmin: Highest privilege level with unrestricted access to all system features
     /// </summary>
     public enum UserRole
     {
@@ -16,80 +21,70 @@ namespace Calender_WebApp.Models
     }
 
     /// <summary>
-    /// Represents an employee (user) in the system.
+    /// Represents an employee (user) in the system. Central entity for authentication and authorization.
+    /// All users must have an employee record to interact with the system.
+    /// 
+    /// Business Rules:
+    /// - Password is stored hashed (never store plaintext)
+    /// - Email must be unique (used for login)
+    /// - Role determines base access level; admins get additional granular permissions via AdminsModel
+    /// 
+    /// Primary Key: Id (user_id)
+    /// 
+    /// Foreign Keys: None (root entity)
+    /// 
+    /// Bidirectional Relationships:
+    /// - Admins ↔ AdminsModel.Employee (admin privileges if role is Admin/SuperAdmin)
+    /// - EventParticipations ↔ EventParticipationModel.Employee (events this employee is invited to)
+    /// - OfficeAttendances ↔ OfficeAttendanceModel.Employee (daily attendance records)
+    /// - GroupMemberships ↔ GroupMembershipsModel.Employee (groups this employee belongs to)
+    /// - CreatedEvents ↔ EventsModel.CreatedByUser (events created by this employee)
     /// </summary>
     [Table("employees")]
     public class EmployeesModel : IDbItem
     {
-        /// <summary>
-        /// Primary key for the GroupMembership entity.
-        /// </summary>
         [Key]
         [JsonPropertyName("user_id")]
         [Column("user_id", Order = 0)]
         public int? Id { get; set; }
 
-        /// <summary>
-        /// Full name of the employee.
-        /// </summary>
         [Required]
         [Column("name", Order = 1)]
         public string Name { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Email address of the employee.
-        /// </summary>
         [Required]
         [EmailAddress]
         [Column("email", Order = 2)]
         public string Email { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Role of the employee (Admin | User).
-        /// </summary>
         [Required]
         [Column("role", Order = 3)]
         [JsonConverter(typeof(JsonStringEnumConverter))]
         public UserRole Role { get; set; }
 
         /// <summary>
-        /// Password of the employee (hashed).
+        /// Password hash (not plaintext). Must be hashed before storage using secure algorithm.
         /// </summary>
         [Required]
         [Column("password", Order = 4)]
         public string Password { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Navigation property for admin records (if this user is an admin).
-        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual ICollection<AdminsModel> Admins { get; set; } = new List<AdminsModel>();
 
-        /// <summary>
-        /// Navigation property for the employee's event participations.
-        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual ICollection<EventParticipationModel> EventParticipations { get; set; } = new List<EventParticipationModel>();
 
-        /// <summary>
-        /// Navigation property for the employee's office attendance records.
-        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual ICollection<OfficeAttendanceModel> OfficeAttendances { get; set; } = new List<OfficeAttendanceModel>();
 
-        /// <summary>
-        /// Navigation property for the employee's room bookings.
-        /// </summary>
         [JsonIgnore]    
         [NotMapped]
         public virtual ICollection<GroupMembershipsModel> GroupMemberships { get; set; } = new List<GroupMembershipsModel>();
 
-        /// <summary>
-        /// Navigation property for the events created by this employee.
-        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual ICollection<EventsModel> CreatedEvents { get; set; } = new List<EventsModel>();

@@ -5,19 +5,20 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing Office Attendance entities.
+/// Manages office attendance records with date normalization and upsert capability.
+/// 
+/// Business Logic:
+/// - Normalizes all dates to midnight (Date.Date) for consistent querying
+/// - Implements upsert pattern to prevent duplicate records per user per day
+/// - Updates existing record status if found, creates new if not
+/// 
+/// Dependencies:
+/// - Inherits standard CRUD from CrudService base class
 /// </summary>
 public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOfficeAttendanceService
 {
     public OfficeAttendanceService(AppDbContext ctx) : base(ctx) { }
 
-    /// <summary>
-    /// Get attendance for a specific user on a specific date
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="date"></param>
-    /// <returns>The attendance record for the specified user and date.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the attendance record is not found.</exception>
     public async Task<OfficeAttendanceModel> GetAttendanceByUserAndDateAsync(int userId, DateTime date)
     {
         return await _dbSet
@@ -25,11 +26,6 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             ?? throw new InvalidOperationException("Attendance not found.");
     }
 
-    /// <summary>
-    /// Get all attendance records for a specific date
-    /// </summary>
-    /// <param name="date"></param>
-    /// <returns>A list of attendance records for the specified date.</returns>
     public async Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date)
     {
         return await _dbSet
@@ -37,11 +33,6 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Get all attendance records for a specific user
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns>A list of attendance records for the specified user.</returns>
     public async Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId)
     {
         return await _dbSet
@@ -50,6 +41,11 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Creates or updates attendance record for user on specified date.
+    /// Updates existing record status if found, creates new record if not.
+    /// Prevents duplicate attendance entries per user per day.
+    /// </summary>
     public async Task<OfficeAttendanceModel> UpsertAttendanceAsync(
     int userId,
     DateTime date,

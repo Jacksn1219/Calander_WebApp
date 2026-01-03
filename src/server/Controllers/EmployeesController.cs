@@ -97,8 +97,6 @@ public class EmployeesController : ControllerBase
 			{
 				Id = createdEmployee.Id.Value
 			};
-			Console.WriteLine("Creating default reminder preferences for new user.");
-			Console.WriteLine($"User ID: {createdEmployee.Id}");
 			await _reminderPreferencesService.Post(reminderPreferences).ConfigureAwait(false);
 			// MOVE TO SERVICE END
 

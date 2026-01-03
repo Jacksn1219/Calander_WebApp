@@ -5,17 +5,20 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services
 {
     /// <summary>
-    /// Service for managing Employee entities.
+    /// Manages employee CRUD operations with email uniqueness and password security enforcement.
+    /// 
+    /// Business Logic:
+    /// - Validates email uniqueness before creation and updates
+    /// - Hashes passwords using BCrypt before storage
+    /// - Conditionally updates passwords only when new value provided and different
+    /// - Prevents duplicate email addresses across all employees
+    /// 
+    /// Dependencies:
+    /// - BCrypt.Net for password hashing and verification
     /// </summary>
     public class EmployeesService : CrudService<EmployeesModel>, IEmployeesService
     {
         public EmployeesService(AppDbContext ctx) : base(ctx) { }
-
-        /// <summary>
-        /// returns an list of employees with the same email address.
-        /// </summary>
-        /// <param name="email">The employee's email.</param>
-        /// <returns>The employee if found; otherwise, null.</returns>
 
         public async Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email)
         {
@@ -25,6 +28,10 @@ namespace Calender_WebApp.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Updates employee data with email uniqueness validation and conditional password hashing.
+        /// Only updates password if new value is provided and differs from existing hash.
+        /// </summary>
         public override async Task<EmployeesModel> Put(int id, EmployeesModel item)
         {
             if (item == null)
@@ -47,7 +54,6 @@ namespace Calender_WebApp.Services
             existingEmployee.Email = item.Email;
             existingEmployee.Role = item.Role;
 
-            // Update password only if a non-empty new password is provided and it's different
             if (!string.IsNullOrWhiteSpace(item.Password))
             {
 
@@ -62,6 +68,9 @@ namespace Calender_WebApp.Services
             return existingEmployee;
         }
 
+        /// <summary>
+        /// Creates new employee with email uniqueness validation and automatic password hashing.
+        /// </summary>
         public override async Task<EmployeesModel> Post(EmployeesModel entity)
         {
             if (entity == null)

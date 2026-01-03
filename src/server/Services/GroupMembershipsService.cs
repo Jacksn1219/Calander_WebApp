@@ -7,7 +7,16 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing Group Membership entities.
+/// Manages user memberships in groups using composite keys (UserId + GroupId).
+/// 
+/// Business Logic:
+/// - Prevents duplicate memberships
+/// - Validates group existence before querying memberships
+/// - Uses composite key deletion instead of ID-based
+/// - Update operations disabled; use Post/Delete to manage memberships
+/// 
+/// Dependencies:
+/// - ModelWhitelistUtil for input validation
 /// </summary>
 public class GroupMembershipsService : IGroupMembershipsService
 {
@@ -20,21 +29,9 @@ public class GroupMembershipsService : IGroupMembershipsService
         _dbSet = _context.Set<GroupMembershipsModel>();
     }
 
-    /// <summary>
-    /// Covers the Delete method from CrudService, but is not supported.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.</exception>
     public Task<GroupMembershipsModel> Delete(int id)
         => throw new NotSupportedException("Use Delete(GroupMembershipsModel entity) to remove a user from a group.");
 
-    /// <summary>
-    /// Removes a user from a group based on the provided entity details.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <returns>The deleted group membership entity.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the membership is not found.</exception>
     public async Task<GroupMembershipsModel> Delete(GroupMembershipsModel entity)
     {
         var membership = await _dbSet
@@ -48,32 +45,18 @@ public class GroupMembershipsService : IGroupMembershipsService
         return membership;
     }
 
-    /// <summary>
-    /// Gets all entities of type GroupMembershipsModel.
-    /// </summary>
-    /// <returns>List of GroupMembershipsModel</returns>
     public virtual async Task<GroupMembershipsModel[]> Get()
     {
         return await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
     }
 
-    /// <summary>
-    /// Covers the GetById method from CrudService, but is not supported.
-    /// </summary>
-    /// <param name="id"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.</exception>
     public Task<GroupMembershipsModel> GetById(int id)
         => throw new NotSupportedException("Direct access by ID is not supported for GroupMemberships. Use GetMembershipsByUserIdAsync instead.");
 
     /// <summary>
-    /// Adds a new group membership if the user is not already a member of the group.
+    /// Creates membership with duplicate prevention.
+    /// Validates input excluding navigation properties (Employee, Group).
     /// </summary>
-    /// <param name="entity">The group membership entity to add.</param>
-    /// <returns>The added group membership entity, or null if the membership already exists.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the membership already exists.</exception>
-    /// <exception cref="ArgumentNullException">Thrown when the entity is null.</exception>
-    /// <exception cref="ArgumentException">Thrown when model validation fails.</exception>
     public async Task<GroupMembershipsModel> Post(GroupMembershipsModel entity)
     {
         var exists = await _dbSet
@@ -96,20 +79,9 @@ public class GroupMembershipsService : IGroupMembershipsService
         return entry.Entity;
     }
 
-    /// <summary>
-    /// Covers the Put method from CrudService, but is not supported.
-    /// </summary>
-    /// <param name="entity"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
     public Task<GroupMembershipsModel> Put(int id, GroupMembershipsModel entity)
         => throw new NotSupportedException("Updating group memberships is not supported. Use Post/Delete to add/remove memberships.");
 
-    /// <summary>
-    /// Get all group memberships for a specific user.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns>A list of group memberships for the specified user.</returns>
     public async Task<List<GroupMembershipsModel>> GetMembershipsByUserIdAsync(int userId)
     {
         return await _dbSet
@@ -119,10 +91,8 @@ public class GroupMembershipsService : IGroupMembershipsService
     }
 
     /// <summary>
-    /// Get all group memberships for a specific group.
+    /// Validates group existence before retrieving memberships.
     /// </summary>
-    /// <param name="groupId"></param>
-    /// <returns>A list of group memberships for the specified group.</returns>
     public async Task<List<GroupMembershipsModel>> GetMembershipsByGroupIdAsync(int groupId)
     {
         var groupExists = await _context.Set<GroupsModel>().AnyAsync(g => g.Id == groupId);
@@ -135,13 +105,6 @@ public class GroupMembershipsService : IGroupMembershipsService
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Covers the Patch method from CrudService, but is not supported.
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <param name="newTEntity"></param>
-    /// <returns>This method is not supported.</returns>
-    /// <exception cref="NotSupportedException">Updating group memberships is not supported.</exception>
     public Task<GroupMembershipsModel> Patch(int userId, GroupMembershipsModel newTEntity)
         => throw new NotSupportedException("Use Post/Delete to add/remove memberships.");
 }

@@ -2,6 +2,18 @@ using Calender_WebApp.Models;
 
 namespace Calender_WebApp.Services.Interfaces
 {
+    /// <summary>
+    /// Contract for managing user participation in events with notification and reminder handling.
+    /// Uses composite keys (UserId + EventId) instead of standard ID-based operations.
+    /// 
+    /// Key Operations:
+    /// - Participation status management (Accepted, Declined, Pending)
+    /// - Automatic reminder creation and cancellation
+    /// - Participation change notifications
+    /// - Bulk reminder updates when events are modified
+    /// 
+    /// Note: Standard CRUD operations by ID are disabled; uses composite key methods instead.
+    /// </summary>
     public interface IEventParticipationService : ICrudService<EventParticipationModel>
     {
         Task<EventParticipationModel> Delete(EventParticipationModel entity);

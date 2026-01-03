@@ -5,7 +5,19 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing Event entities.
+/// Manages calendar events with room booking integration and participant notification.
+/// 
+/// Business Logic:
+/// - Validates event times ensuring end is after start
+/// - Synchronizes with room bookings when BookingId is provided
+/// - Automatically notifies participants when event details change
+/// - Cascades deletions to room bookings and participant reminders
+/// - Normalizes location strings by trimming whitespace
+/// 
+/// Dependencies:
+/// - IEventParticipationService for participant notifications
+/// - IRoomBookingsService for booking validation and synchronization
+/// - IRemindersService for reminder management
 /// </summary>
 public class EventsService : CrudService<EventsModel>, IEventsService
 {
@@ -20,11 +32,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         _remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
     }
 
-    /// <summary>
-    /// Get all events created by a specific user
-    /// </summary>
-    /// <param name="userId"></param>
-    /// <returns>The list of events created by the user.</returns>
     public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
     {
         return await _dbSet
@@ -32,11 +39,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             .ToListAsync();
     }
 
-    /// <summary>
-    /// Get upcoming events from a specific date
-    /// </summary>
-    /// <param name="fromDate"></param>
-    /// <returns>The list of upcoming events.</returns>
     public async Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate)
     {
         return await _dbSet
@@ -45,6 +47,10 @@ public class EventsService : CrudService<EventsModel>, IEventsService
             .ToListAsync();
     }
 
+    /// <summary>
+    /// Updates event with room booking validation and participant notifications.
+    /// Validates booking times match event times if BookingId provided.
+    /// </summary>
     public override async Task<EventsModel> Put(int id, EventsModel updatedEntity)
     {
 
@@ -60,13 +66,16 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"Failed to update event reminders: {ex.Message}");
         }
 
         await SyncRoomBookingAsync(updatedEvent, updatedEntity).ConfigureAwait(false);
 
         return updatedEvent;
     }
+    /// <summary>
+    /// Creates event with room booking validation and automatic synchronization.
+    /// Ensures event times match linked booking if BookingId provided.
+    /// </summary>
     public override async Task<EventsModel> Post(EventsModel newEntity)
     {
         await ApplyBookingToEventAsync(newEntity).ConfigureAwait(false);
@@ -138,6 +147,12 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         }
     }
 
+    /// <summary>
+    /// Deletes event with cascading operations:
+    /// - Deletes linked room booking if exists
+    /// - Notifies all participants with cancellation message (isEventCanceled=true)
+    /// - Marks related reminders as read (soft delete)
+    /// </summary>
     public override async Task<EventsModel> Delete(int id)
     {
         var eventToDelete = await _dbSet.FindAsync(id).ConfigureAwait(false);
