@@ -8,7 +8,12 @@ using Calender_WebApp.Models.Interfaces;
 namespace Calender_WebApp.Models
 {
     /// <summary>
-    /// Represents the permission flags available for an admin.
+    /// Bitwise permission flags for admin users. Can be combined using | operator.
+    /// None: No special permissions.
+    /// ReadEvents: Can view all events in the system.
+    /// UpdateEvents: Can modify/delete events.
+    /// ReadRoomBookings: Can view all room bookings.
+    /// UpdateRoomBookings: Can modify/delete room bookings.
     /// </summary>
     [Flags]
     public enum AdminPermission
@@ -21,36 +26,30 @@ namespace Calender_WebApp.Models
     }
 
     /// <summary>
-    /// Represents an admin user in the system with assigned permissions.
+    /// Extends an employee with admin-specific permissions using bitwise flags.
+    /// Multiple admins can reference the same employee with different permission sets.
+    /// Permissions are combinable (e.g., ReadEvents | UpdateEvents).
+    /// 
+    /// Primary Key: Id (admin_id)
+    /// Foreign Keys:
+    /// - UserId (user_id) ↔ EmployeesModel.Admins (bidirectional: admin belongs to employee, employee has admin records)
     /// </summary>
     [Table("admins")]
     public class AdminsModel : IDbItem
     {
-        /// <summary>
-        /// Primary key for the GroupMembership entity.
-        /// </summary>
         [Key]
         [JsonPropertyName("admin_id")]
         [Column("admin_id", Order = 0)]
         public int? Id { get; set; }
 
-        /// <summary>
-        /// ID of the employee associated with this admin record.
-        /// </summary>
         [Required]
         [Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
-        /// <summary>
-        /// Navigation property for the related employee.
-        /// </summary>
         [JsonIgnore]
         public virtual EmployeesModel? Employee { get; set; }
 
-        /// <summary>
-        /// Permissions assigned to this admin.
-        /// </summary>
         [Required]
         [Column("permissions", Order = 2)]
         public AdminPermission Permissions { get; set; }

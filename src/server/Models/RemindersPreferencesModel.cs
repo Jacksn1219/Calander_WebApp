@@ -9,14 +9,20 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace Calender_WebApp.Models
 {
     /// <summary>
-    /// Represents a reminder in the system.
+    /// User preferences for notification reminders (one-to-one with EmployeesModel).
+    /// Controls whether user receives event/booking reminders and how far in advance.
+    /// ReminderAdvanceMinutes is a TimeSpan (e.g., 15 minutes), NOT a DateTime.
+    /// Default: both reminders enabled, 15 minutes advance notice.
+    /// 
+    /// Primary Key: Id (user_id) - also serves as FK to EmployeesModel (one-to-one)
+    /// Foreign Keys:
+    /// - Id (user_id) → EmployeesModel.Id (one-to-one: preferences belong to this employee)
+    /// Bidirectional Relationships:
+    /// - User ↔ EmployeesModel.ReminderPreferences (one-to-one)
     /// </summary>
     [Table("reminderpreferences")]
     public class ReminderPreferencesModel : IDbItem
     {
-        /// <summary>
-        /// Primary key for the Reminder entity.
-        /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
         [JsonPropertyName("user_id")]
@@ -24,30 +30,21 @@ namespace Calender_WebApp.Models
         [ForeignKey(nameof(User))]
         public int? Id { get; set; }
 
-        /// <summary>
-        /// Type of the event.
-        /// </summary>
         [Required]
         [Column("event_reminder", Order = 1)]
         public bool EventReminder { get; set; } = true;
 
-        /// <summary>
-        /// ID of the related entity (Event or RoomBooking).
-        /// </summary>
         [Required]
         [Column("booking_reminder", Order = 2)]
         public bool BookingReminder { get; set; } = true;
 
         /// <summary>
-        /// Time when the reminder should be sent.
+        /// How far in advance to send reminders (TimeSpan, e.g., 15 minutes). Default: 15 minutes.
         /// </summary>
         [Required]
         [Column("reminder_advance_minutes", Order = 3)]
         public TimeSpan ReminderAdvanceMinutes { get; set; } = TimeSpan.FromMinutes(15);
 
-        /// <summary>
-        /// Navigation property for the employee who created the event.
-        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual EmployeesModel? User { get; set; }
