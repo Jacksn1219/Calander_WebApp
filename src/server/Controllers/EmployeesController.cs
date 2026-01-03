@@ -8,6 +8,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages employee (user) CRUD operations. Most endpoints require authentication.
+/// </summary>
 [ApiController]
 [Route("api/employees")]
 [Authorize] 
@@ -63,6 +66,9 @@ public class EmployeesController : ControllerBase
 		}
 	}
 
+	/// <summary>
+	/// Creates a new employee and automatically creates default reminder preferences.
+	/// </summary>
 	[HttpPost]
 	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<ActionResult<EmployeesModel>> Create([FromBody] EmployeesModel employee)
@@ -147,6 +153,9 @@ public class EmployeesController : ControllerBase
 		}
 	}
 
+	/// <summary>
+	/// Deletes an employee and their associated reminder preferences.
+	/// </summary>
 	[HttpDelete("{id:int}")]
 	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<IActionResult> Delete(int id)
@@ -162,7 +171,11 @@ public class EmployeesController : ControllerBase
 			return NotFound();
 		}
 	}
-		public class EmployeesModelForUpdate
+	/// <summary>
+	/// DTO for updating employee information.
+	/// Password is optional - if null or empty, existing password is not changed.
+	/// </summary>		
+	public class EmployeesModelForUpdate
 	{
 		public int User_id { get; set; } = 0;
 		public string Name { get; set; } = string.Empty;
