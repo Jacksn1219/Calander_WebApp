@@ -346,6 +346,7 @@ export const useCalendar = () => {
     onUpcomingEventSelect: handleUpcomingEventClick,
     calendarGridRef,
     upcomingHeaderRef,
+    user
   };
 };
 

@@ -313,10 +313,8 @@ const Home: React.FC = () => {
             <EventDialog
               date={selectedDateForDialog}
               events={selectedDayEvents}
-              onClose={() => {
-                closeDialog();
-                reload();
-              }}
+              onClose={closeDialog}
+              onStatusChange={reload}
             />
           )}
 

@@ -32,7 +32,7 @@ const AdministrativeDashboard: React.FC = () => {
           <h2>Manage events and attendees</h2>
           <button className="create-button" onClick={() => setShowCreateDialog(true)}>Create new event</button>
 
-          { events.length != 0 ? (
+          { events.length !== 0 ? (
           <table className="administrative-table">
             <thead>
               <tr>

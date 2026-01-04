@@ -20,19 +20,38 @@ const Notifications: React.FC = () => {
         .map(r => r.relatedRoomId)
     ));
 
-    roomIds.forEach(async (roomId) => {
-      if (!roomsCache[roomId]) {
-        try {
-          const room = await getRoomById(roomId);
+    const fetchRooms = async () => {
+      const roomsToFetch = roomIds.filter(roomId => !roomsCache[roomId]);
+      
+      if (roomsToFetch.length === 0) return;
+
+      try {
+        const roomPromises = roomsToFetch.map(roomId => 
+          getRoomById(roomId).catch(error => {
+            console.error(`Failed to fetch room ${roomId}:`, error);
+            return null;
+          })
+        );
+        
+        const rooms = await Promise.all(roomPromises);
+        
+        const newRooms: Record<number, RoomDto> = {};
+        rooms.forEach((room, index) => {
           if (room) {
-            setRoomsCache(prev => ({ ...prev, [roomId]: room }));
+            newRooms[roomsToFetch[index]] = room;
           }
-        } catch (error) {
-          console.error(`Failed to fetch room ${roomId}:`, error);
+        });
+        
+        if (Object.keys(newRooms).length > 0) {
+          setRoomsCache(prev => ({ ...prev, ...newRooms }));
         }
+      } catch (error) {
+        console.error('Failed to fetch rooms:', error);
       }
-    });
-  }, [reminders]);
+    };
+
+    fetchRooms();
+  }, [reminders, roomsCache]);
 
   const handleMarkAsRead = async (reminderId: number) => {
     try {
@@ -191,13 +210,6 @@ const Notifications: React.FC = () => {
           )}
           </div>
         </div>
-
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
       </main>
     </div>
   );
