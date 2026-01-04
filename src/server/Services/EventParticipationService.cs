@@ -250,8 +250,8 @@ public class EventParticipationService : IEventParticipationService
 
         var eventTimeInfo = $"Event starts: {newEvent.EventDate:yyyy-MM-dd HH:mm}";
         var message = changes.Count > 0
-            ? $"\nThe event has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
-            : $"\nThe event has been updated.\n{eventTimeInfo}";
+            ? $"The event has been updated:\n{string.Join("\n", changes)}\n\n{eventTimeInfo}"
+            : $"The event has been updated.\n{eventTimeInfo}";
 
         var userIdsToNotify = new HashSet<int>(participants.Select(p => p.UserId));
         userIdsToNotify.Add(newEvent.CreatedBy);

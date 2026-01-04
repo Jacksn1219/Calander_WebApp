@@ -1,6 +1,7 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useReminders, formatDateOnly, formatTimeOnly, useCalendarEvents, getRoomById, RoomDto } from '../hooks/hooks';
+import { useReminders, formatDateOnly, formatTimeOnly, useCalendarEvents, RoomDto } from '../hooks/hooks';
+// import { getRoomById } from '../hooks/reminders_hooks';
 import { useAuth } from '../auth/AuthContext';
 import '../styles/reminder-notification.css';
 
@@ -16,26 +17,26 @@ const ReminderNotification: React.FC = () => {
   const unsentReminders = reminders.filter(r => !r.isRead);
 
   // Fetch room details for reminders with room IDs
-  useEffect(() => {
-    const roomIds = Array.from(new Set(
-      unsentReminders
-        .filter(r => r.relatedRoomId !== 0)
-        .map(r => r.relatedRoomId)
-    ));
+  // useEffect(() => {
+  //   const roomIds = Array.from(new Set(
+  //     unsentReminders
+  //       .filter(r => r.relatedRoomId !== 0)
+  //       .map(r => r.relatedRoomId)
+  //   ));
 
-    roomIds.forEach(async (roomId) => {
-      if (!roomsCache[roomId]) {
-        try {
-          const room = await getRoomById(roomId);
-          if (room) {
-            setRoomsCache(prev => ({ ...prev, [roomId]: room }));
-          }
-        } catch (error) {
-          console.error(`Failed to fetch room ${roomId}:`, error);
-        }
-      }
-    });
-  }, [unsentReminders]);
+  //   roomIds.forEach(async (roomId) => {
+  //     if (!roomsCache[roomId]) {
+  //       try {
+  //         const room = await getRoomById(roomId);
+  //         if (room) {
+  //           setRoomsCache(prev => ({ ...prev, [roomId]: room }));
+  //         }
+  //       } catch (error) {
+  //         console.error(`Failed to fetch room ${roomId}:`, error);
+  //       }
+  //     }
+  //   });
+  // }, [unsentReminders]);
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -188,12 +189,12 @@ const ReminderNotification: React.FC = () => {
                     {/* Date and Time Row with IDs */}
                     <div className="reminder-item-meta">
                       <span>{formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}</span>
-                      {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
+                      {/* {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
                         <>
                           <span className="reminder-item-meta-divider">|</span>
                           <span className="reminder-item-meta-id">{roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
                         </>
-                      )}
+                      )} */}
                     </div>
 
                     {/* Content Row */}

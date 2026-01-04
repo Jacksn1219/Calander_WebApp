@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Sidebar from '../UI/Sidebar';
-import { useReminders, getRoomById, RoomDto } from '../hooks/hooks';
+import { useReminders, RoomDto } from '../hooks/hooks';
+// import { getRoomById } from '../hooks/hooks';
 
 import { formatDateOnly, formatTimeOnly } from '../utils/dateFormatters';
 import '../styles/index.css';
@@ -13,45 +14,45 @@ const Notifications: React.FC = () => {
   const [roomsCache, setRoomsCache] = useState<Record<number, RoomDto>>({});
 
   // Fetch room details for reminders with room IDs
-  useEffect(() => {
-    const roomIds = Array.from(new Set(
-      reminders
-        .filter(r => r.relatedRoomId !== 0)
-        .map(r => r.relatedRoomId)
-    ));
+  // useEffect(() => {
+  //   const roomIds = Array.from(new Set(
+  //     reminders
+  //       .filter(r => r.relatedRoomId !== 0)
+  //       .map(r => r.relatedRoomId)
+  //   ));
 
-    const fetchRooms = async () => {
-      const roomsToFetch = roomIds.filter(roomId => !roomsCache[roomId]);
+  //   const fetchRooms = async () => {
+  //     const roomsToFetch = roomIds.filter(roomId => !roomsCache[roomId]);
       
-      if (roomsToFetch.length === 0) return;
+  //     if (roomsToFetch.length === 0) return;
 
-      try {
-        const roomPromises = roomsToFetch.map(roomId => 
-          getRoomById(roomId).catch(error => {
-            console.error(`Failed to fetch room ${roomId}:`, error);
-            return null;
-          })
-        );
+  //     try {
+  //       const roomPromises = roomsToFetch.map(roomId => 
+  //         getRoomById(roomId).catch(error => {
+  //           console.error(`Failed to fetch room ${roomId}:`, error);
+  //           return null;
+  //         })
+  //       );
         
-        const rooms = await Promise.all(roomPromises);
+  //       const rooms = await Promise.all(roomPromises);
         
-        const newRooms: Record<number, RoomDto> = {};
-        rooms.forEach((room, index) => {
-          if (room) {
-            newRooms[roomsToFetch[index]] = room;
-          }
-        });
+  //       const newRooms: Record<number, RoomDto> = {};
+  //       rooms.forEach((room, index) => {
+  //         if (room) {
+  //           newRooms[roomsToFetch[index]] = room;
+  //         }
+  //       });
         
-        if (Object.keys(newRooms).length > 0) {
-          setRoomsCache(prev => ({ ...prev, ...newRooms }));
-        }
-      } catch (error) {
-        console.error('Failed to fetch rooms:', error);
-      }
-    };
+  //       if (Object.keys(newRooms).length > 0) {
+  //         setRoomsCache(prev => ({ ...prev, ...newRooms }));
+  //       }
+  //     } catch (error) {
+  //       console.error('Failed to fetch rooms:', error);
+  //     }
+  //   };
 
-    fetchRooms();
-  }, [reminders, roomsCache]);
+  //   fetchRooms();
+  // }, [reminders, roomsCache]);
 
   const handleMarkAsRead = async (reminderId: number) => {
     try {
@@ -194,9 +195,9 @@ const Notifications: React.FC = () => {
                       <div className="reminder-item-body">
                         <div className="reminder-item-description">
                           {formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}
-                          {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
+                          {/* {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
                             <span> | {roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
-                          )}
+                          )} */}
                         </div>
                         <div className="reminder-item-info">
                           {reminder.message}

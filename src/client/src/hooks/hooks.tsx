@@ -67,7 +67,7 @@ export {
 export { 
   useReminders, 
   useUserSettings, 
-  getRoomById
+  // getRoomById
 } from './reminders_hooks';
 
 // Home dashboard hooks
