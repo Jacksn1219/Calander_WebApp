@@ -11,8 +11,8 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Calender_WebApp.Migrations
 {
     [DbContext(typeof(AppDbContext))]
-    [Migration("20260101164348_AddExpectedAttendeesFix")]
-    partial class AddExpectedAttendeesFix
+    [Migration("20260104191141_FinalDatabase")]
+    partial class FinalDatabase
     {
         /// <inheritdoc />
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -155,6 +155,8 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(1);
 
                     b.HasKey("Id");
+
+                    b.HasIndex("BookingId");
 
                     b.HasIndex("CreatedBy");
 
@@ -336,16 +338,11 @@ namespace Calender_WebApp.Migrations
                         .HasColumnName("end_time")
                         .HasColumnOrder(4);
 
-                    b.Property<int?>("EventId")
-                        .HasColumnType("INTEGER")
-                        .HasColumnName("event_id")
-                        .HasColumnOrder(5);
-
                     b.Property<string>("Purpose")
                         .IsRequired()
                         .HasColumnType("TEXT")
                         .HasColumnName("purpose")
-                        .HasColumnOrder(6);
+                        .HasColumnOrder(5);
 
                     b.Property<int>("RoomId")
                         .HasColumnType("INTEGER")
@@ -363,9 +360,6 @@ namespace Calender_WebApp.Migrations
                         .HasColumnOrder(1);
 
                     b.HasKey("Id");
-
-                    b.HasIndex("EventId")
-                        .IsUnique();
 
                     b.HasIndex("RoomId");
 
@@ -437,11 +431,17 @@ namespace Calender_WebApp.Migrations
 
             modelBuilder.Entity("Calender_WebApp.Models.EventsModel", b =>
                 {
+                    b.HasOne("Calender_WebApp.Models.RoomBookingsModel", "Booking")
+                        .WithMany()
+                        .HasForeignKey("BookingId");
+
                     b.HasOne("Calender_WebApp.Models.EmployeesModel", "CreatedByUser")
                         .WithMany()
                         .HasForeignKey("CreatedBy")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Booking");
 
                     b.Navigation("CreatedByUser");
                 });
@@ -478,10 +478,6 @@ namespace Calender_WebApp.Migrations
 
             modelBuilder.Entity("Calender_WebApp.Models.RoomBookingsModel", b =>
                 {
-                    b.HasOne("Calender_WebApp.Models.EventsModel", "Event")
-                        .WithOne("Booking")
-                        .HasForeignKey("Calender_WebApp.Models.RoomBookingsModel", "EventId");
-
                     b.HasOne("Calender_WebApp.Models.RoomsModel", "Room")
                         .WithMany("RoomBookings")
                         .HasForeignKey("RoomId")
@@ -496,14 +492,7 @@ namespace Calender_WebApp.Migrations
 
                     b.Navigation("Employee");
 
-                    b.Navigation("Event");
-
                     b.Navigation("Room");
-                });
-
-            modelBuilder.Entity("Calender_WebApp.Models.EventsModel", b =>
-                {
-                    b.Navigation("Booking");
                 });
 
             modelBuilder.Entity("Calender_WebApp.Models.GroupsModel", b =>

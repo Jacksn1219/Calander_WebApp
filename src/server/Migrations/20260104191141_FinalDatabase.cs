@@ -6,7 +6,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 namespace Calender_WebApp.Migrations
 {
     /// <inheritdoc />
-    public partial class InitialCreate : Migration
+    public partial class FinalDatabase : Migration
     {
         /// <inheritdoc />
         protected override void Up(MigrationBuilder migrationBuilder)
@@ -156,6 +156,36 @@ namespace Calender_WebApp.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "roombookings",
+                columns: table => new
+                {
+                    room_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
+                    booking_date = table.Column<DateTime>(type: "TEXT", nullable: false),
+                    start_time = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    end_time = table.Column<TimeSpan>(type: "TEXT", nullable: false),
+                    purpose = table.Column<string>(type: "TEXT", nullable: false),
+                    booking_id = table.Column<int>(type: "INTEGER", nullable: false)
+                        .Annotation("Sqlite:Autoincrement", true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_roombookings", x => x.booking_id);
+                    table.ForeignKey(
+                        name: "FK_roombookings_employees_user_id",
+                        column: x => x.user_id,
+                        principalTable: "employees",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                    table.ForeignKey(
+                        name: "FK_roombookings_rooms_room_id",
+                        column: x => x.room_id,
+                        principalTable: "rooms",
+                        principalColumn: "room_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "events",
                 columns: table => new
                 {
@@ -166,9 +196,9 @@ namespace Calender_WebApp.Migrations
                     event_date = table.Column<DateTime>(type: "TEXT", nullable: false),
                     end_time = table.Column<DateTime>(type: "TEXT", nullable: false),
                     location = table.Column<string>(type: "TEXT", nullable: true),
-                    room_id = table.Column<int>(type: "INTEGER", nullable: true),
                     booking_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    created_by = table.Column<int>(type: "INTEGER", nullable: false)
+                    created_by = table.Column<int>(type: "INTEGER", nullable: false),
+                    expected_attendees = table.Column<int>(type: "INTEGER", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -180,10 +210,10 @@ namespace Calender_WebApp.Migrations
                         principalColumn: "user_id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_events_rooms_room_id",
-                        column: x => x.room_id,
-                        principalTable: "rooms",
-                        principalColumn: "room_id");
+                        name: "FK_events_roombookings_booking_id",
+                        column: x => x.booking_id,
+                        principalTable: "roombookings",
+                        principalColumn: "booking_id");
                 });
 
             migrationBuilder.CreateTable(
@@ -211,42 +241,6 @@ namespace Calender_WebApp.Migrations
                         onDelete: ReferentialAction.Cascade);
                 });
 
-            migrationBuilder.CreateTable(
-                name: "roombookings",
-                columns: table => new
-                {
-                    room_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    user_id = table.Column<int>(type: "INTEGER", nullable: false),
-                    booking_date = table.Column<DateTime>(type: "TEXT", nullable: false),
-                    start_time = table.Column<TimeSpan>(type: "TEXT", nullable: false),
-                    end_time = table.Column<TimeSpan>(type: "TEXT", nullable: false),
-                    event_id = table.Column<int>(type: "INTEGER", nullable: true),
-                    purpose = table.Column<string>(type: "TEXT", nullable: false),
-                    booking_id = table.Column<int>(type: "INTEGER", nullable: false)
-                        .Annotation("Sqlite:Autoincrement", true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_roombookings", x => x.booking_id);
-                    table.ForeignKey(
-                        name: "FK_roombookings_employees_user_id",
-                        column: x => x.user_id,
-                        principalTable: "employees",
-                        principalColumn: "user_id",
-                        onDelete: ReferentialAction.Cascade);
-                    table.ForeignKey(
-                        name: "FK_roombookings_events_event_id",
-                        column: x => x.event_id,
-                        principalTable: "events",
-                        principalColumn: "event_id");
-                    table.ForeignKey(
-                        name: "FK_roombookings_rooms_room_id",
-                        column: x => x.room_id,
-                        principalTable: "rooms",
-                        principalColumn: "room_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
             migrationBuilder.CreateIndex(
                 name: "IX_admins_user_id",
                 table: "admins",
@@ -258,14 +252,14 @@ namespace Calender_WebApp.Migrations
                 column: "user_id");
 
             migrationBuilder.CreateIndex(
+                name: "IX_events_booking_id",
+                table: "events",
+                column: "booking_id");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_events_created_by",
                 table: "events",
                 column: "created_by");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_events_room_id",
-                table: "events",
-                column: "room_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_groupmemberships_group_id",
@@ -276,11 +270,6 @@ namespace Calender_WebApp.Migrations
                 name: "IX_officeattendance_user_id",
                 table: "officeattendance",
                 column: "user_id");
-
-            migrationBuilder.CreateIndex(
-                name: "IX_roombookings_event_id",
-                table: "roombookings",
-                column: "event_id");
 
             migrationBuilder.CreateIndex(
                 name: "IX_roombookings_room_id",
@@ -315,13 +304,13 @@ namespace Calender_WebApp.Migrations
                 name: "reminders");
 
             migrationBuilder.DropTable(
-                name: "roombookings");
+                name: "events");
 
             migrationBuilder.DropTable(
                 name: "groups");
 
             migrationBuilder.DropTable(
-                name: "events");
+                name: "roombookings");
 
             migrationBuilder.DropTable(
                 name: "employees");
