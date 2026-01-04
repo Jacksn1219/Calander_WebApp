@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Calender_WebApp.Controllers
 {
+    /// <summary>
+    /// Manages calendar events including creation, retrieval, updates, and deletion. All endpoints require authentication.
+    /// </summary>
     [ApiController]
     [Route("api/events")]
     [Authorize]
@@ -21,7 +24,6 @@ namespace Calender_WebApp.Controllers
             _eventparticipationService = eventparticipationService;
         }
 
-        // GET /api/events
         [HttpGet]
         public async Task<ActionResult<IEnumerable<EventsModel>>> GetAll()
         {
@@ -29,39 +31,7 @@ namespace Calender_WebApp.Controllers
             return Ok(events);
         }
 
-        // GET /api/events/{id}
-        [HttpGet("{id}")]
-        public async Task<ActionResult<EventsModel>> GetEventByEventId(int id)
-        {
-            try{
-                var ev = await _eventService.GetById(id).ConfigureAwait(false);
-                return Ok(ev);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-        }
-
-        // GET /api/events/by-user/{userId}
-        [HttpGet("by-user/{userId}")]
-        public async Task<ActionResult<IEnumerable<EventsModel>>> GetEventsByUser(int userId)
-        {
-            var events = await _eventService.GetEventsByUserAsync(userId);
-            return Ok(events);
-        }
-
-        // GET /api/events/upcoming?fromDate={date}
-        [HttpGet("upcoming")]
-        public async Task<ActionResult<IEnumerable<EventsModel>>> GetUpcomingEvents([FromQuery] DateTime fromDate)
-        {
-            var events = await _eventService.GetUpcomingEventsAsync(fromDate);
-            return Ok(events);
-        }
-
-        // POST /api/events
         [HttpPost]
-
         public async Task<ActionResult<EventsModel>> CreateEvent([FromBody] EventsModel newEvent)
         {
             if (newEvent == null)
@@ -77,7 +47,7 @@ namespace Calender_WebApp.Controllers
             try
             {
             var createdEvent = await _eventService.Post(newEvent).ConfigureAwait(false);
-            return CreatedAtAction(nameof(GetEventByEventId), new { id = createdEvent.Id }, createdEvent);
+            return Ok(createdEvent);
             }
             catch (ArgumentException ex)
             {
@@ -89,7 +59,6 @@ namespace Calender_WebApp.Controllers
             }
         }
 
-        // PUT /api/events/{id}
         [HttpPut("{id}")]
         [Authorize(Roles = "Admin , SuperAdmin")]
         public async Task<IActionResult> UpdateEvent(int id, [FromBody] EventsModel updatedEvent)
@@ -119,7 +88,6 @@ namespace Calender_WebApp.Controllers
             }
         }
 
-        // DELETE /api/events/{id}
         [HttpDelete("{id}")]
         [Authorize(Roles = "Admin , SuperAdmin")]
         public async Task<IActionResult> DeleteEvent(int id)
@@ -134,5 +102,36 @@ namespace Calender_WebApp.Controllers
                 return NotFound();
             }
         }
+
+        // ====================================================================
+        // Endpoints below can be used if the front end needs them
+        // ====================================================================
+
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<EventsModel>> GetEventByEventId(int id)
+        //{
+        //    try{
+        //        var ev = await _eventService.GetById(id).ConfigureAwait(false);
+        //        return Ok(ev);
+        //    }
+        //    catch (KeyNotFoundException)
+        //    {
+        //        return NotFound();
+        //    }
+        //}
+
+        //[HttpGet("by-user/{userId}")]
+        //public async Task<ActionResult<IEnumerable<EventsModel>>> GetEventsByUser(int userId)
+        //{
+        //    var events = await _eventService.GetEventsByUserAsync(userId);
+        //    return Ok(events);
+        //}
+
+        //[HttpGet("upcoming")]
+        //public async Task<ActionResult<IEnumerable<EventsModel>>> GetUpcomingEvents([FromQuery] DateTime fromDate)
+        //{
+        //    var events = await _eventService.GetUpcomingEventsAsync(fromDate);
+        //    return Ok(events);
+        //}
     }
 }

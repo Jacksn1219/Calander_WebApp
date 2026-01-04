@@ -5,26 +5,25 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services
 {
     /// <summary>
-    /// Service for managing Employee entities.
+    /// Manages employee CRUD operations with email uniqueness and password security enforcement.
+    /// 
+    /// Business Logic:
+    /// - Validates email uniqueness before creation and updates
+    /// - Hashes passwords using BCrypt before storage
+    /// - Conditionally updates passwords only when new value provided and different
+    /// - Prevents duplicate email addresses across all employees
+    /// 
+    /// Dependencies:
+    /// - BCrypt.Net for password hashing and verification
     /// </summary>
     public class EmployeesService : CrudService<EmployeesModel>, IEmployeesService
     {
         public EmployeesService(AppDbContext ctx) : base(ctx) { }
 
         /// <summary>
-        /// returns an list of employees with the same email address.
+        /// Updates employee data with email uniqueness validation and conditional password hashing.
+        /// Only updates password if new value is provided and differs from existing hash.
         /// </summary>
-        /// <param name="email">The employee's email.</param>
-        /// <returns>The employee if found; otherwise, null.</returns>
-
-        public async Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email)
-        {
-            return await _dbSet
-                .AsNoTracking()
-                .Where(e => e.Email == email)
-                .ToListAsync();
-        }
-
         public override async Task<EmployeesModel> Put(int id, EmployeesModel item)
         {
             if (item == null)
@@ -36,7 +35,6 @@ namespace Calender_WebApp.Services
             if (existingEmployee == null)
                 throw new InvalidOperationException("Employee not found.");
 
-            // Check for unique email
             var emailOwner = await _dbSet
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Email == item.Email && e.Id != id)
@@ -44,12 +42,10 @@ namespace Calender_WebApp.Services
             if (emailOwner != null)
                 throw new InvalidOperationException("An employee with the same email already exists.");
 
-            // Update fields
             existingEmployee.Name = item.Name;
             existingEmployee.Email = item.Email;
             existingEmployee.Role = item.Role;
 
-            // Update password only if a non-empty new password is provided and it's different
             if (!string.IsNullOrWhiteSpace(item.Password))
             {
 
@@ -64,14 +60,15 @@ namespace Calender_WebApp.Services
             return existingEmployee;
         }
 
-        // Add additional services that are not related to CRUD here
+        /// <summary>
+        /// Creates new employee with email uniqueness validation and automatic password hashing.
+        /// </summary>
         public override async Task<EmployeesModel> Post(EmployeesModel entity)
         {
             if (entity == null)
                 throw new ArgumentNullException(nameof(entity));
 
-			// check for unique email
-            var existingEmployee = await _dbSet
+			var existingEmployee = await _dbSet
                 .AsNoTracking()
                 .FirstOrDefaultAsync(e => e.Email == entity.Email)
                 .ConfigureAwait(false);
@@ -80,5 +77,17 @@ namespace Calender_WebApp.Services
             entity.Password = BCrypt.Net.BCrypt.HashPassword(entity.Password);
             return await base.Post(entity).ConfigureAwait(false);
         }
+
+        // ====================================================================
+        // Methods below can be used if the front end needs them
+        // ====================================================================
+
+        //public async Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email)
+        //{
+        //    return await _dbSet
+        //        .AsNoTracking()
+        //        .Where(e => e.Email == email)
+        //        .ToListAsync();
+        //}
     }
 }

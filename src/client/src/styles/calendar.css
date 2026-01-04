@@ -20,23 +20,6 @@
   margin: 0;
 }
 
-.btn-restore {
-  background: #9b59b6;
-  color: white;
-  border: none;
-  border-radius: 6px;
-  padding: 6px 12px;
-  font-size: 0.85rem;
-  font-weight: 500;
-  cursor: pointer;
-  transition: background 0.2s;
-  white-space: nowrap;
-  flex-shrink: 0;
-}
-
-.btn-restore:hover {
-  background: #8e44ad;
-}
 
 .calendar-container {
   background: var(--bg-secondary);
@@ -219,7 +202,7 @@
 .event-indicator {
   margin-top: auto;
   background: var(--primary-color);
-  color: white;
+  color: var(--primary-color);
   border-radius: 10px;
   padding: 2px 6px;
   font-size: 0.7rem;
@@ -228,6 +211,7 @@
 
 .event-count {
   display: block;
+  color: white;
 }
 
 .day-plus-button {
@@ -388,6 +372,12 @@
   overflow: hidden;
 }
 
+.upcoming-location {
+  margin: 4px 0 0;
+  font-size: 0.8rem;
+  color: var(--text-tertiary);
+}
+
 .upcoming-meta {
   font-size: 0.8rem;
   color: var(--text-tertiary);
@@ -403,7 +393,7 @@
   text-align: center;
 }
 
-@media (max-width: 1100px) {
+/* @media (max-width: 1100px) {
   .calendar-content {
     flex-direction: column;
   }
@@ -415,7 +405,7 @@
     padding-left: 0;
     padding-top: 16px;
   }
-}
+} */
 
 /* Attendance selector */
 

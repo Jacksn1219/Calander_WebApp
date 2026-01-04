@@ -19,7 +19,7 @@ body.sidebar-collapsed {
   padding-left: 60px;
 }
 
-@media (max-width: 600px) {
+/* @media (max-width: 600px) {
   body {
     padding-left: 60px;
   }
@@ -27,7 +27,7 @@ body.sidebar-collapsed {
   body.sidebar-collapsed {
     padding-left: 0;
   }
-}
+} */
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -156,19 +156,22 @@ code {
   gap: 8px;
 }
 
-.sidebar-user-section .user-settings-button {
+.sidebar-user-section .user-settings-button,
+.sidebar-user-section .reminder-notification-button {
   width: 100%;
   box-sizing: border-box;
   justify-content: flex-start;
 }
 
-.sidebar.collapsed .sidebar-user-section .user-settings-button {
+.sidebar.collapsed .sidebar-user-section .user-settings-button,
+.sidebar.collapsed .sidebar-user-section .reminder-notification-button {
   justify-content: flex-start;
   padding: 6px 3px;
   gap: 0;
 }
 
-.sidebar.collapsed .sidebar-user-section .user-settings-button .user-details {
+.sidebar.collapsed .sidebar-user-section .user-settings-button .user-details,
+.sidebar.collapsed .sidebar-user-section .reminder-notification-button .reminder-text {
   display: none;
 }
 
@@ -176,6 +179,11 @@ code {
   width: 28px;
   height: 28px;
   font-size: 12px;
+}
+
+.sidebar.collapsed .sidebar-user-section .reminder-notification-button .reminder-icon-wrapper {
+  width: 28px;
+  height: 28px;
 }
 
 /* Settings trigger in the sidebar footer */
@@ -336,7 +344,7 @@ code {
   z-index: 1000;
 }
 
-@media only screen and (max-width: 600px) {
+/* @media only screen and (max-width: 600px) {
   .sidebar {
     width: 60px;
   }
@@ -368,4 +376,4 @@ code {
     background: rgba(11, 18, 32, 0.98);
     transition: all 0.3s ease;
   }
-}
+} */

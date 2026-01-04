@@ -1,9 +1,8 @@
 import React from 'react';
 import { useNavigate } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import EventDialog from './EventDialog';
-import CreateEventDialog from './CreateEventDialog';
-import ReminderNotification from './ReminderNotification';
+import Sidebar from '../UI/Sidebar';
+import EventDialog from '../UI/EventDialog';
+import CreateEventDialog from '../UI/CreateEventDialog';
 import { useHomeDashboard, useReminders } from '../hooks/hooks';
 import '../styles/home.css';
 import '../styles/login-page.css';
@@ -150,9 +149,6 @@ const Home: React.FC = () => {
               </div>
             )}
           </div>
-          <div className="home-header-right">
-            <ReminderNotification />
-          </div>
         </div>
 
         <div className="home-top-row">
@@ -288,6 +284,9 @@ const Home: React.FC = () => {
                               {roomsById[ev.bookingId].location && ` — ${roomsById[ev.bookingId].location}`}
                             </p>
                           )}
+                          <span className="upcoming-meta">
+                            {ev.participants.filter(p => p.status === 'Accepted').length} attending
+                          </span>
                         </div>
                       </button>
                     );
@@ -314,10 +313,8 @@ const Home: React.FC = () => {
             <EventDialog
               date={selectedDateForDialog}
               events={selectedDayEvents}
-              onClose={() => {
-                closeDialog();
-                reload();
-              }}
+              onClose={closeDialog}
+              onStatusChange={reload}
             />
           )}
 

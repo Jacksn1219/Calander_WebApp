@@ -1,5 +1,4 @@
-import { Link } from 'react-router-dom';
-import '../styles/error-unauthorized.css';
+
 
 export default function Error() {
   return (

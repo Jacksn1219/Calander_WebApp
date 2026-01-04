@@ -1,27 +1,44 @@
 .reminder-notification-container {
   position: relative;
+  width: 100%;
 }
 
 .reminder-notification-button {
-  padding: 0;
-  width: 44px;
-  height: 44px;
-  background-color: transparent;
-  color: var(--text-secondary);
-  border: 1px solid var(--border-color);
-  border-radius: 8px;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--sidebar-border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
 }
 
 .reminder-notification-button:hover {
-  background-color: var(--bg-tertiary);
   border-color: var(--border-hover);
-  color: var(--text-primary);
+}
+
+.reminder-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.reminder-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  flex: 1;
+  color: #fff;
 }
 
 .reminder-notification-badge {
@@ -51,15 +68,25 @@
   border: 1px solid var(--border-color);
   border-radius: 8px;
   box-shadow: 0 4px 12px var(--shadow-md);
-  min-width: 350px;
-  max-width: 400px;
+  min-width: 360px;
+  max-width: 450px;
   max-height: 400px;
   overflow-y: auto;
   z-index: 1000;
 }
 
+/* When used from the left sidebar: open to the right, outside the sidebar */
+.reminder-notification-container.dropdown-right .reminder-dropdown {
+  top: auto;
+  bottom: 0;
+  left: 100%;
+  right: auto;
+  margin-top: 0;
+  margin-left: 12px;
+}
+
 .reminder-dropdown-header {
-  padding: 15px;
+  padding: 20px;
   border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
@@ -92,7 +119,7 @@
 .reminder-dropdown-loading,
 .reminder-dropdown-error,
 .reminder-dropdown-empty {
-  padding: 20px;
+  padding: 24px 20px;
   text-align: center;
   color: var(--text-secondary);
 }
@@ -102,8 +129,12 @@
 }
 
 .reminder-item-wrapper {
-  padding: 8px;
+  padding: 12px 12px;
   border-bottom: 1px solid var(--border-color);
+}
+
+.reminder-item-wrapper:last-child {
+  border-bottom: none;
 }
 
 .reminder-item {
@@ -159,7 +190,7 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
+  padding: 12px 24px;
   background-color: var(--bg-tertiary);
   margin-bottom: -10px;
 }
@@ -221,7 +252,7 @@
 }
 
 .reminder-item-body {
-  padding: 16px;
+  padding: 24px;
 }
 
 .reminder-item-description {
@@ -239,7 +270,7 @@
 }
 
 .reminder-item-separator {
-  padding: 0 15px;
+  padding: 0 24px;
 }
 
 .reminder-item-separator-line {
@@ -252,7 +283,7 @@
   color: var(--text-secondary);
   font-weight: 500;
   margin-bottom: 8px;
-  padding: 0 15px;
+  padding: 0 24px;
   display: flex;
   gap: 10px;
   align-items: center;
@@ -267,7 +298,7 @@
 }
 
 .reminder-item-content {
-  padding: 0 15px 12px 15px;
+  padding: 0 24px 16px 24px;
 }
 
 .reminder-item-message {
@@ -288,7 +319,7 @@
 }
 
 .reminder-dropdown-footer {
-  padding: 12px;
+  padding: 16px 20px;
   text-align: center;
   border-top: 1px solid var(--border-color);
 }

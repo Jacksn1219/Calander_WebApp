@@ -1,11 +1,11 @@
 import React, { useState } from "react";
 import "../styles/administrative-dashboard.css";
-import Sidebar from "./Sidebar";
+import Sidebar from "../UI/Sidebar";
 import { useNavigate } from "react-router-dom";
 import { useAdministrativeDashboard } from "../hooks/hooks";
-import CreateEventDialog from "./CreateEventDialog";
-import EditEventDialog from "./EditEventDialog";
-import ViewAttendeesDialog from "./ViewAttendeesDialog";
+import CreateEventDialog from "../UI/CreateEventDialog";
+import EditEventDialog from "../UI/EditEventDialog";
+import ViewAttendeesDialog from "../UI/ViewAttendeesDialog";
 
 const AdministrativeDashboard: React.FC = () => {
   const { events, currentEvent, setEvent, usernames, handleDelete, fetchEvents } = useAdministrativeDashboard();
@@ -32,7 +32,7 @@ const AdministrativeDashboard: React.FC = () => {
           <h2>Manage events and attendees</h2>
           <button className="create-button" onClick={() => setShowCreateDialog(true)}>Create new event</button>
 
-          { events.length != 0 ? (
+          { events.length !== 0 ? (
           <table className="administrative-table">
             <thead>
               <tr>

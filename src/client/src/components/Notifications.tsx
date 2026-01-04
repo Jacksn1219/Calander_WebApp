@@ -1,6 +1,9 @@
 import React, { useState, useEffect } from 'react';
-import Sidebar from './Sidebar';
-import { useReminders, getRoomById, RoomDto } from '../hooks/hooks';
+import Sidebar from '../UI/Sidebar';
+import { useReminders, RoomDto } from '../hooks/hooks';
+// import { getRoomById } from '../hooks/hooks';
+
+import { formatDateOnly, formatTimeOnly } from '../utils/dateFormatters';
 import '../styles/index.css';
 import '../styles/notifications-page.css';
 import '../styles/reminder-notification.css';
@@ -11,54 +14,45 @@ const Notifications: React.FC = () => {
   const [roomsCache, setRoomsCache] = useState<Record<number, RoomDto>>({});
 
   // Fetch room details for reminders with room IDs
-  useEffect(() => {
-    const roomIds = Array.from(new Set(
-      reminders
-        .filter(r => r.relatedRoomId !== 0)
-        .map(r => r.relatedRoomId)
-    ));
+  // useEffect(() => {
+  //   const roomIds = Array.from(new Set(
+  //     reminders
+  //       .filter(r => r.relatedRoomId !== 0)
+  //       .map(r => r.relatedRoomId)
+  //   ));
 
-    roomIds.forEach(async (roomId) => {
-      if (!roomsCache[roomId]) {
-        try {
-          const room = await getRoomById(roomId);
-          if (room) {
-            setRoomsCache(prev => ({ ...prev, [roomId]: room }));
-          }
-        } catch (error) {
-          console.error(`Failed to fetch room ${roomId}:`, error);
-        }
-      }
-    });
-  }, [reminders]);
+  //   const fetchRooms = async () => {
+  //     const roomsToFetch = roomIds.filter(roomId => !roomsCache[roomId]);
+      
+  //     if (roomsToFetch.length === 0) return;
 
-  const formatDate = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleString('nl-NL', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric',
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  //     try {
+  //       const roomPromises = roomsToFetch.map(roomId => 
+  //         getRoomById(roomId).catch(error => {
+  //           console.error(`Failed to fetch room ${roomId}:`, error);
+  //           return null;
+  //         })
+  //       );
+        
+  //       const rooms = await Promise.all(roomPromises);
+        
+  //       const newRooms: Record<number, RoomDto> = {};
+  //       rooms.forEach((room, index) => {
+  //         if (room) {
+  //           newRooms[roomsToFetch[index]] = room;
+  //         }
+  //       });
+        
+  //       if (Object.keys(newRooms).length > 0) {
+  //         setRoomsCache(prev => ({ ...prev, ...newRooms }));
+  //       }
+  //     } catch (error) {
+  //       console.error('Failed to fetch rooms:', error);
+  //     }
+  //   };
 
-  const formatDateOnly = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleDateString('nl-NL', {
-      day: '2-digit',
-      month: 'short',
-      year: 'numeric'
-    });
-  };
-
-  const formatTimeOnly = (dateString: string) => {
-    const date = new Date(dateString);
-    return date.toLocaleTimeString('nl-NL', {
-      hour: '2-digit',
-      minute: '2-digit'
-    });
-  };
+  //   fetchRooms();
+  // }, [reminders, roomsCache]);
 
   const handleMarkAsRead = async (reminderId: number) => {
     try {
@@ -82,12 +76,32 @@ const Notifications: React.FC = () => {
       <main className="main-content">
         <div className="notifications-container">
           {/* Header */}
-          <div className="notifications-header">
-            <div>
+          <div className="notifications-header-card">
+            <div className="notifications-header">
               <h1>Notifications</h1>
-              <p>
-                {unreadCount > 0 ? `You have ${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
+              <p className="notifications-status">
+                {unreadCount > 0 ? `${unreadCount} unread notification${unreadCount !== 1 ? 's' : ''}` : 'All caught up!'}
               </p>
+            </div>
+          </div>
+
+          {/* Filter Tabs with Mark All Button - Outside card */}
+          <div className="notifications-tabs-wrapper">
+            <div className="notifications-tabs">
+              {(['all', 'unread', 'read'] as const).map((f) => (
+                <button
+                  key={f}
+                  onClick={() => setFilter(f)}
+                  className={`notifications-tab ${filter === f ? 'active' : ''}`}
+                >
+                  {f.charAt(0).toUpperCase() + f.slice(1)}
+                  {f === 'unread' && unreadCount > 0 && (
+                    <span className="notifications-tab-badge">
+                      {unreadCount}
+                    </span>
+                  )}
+                </button>
+              ))}
             </div>
             {unreadCount > 0 && (
               <button
@@ -99,23 +113,8 @@ const Notifications: React.FC = () => {
             )}
           </div>
 
-          {/* Filter Tabs */}
-          <div className="notifications-tabs">
-            {(['all', 'unread', 'read'] as const).map((f) => (
-              <button
-                key={f}
-                onClick={() => setFilter(f)}
-                className={`notifications-tab ${filter === f ? 'active' : ''}`}
-              >
-                {f.charAt(0).toUpperCase() + f.slice(1)}
-                {f === 'unread' && unreadCount > 0 && (
-                  <span className="notifications-tab-badge">
-                    {unreadCount}
-                  </span>
-                )}
-              </button>
-            ))}
-          </div>
+          {/* Content Card */}
+          <div className="notifications-content-card">
 
           {/* Loading State */}
           {loading && (
@@ -196,9 +195,9 @@ const Notifications: React.FC = () => {
                       <div className="reminder-item-body">
                         <div className="reminder-item-description">
                           {formatDateOnly(reminder.reminderTime)} • {formatTimeOnly(reminder.reminderTime)}
-                          {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
+                          {/* {reminder.relatedRoomId !== 0 && roomsCache[reminder.relatedRoomId] && (
                             <span> | {roomsCache[reminder.relatedRoomId].roomName} • {roomsCache[reminder.relatedRoomId].location}</span>
-                          )}
+                          )} */}
                         </div>
                         <div className="reminder-item-info">
                           {reminder.message}
@@ -210,14 +209,8 @@ const Notifications: React.FC = () => {
               })}
             </div>
           )}
+          </div>
         </div>
-
-        <style>{`
-          @keyframes spin {
-            0% { transform: rotate(0deg); }
-            100% { transform: rotate(360deg); }
-          }
-        `}</style>
       </main>
     </div>
   );

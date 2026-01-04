@@ -237,9 +237,9 @@ p, span, label {
   background-color: var(--bg-tertiary);
 }
 
-.dropdown-item strong {
+/* .dropdown-item strong {
   color: var(--text-primary);
-}
+} */
 
 .dropdown-empty {
   position: absolute;

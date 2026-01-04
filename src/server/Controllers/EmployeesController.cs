@@ -1,13 +1,16 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages employee (user) CRUD operations. Most endpoints require authentication.
+/// </summary>
 [ApiController]
 [Route("api/employees")]
 [Authorize] 
@@ -44,25 +47,9 @@ public class EmployeesController : ControllerBase
 		}
 	}
 
-	[HttpGet("by-email/{email}")]
-	public async Task<ActionResult<IEnumerable<EmployeesModel>>> GetByEmail(string email)
-	{
-		if (string.IsNullOrWhiteSpace(email))
-		{
-			return BadRequest("Email must be provided.");
-		}
-
-		try
-		{
-			var employees = await _employeesService.GetEmployeeByEmailAsync(email).ConfigureAwait(false);
-			return Ok(employees);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-	}
-
+	/// <summary>
+	/// Creates a new employee and automatically creates default reminder preferences.
+	/// </summary>
 	[HttpPost]
 	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<ActionResult<EmployeesModel>> Create([FromBody] EmployeesModel employee)
@@ -85,13 +72,10 @@ public class EmployeesController : ControllerBase
 			{
 				return StatusCode(500, "Failed to create employee: ID was not generated.");
 			}
-
 			var reminderPreferences = new ReminderPreferencesModel
 			{
 				Id = createdEmployee.Id.Value
 			};
-			Console.WriteLine("Creating default reminder preferences for new user.");
-			Console.WriteLine($"User ID: {createdEmployee.Id}");
 			await _reminderPreferencesService.Post(reminderPreferences).ConfigureAwait(false);
 
 			return CreatedAtAction(nameof(GetById), new { id = createdEmployee.Id }, createdEmployee);
@@ -143,6 +127,9 @@ public class EmployeesController : ControllerBase
 		}
 	}
 
+	/// <summary>
+	/// Deletes an employee and their associated reminder preferences.
+	/// </summary>
 	[HttpDelete("{id:int}")]
 	[Authorize(Roles = "Admin , SuperAdmin")]
 	public async Task<IActionResult> Delete(int id)
@@ -158,13 +145,27 @@ public class EmployeesController : ControllerBase
 			return NotFound();
 		}
 	}
-		public class EmployeesModelForUpdate
-	{
-		public int User_id { get; set; } = 0;
-		public string Name { get; set; } = string.Empty;
-		public string Email { get; set; } = string.Empty;
-		[JsonConverter(typeof(JsonStringEnumConverter))]
-		public UserRole Role { get; set; } = UserRole.User;
-		public string? Password { get; set; } = string.Empty;
-	}
+
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
+
+	//[HttpGet("by-email/{email}")]
+	//public async Task<ActionResult<IEnumerable<EmployeesModel>>> GetByEmail(string email)
+	//{
+	//	if (string.IsNullOrWhiteSpace(email))
+	//	{
+	//		return BadRequest("Email must be provided.");
+	//	}
+
+	//	try
+	//	{
+	//		var employees = await _employeesService.GetEmployeeByEmailAsync(email).ConfigureAwait(false);
+	//		return Ok(employees);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//}
 }

@@ -7,35 +7,36 @@ using Calender_WebApp.Models.Interfaces;
 namespace Calender_WebApp.Models
 {
     /// <summary>
-    /// Represents a group in the system.
+    /// Represents an organizational group for categorizing employees.
+    /// Used for access control, bulk notifications, or reporting purposes (e.g., departments, teams, projects).
+    /// 
+    /// Business Rules:
+    /// - GroupName should be unique for clarity, though not enforced at database level
+    /// - Groups can exist without members
+    /// - Description is optional but recommended for clarity
+    /// 
+    /// Primary Key: Id (group_id)
+    /// 
+    /// Foreign Keys: None (root entity)
+    /// 
+    /// Bidirectional Relationships:
+    /// - GroupMemberships ↔ GroupMembershipsModel.Group (all employees in this group)
     /// </summary>
     [Table("groups")]
     public class GroupsModel : IDbItem
     {
-        /// <summary>
-        /// Primary key for the GroupMembership entity.
-        /// </summary>
         [Key]
         [JsonPropertyName("group_id")]
         [Column("group_id", Order = 0)]
         public int? Id { get; set; }
 
-        /// <summary>
-        /// Name of the group.
-        /// </summary>
         [Required]
         [Column("group_name", Order = 1)]
         public string GroupName { get; set; } = string.Empty;
 
-        /// <summary>
-        /// Description of the group.
-        /// </summary>
         [Column("description", Order = 2)]
         public string? Description { get; set; }
 
-        /// <summary>
-        /// Collection of memberships associated with this group.
-        /// </summary>
         [JsonIgnore]
         public virtual ICollection<GroupMembershipsModel> GroupMemberships { get; set; } = new List<GroupMembershipsModel>();
     }

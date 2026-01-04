@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
-import Sidebar from './Sidebar';
+import Sidebar from '../UI/Sidebar';
+import EditEmployeeDialog from '../UI/EditEmployeeDialog';
 import { useNavigate } from 'react-router-dom';
 import { useEmployeesAdmin } from '../hooks/hooks';
 import '../styles/employee-panel.css';
@@ -26,7 +27,6 @@ const EmployeeAdmin: React.FC = () => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-  const [showEditPassword, setShowEditPassword] = useState(false);
   
   // Pagination state
   const [page, setPage] = useState(1);
@@ -49,7 +49,6 @@ const EmployeeAdmin: React.FC = () => {
     setError(null);
     resetEditForm();
     setIsModalOpen(false);
-    setShowEditPassword(false);
   };
 
   const PasswordToggle = ({
@@ -177,7 +176,7 @@ const EmployeeAdmin: React.FC = () => {
                 )}
 
                 <label htmlFor="employee-password">
-                  Temporary Password <span style={{ color: '#dc2626' }}>*</span>
+                  New Password <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <div className="password-input-container">
                   <input
@@ -294,98 +293,16 @@ const EmployeeAdmin: React.FC = () => {
           </div>
         </div>
 
-        {/* Edit Modal */}
         {isModalOpen && (
-          <div
-            className="employee-modal-overlay"
-            onClick={closeModal}
-          >
-            <div
-              className="employee-modal"
-              onClick={e => e.stopPropagation()}
-            >
-              <h2 style={{ marginTop: 0 }}>Edit employee</h2>
-              {error && (
-                <div className="banner banner-error" role="alert" style={{ marginBottom: 12 }}>
-                  {error}
-                </div>
-              )}
-              <form
-                onSubmit={async e => {
-                  const ok = await saveEmployee('edit', e);
-                  if (ok) closeModal();
-                }}
-                className="login-form"
-                noValidate
-              >
-                <label htmlFor="edit-employee-name">
-                  Full Name <span style={{ color: '#dc2626' }}>*</span>
-                </label>
-                <input
-                  id="edit-employee-name"
-                  type="text"
-                  value={editForm.name}
-                  onChange={e => updateEditField('name', e.target.value)}
-                  placeholder="John Doe"
-                  required
-                />
-
-                <label htmlFor="edit-employee-email">
-                  Email <span style={{ color: '#dc2626' }}>*</span>
-                </label>
-                <input
-                  id="edit-employee-email"
-                  type="email"
-                  value={editForm.email}
-                  onChange={e => updateEditField('email', e.target.value)}
-                  placeholder="you@domain.com"
-                  required
-                />
-
-                {canAssignAdminRole && (
-                  <>
-                    <label htmlFor="edit-employee-role">Role</label>
-                    <select
-                      id="edit-employee-role"
-                      value={editForm.role}
-                      onChange={e => updateEditField('role', e.target.value)}
-                    >
-                      <option value="User">User</option>
-                      <option value="Admin">Admin</option>
-                    </select>
-                  </>
-                )}
-
-                <label htmlFor="edit-employee-password">
-                  New Password (leave blank to keep current)
-                </label>
-                <div className="password-input-container">
-                  <input
-                    id="edit-employee-password"
-                    type={showEditPassword ? 'text' : 'password'}
-                    value={editForm.password || ''}
-                    onChange={e => updateEditField('password', e.target.value)}
-                    placeholder="Leave blank to keep current"
-                    autoComplete="new-password"
-                  />
-                  <PasswordToggle
-                    show={showEditPassword}
-                    onClick={() => setShowEditPassword(!showEditPassword)}
-                    ariaLabel={showEditPassword ? 'Hide password' : 'Show password'}
-                  />
-                </div>
-
-                <div className="form-actions">
-                  <button type="button" className="btn-red" onClick={closeModal}>
-                    Cancel
-                  </button>
-                  <button type="submit" className="btn-blue" disabled={loading}>
-                    {loading ? 'Saving...' : 'Save changes'}
-                  </button>
-                </div>
-              </form>
-            </div>
-          </div>
+          <EditEmployeeDialog
+            onClose={closeModal}
+            editForm={editForm}
+            updateEditField={updateEditField}
+            saveEmployee={saveEmployee}
+            loading={loading}
+            error={error}
+            canAssignAdminRole={canAssignAdminRole}
+          />
         )}
       </main>
     </div>
