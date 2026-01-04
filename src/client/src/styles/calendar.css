@@ -393,7 +393,7 @@
   text-align: center;
 }
 
-@media (max-width: 1100px) {
+/* @media (max-width: 1100px) {
   .calendar-content {
     flex-direction: column;
   }
@@ -405,7 +405,7 @@
     padding-left: 0;
     padding-top: 16px;
   }
-}
+} */
 
 /* Attendance selector */
 

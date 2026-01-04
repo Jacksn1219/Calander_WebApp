@@ -134,7 +134,7 @@
   background-color: var(--success-hover);
 }
 
-@media only screen and (max-width: 920px) {
+/* @media only screen and (max-width: 920px) {
   .administrative-dashboard {
     padding: 1rem;
     margin-left: 0 !important;
@@ -180,4 +180,4 @@
   .delete-button {
     padding: 0.25rem 0.4rem;
   }
-}
+} */

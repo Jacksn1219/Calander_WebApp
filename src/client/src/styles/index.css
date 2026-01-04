@@ -205,7 +205,7 @@ p, span, label {
 .muted {
   color: var(--text-secondary);
 }
-Global dropdown menu styles
+/* Global dropdown menu styles */
 .dropdown-menu {
   position: absolute;
   top: 100%;

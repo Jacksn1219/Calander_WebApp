@@ -19,7 +19,7 @@ body.sidebar-collapsed {
   padding-left: 60px;
 }
 
-@media (max-width: 600px) {
+/* @media (max-width: 600px) {
   body {
     padding-left: 60px;
   }
@@ -27,7 +27,7 @@ body.sidebar-collapsed {
   body.sidebar-collapsed {
     padding-left: 0;
   }
-}
+} */
 
 code {
   font-family: source-code-pro, Menlo, Monaco, Consolas, 'Courier New',
@@ -344,7 +344,7 @@ code {
   z-index: 1000;
 }
 
-@media only screen and (max-width: 600px) {
+/* @media only screen and (max-width: 600px) {
   .sidebar {
     width: 60px;
   }
@@ -376,4 +376,4 @@ code {
     background: rgba(11, 18, 32, 0.98);
     transition: all 0.3s ease;
   }
-}
+} */

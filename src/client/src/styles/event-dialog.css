@@ -367,7 +367,7 @@
   background: var(--border-hover);
 }
 
-/* Mobile-specific optimizations */
+/* Mobile-specific optimizations
 @media (max-width: 768px) {
   .dialog-backdrop {
     padding: 0;
@@ -406,7 +406,7 @@
     height: 36px;
     font-size: 1rem;
   }
-}
+} */
 
 /* Room booking badge styles */
 .event-title-row {
