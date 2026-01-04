@@ -1,7 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useLoginForm } from '../hooks/hooks';
-import Sidebar from './Sidebar';
+import Sidebar from '../UI/Sidebar';
 import '../styles/login-page.css';
 
 const Login: React.FC = () => {

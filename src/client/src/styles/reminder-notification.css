@@ -1,34 +1,51 @@
 .reminder-notification-container {
   position: relative;
+  width: 100%;
 }
 
 .reminder-notification-button {
-  padding: 0;
-  width: 44px;
-  height: 44px;
-  background-color: transparent;
-  color: #666;
-  border: 1px solid #e0e0e0;
-  border-radius: 8px;
-  cursor: pointer;
   display: flex;
   align-items: center;
-  justify-content: center;
-  position: relative;
+  gap: 8px;
+  background: transparent;
+  border: 1px solid var(--sidebar-border-color);
+  border-radius: 8px;
+  padding: 6px 12px;
+  cursor: pointer;
   transition: all 0.2s ease;
+  width: 100%;
+  box-sizing: border-box;
+  justify-content: flex-start;
 }
 
 .reminder-notification-button:hover {
-  background-color: #f5f5f5;
-  border-color: #d0d0d0;
-  color: #333;
+  border-color: var(--border-hover);
+}
+
+.reminder-icon-wrapper {
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  background: transparent;
+}
+
+.reminder-text {
+  font-size: 0.9rem;
+  font-weight: 600;
+  text-align: left;
+  flex: 1;
+  color: #fff;
 }
 
 .reminder-notification-badge {
   position: absolute;
   top: -4px;
   right: -4px;
-  background-color: #dc3545;
+  background-color: var(--danger-color);
   color: white;
   border-radius: 50%;
   min-width: 18px;
@@ -39,7 +56,7 @@
   align-items: center;
   justify-content: center;
   padding: 0 0px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 4px var(--shadow);
 }
 
 .reminder-dropdown {
@@ -47,20 +64,30 @@
   top: 100%;
   right: 0;
   margin-top: 8px;
-  background-color: white;
-  border: 1px solid #ddd;
+  background-color: var(--modal-bg);
+  border: 1px solid var(--border-color);
   border-radius: 8px;
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
-  min-width: 350px;
-  max-width: 400px;
+  box-shadow: 0 4px 12px var(--shadow-md);
+  min-width: 360px;
+  max-width: 450px;
   max-height: 400px;
   overflow-y: auto;
   z-index: 1000;
 }
 
+/* When used from the left sidebar: open to the right, outside the sidebar */
+.reminder-notification-container.dropdown-right .reminder-dropdown {
+  top: auto;
+  bottom: 0;
+  left: 100%;
+  right: auto;
+  margin-top: 0;
+  margin-left: 12px;
+}
+
 .reminder-dropdown-header {
-  padding: 15px;
-  border-bottom: 1px solid #eee;
+  padding: 20px;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
@@ -70,10 +97,11 @@
   margin: 0;
   font-size: 16px;
   font-weight: 600;
+  color: var(--text-primary);
 }
 
 .reminder-mark-all-btn {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -85,29 +113,33 @@
 }
 
 .reminder-mark-all-btn:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
 }
 
 .reminder-dropdown-loading,
 .reminder-dropdown-error,
 .reminder-dropdown-empty {
-  padding: 20px;
+  padding: 24px 20px;
   text-align: center;
-  color: #666;
+  color: var(--text-secondary);
 }
 
 .reminder-dropdown-error {
-  color: #dc3545;
+  color: var(--danger-color);
 }
 
 .reminder-item-wrapper {
-  padding: 8px;
-  border-bottom: 1px solid #e0e0e0;
+  padding: 12px 12px;
+  border-bottom: 1px solid var(--border-color);
+}
+
+.reminder-item-wrapper:last-child {
+  border-bottom: none;
 }
 
 .reminder-item {
   padding: 0;
-  background-color: #eeeeee;
+  background-color: var(--bg-tertiary);
   border-radius: 6px;
   overflow: hidden;
   transition: transform 0.2s, box-shadow 0.2s;
@@ -120,12 +152,26 @@
 
 .reminder-item-changed {
   border-left: 4px solid #ff9800;
-  background-color: #fff8e1;
+}
+
+[data-theme='dark'] .reminder-item-changed {
+  background-color: rgba(255, 152, 0, 0.2);
+}
+
+[data-theme='light'] .reminder-item-changed {
+  background-color: rgba(255, 152, 0, 0.1);
 }
 
 .reminder-item-canceled {
   border-left: 4px solid #dc3545;
-  background-color: #f8d7da;
+}
+
+[data-theme='dark'] .reminder-item-canceled {
+  background-color: rgba(220, 53, 69, 0.2);
+}
+
+[data-theme='light'] .reminder-item-canceled {
+  background-color: rgba(220, 53, 69, 0.1);
 }
 
 .reminder-changed-badge {
@@ -144,8 +190,8 @@
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 10px 15px;
-  background-color: #eeeeee;
+  padding: 12px 24px;
+  background-color: var(--bg-tertiary);
   margin-bottom: -10px;
 }
 
@@ -162,14 +208,14 @@
 .reminder-item-title {
   font-size: 13px;
   font-weight: 600;
-  color: #333;
+  color: var(--text-primary);
 }
 
 .reminder-mark-read-btn {
   background: none;
   border: none;
   cursor: pointer;
-  color: #666;
+  color: var(--text-secondary);
   padding: 4px;
   display: flex;
   align-items: center;
@@ -179,32 +225,72 @@
 }
 
 .reminder-mark-read-btn:hover {
-  background-color: #d0d0d0;
-  color: #333;
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.reminder-item-close {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: var(--text-secondary);
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 32px;
+  line-height: 24px;
+  width: 32px;
+  height: 32px;
+  border-radius: 3px;
+  transition: all 0.2s;
+}
+
+.reminder-item-close:hover {
+  background-color: var(--bg-secondary);
+  color: var(--text-primary);
+}
+
+.reminder-item-body {
+  padding: 24px;
+}
+
+.reminder-item-description {
+  font-size: 13px;
+  color: var(--text-secondary);
+  line-height: 1.6;
+  margin-bottom: 8px;
+}
+
+.reminder-item-info {
+  font-size: 14px;
+  line-height: 1.5;
+  color: var(--text-primary);
+  white-space: pre-line;
 }
 
 .reminder-item-separator {
-  padding: 0 15px;
+  padding: 0 24px;
 }
 
 .reminder-item-separator-line {
-  border-top: 1px solid #c0c0c0;
+  border-top: 1px solid var(--border-color);
   margin: 8px 0;
 }
 
 .reminder-item-meta {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   font-weight: 500;
   margin-bottom: 8px;
-  padding: 0 15px;
+  padding: 0 24px;
   display: flex;
   gap: 10px;
   align-items: center;
 }
 
 .reminder-item-meta-divider {
-  color: #999;
+  color: var(--text-tertiary);
 }
 
 .reminder-item-meta-id {
@@ -212,12 +298,12 @@
 }
 
 .reminder-item-content {
-  padding: 0 15px 12px 15px;
+  padding: 0 24px 16px 24px;
 }
 
 .reminder-item-message {
   font-size: 12px;
-  color: #666;
+  color: var(--text-secondary);
   line-height: 1.4;
   margin-bottom: 8px;
   white-space: pre-line;
@@ -233,13 +319,13 @@
 }
 
 .reminder-dropdown-footer {
-  padding: 12px;
+  padding: 16px 20px;
   text-align: center;
-  border-top: 1px solid #eee;
+  border-top: 1px solid var(--border-color);
 }
 
 .reminder-view-all-btn {
-  background-color: #007bff;
+  background-color: var(--primary-color);
   color: white;
   border: none;
   border-radius: 5px;
@@ -251,5 +337,5 @@
 }
 
 .reminder-view-all-btn:hover {
-  background-color: #0056b3;
+  background-color: var(--primary-hover);
 }

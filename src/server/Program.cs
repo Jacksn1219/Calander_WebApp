@@ -17,7 +17,6 @@ class Program
 
         builder.Services.AddDbContext<AppDbContext>(options =>
             options.UseSqlite(builder.Configuration.GetConnectionString("Default")));
-
         // Add services to the container.
         builder.Services.AddControllersWithViews();
         builder.Services.AddDistributedMemoryCache();
@@ -25,18 +24,18 @@ class Program
 
         // Register dependency injection for services
         builder.Services.AddScoped<AuthService>();
-        builder.Services.AddScoped<IAdminsService, AdminsService>();
         builder.Services.AddScoped<IEmployeesService, EmployeesService>();
         builder.Services.AddScoped<IEventParticipationService, EventParticipationService>();
         builder.Services.AddScoped<IEventsService, EventsService>();
-        builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
-        builder.Services.AddScoped<IGroupsService, GroupsService>();
         builder.Services.AddScoped<IOfficeAttendanceService, OfficeAttendanceService>();
         builder.Services.AddScoped<IRoomBookingsService, RoomBookingsService>();
         builder.Services.AddScoped<IRoomsService, RoomsService>();
         builder.Services.AddScoped<IRemindersService, RemindersService>();
         builder.Services.AddScoped<IReminderPreferencesService, ReminderPreferencesService>();
-
+        // unused services:
+        // builder.Services.AddScoped<IAdminsService, AdminsService>();
+        // builder.Services.AddScoped<IGroupMembershipsService, GroupMembershipsService>();
+        // builder.Services.AddScoped<IGroupsService, GroupsService>();
 
         // Add Swagger/OpenAPI services
         
@@ -103,9 +102,14 @@ class Program
         });
         builder.Services.AddAuthorization();
 
-
-
         var app = builder.Build();
+
+        // Ensure data folder exists for the database
+        var dataFolder = Path.Combine(Directory.GetCurrentDirectory(), "data");
+        if (!Directory.Exists(dataFolder))
+        {
+            Directory.CreateDirectory(dataFolder);
+        }
 
         // Ensure database is created and migrated to latest version on startup
         using (var scope = app.Services.CreateScope())
@@ -149,7 +153,6 @@ class Program
         {
             var db = scope.ServiceProvider.GetRequiredService<AppDbContext>();
 
-            // Optional: migrate any existing plain passwords to bcrypt hashes
             foreach (var user in db.Employees.ToList())
             {
                 if (!user.Password.StartsWith("$2")) // bcrypt hashes start with "$2"

@@ -1,14 +1,15 @@
-import React, { useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
+import Sidebar from '../UI/Sidebar';
+import EventDialog from '../UI/EventDialog';
+import CreateEventDialog from '../UI/CreateEventDialog';
 import { useLocation } from 'react-router-dom';
-import Sidebar from './Sidebar';
-import EventDialog from './EventDialog';
 import { useCalendar, useCalendarEvents,useOfficeAttendance } from '../hooks/hooks';
 import '../styles/calendar.css';
-import { useAuth } from '../states/AuthContext';
-import { useState } from 'react';
 
 
 const Calendar: React.FC = () => {
+  const [showCreateDialog, setShowCreateDialog] = useState(false);
+  const [createDialogDate, setCreateDialogDate] = useState<Date | undefined>(undefined);
   const location = useLocation();
   const {
     loading,
@@ -34,15 +35,25 @@ const Calendar: React.FC = () => {
     onUpcomingEventSelect,
     calendarGridRef,
     upcomingHeaderRef,
+    user
   } = useCalendar();
 
-  const { user } = useAuth();
-  const { events: roleScopedEvents, getEventsForDate: fetchEventsForDate } = useCalendarEvents(user);
+
+  const handleCreateEvent = (date?: Date) => {
+    closeDialog();
+    setCreateDialogDate(date);
+    setShowCreateDialog(true);
+  };
+
+  const closeCreateDialog = () => {
+    setShowCreateDialog(false);
+    setCreateDialogDate(undefined);
+  };
   
   // Handle navigation from reminder notification - wait for events to load
   useEffect(() => {
     const state = location.state as { eventId?: number; eventDate?: string } | null;
-    if (state?.eventId && state?.eventDate && !loading && roleScopedEvents.length > 0) {
+    if (state?.eventId && state?.eventDate && !loading) {
       const targetDate = new Date(state.eventDate);
       // Normalize to midnight to match calendar date logic
       const normalizedDate = new Date(targetDate.getFullYear(), targetDate.getMonth(), targetDate.getDate());
@@ -50,7 +61,7 @@ const Calendar: React.FC = () => {
       // Clear the state after using it
       window.history.replaceState({}, document.title);
     }
-  }, [location, onDaySelect, loading, roleScopedEvents]);
+  }, [location, onDaySelect, loading]);
   
     const {
     status: attendanceStatus,
@@ -162,6 +173,13 @@ const Calendar: React.FC = () => {
                         }
                       : undefined;
 
+                    const handlePlusClick = (e: React.MouseEvent) => {
+                      e.stopPropagation();
+                      if (day.date) {
+                        handleCreateEvent(day.date);
+                      }
+                    };
+
                     return (
                       <div
                         key={day.key}
@@ -175,6 +193,16 @@ const Calendar: React.FC = () => {
                               <div className="event-indicator">
                                 <span className="event-count">{day.eventCount}</span>
                               </div>
+                            )}
+                            {!day.isPast && (
+                              <button
+                                className="day-plus-button"
+                                onClick={handlePlusClick}
+                                aria-label="Create event"
+                                title="Create event for this day"
+                              >
+                                +
+                              </button>
                             )}
                           </>
                         )}
@@ -233,7 +261,17 @@ const Calendar: React.FC = () => {
                         {event.description && (
                           <p className="upcoming-description">{event.description}</p>
                         )}
+                        {event.location && !event.bookingId && (
+                          <p className="upcoming-location">{event.location}</p>
+                        )}
+                        {event.bookingId && event.roomName && (
+                          <p className="upcoming-location">
+                            {event.roomName}
+                            {event.roomLocation && ` — ${event.roomLocation}`}
+                          </p>
+                        )}
                         <span className="upcoming-meta">{event.acceptedCount} attending</span>
+
                       </div>
                     </button>
                   ))
@@ -243,12 +281,20 @@ const Calendar: React.FC = () => {
           </div>
         </div>
 
-        {selectedDate && (
+        {selectedDate && !showCreateDialog && (
           <EventDialog
             date={selectedDate}
             events={selectedDateEvents}
             onClose={closeDialog}
             onStatusChange={reload}
+          />
+        )}
+
+        {showCreateDialog && (
+          <CreateEventDialog
+            onClose={closeCreateDialog}
+            reloadEvents={reload}
+            defaultDate={createDialogDate}
           />
         )}
       </main>

@@ -3,9 +3,17 @@ using Calender_WebApp.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
-
 /// <summary>
-/// Service for managing Room entities.
+/// Manages room entities with availability checking and capacity filtering.
+/// 
+/// Business Logic:
+/// - Provides name-based room lookup
+/// - Delegates availability checks to RoomBookingsService
+/// - Filters rooms by capacity with availability validation
+/// - Checks bookings across date ranges for availability queries
+/// 
+/// Dependencies:
+/// - IRoomBookingsService for availability checking logic
 /// </summary>
 public class RoomsService : CrudService<RoomsModel>, IRoomsService
 {
@@ -16,25 +24,23 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
         _roomBookingsService = rbs;
     }
 
-    /// <summary>
-    /// Get a room by its name.
-    /// </summary>
-    /// <param name="name"></param>
-    /// <returns>The room with the specified name.</returns>
-    /// <exception cref="InvalidOperationException">Thrown when the room is not found.</exception>
     public async Task<RoomsModel> GetRoomByNameAsync(string name)
     {
         return await _dbSet.FirstOrDefaultAsync(r => r.RoomName == name)
             ?? throw new InvalidOperationException("Room not found.");
     }
-        public async Task<List<RoomsModel>> GetAvailableRoomsByCapacityAsync(DateTime start, DateTime end, int capacity)
+
+    /// <summary>
+    /// Filters available rooms by capacity using overlap detection.
+    /// Excludes rooms with overlapping bookings in specified time range.
+    /// </summary>
+    public async Task<List<RoomsModel>> GetAvailableRoomsByCapacityAsync(DateTime start, DateTime end, int capacity)
     {
         var startDay = start.Date;
         var endDay = end.Date;
         var startTime = start.TimeOfDay;
         var endTime = end.TimeOfDay;
 
-        // Query RoomBookings for bookings in the date range
         var bookingsInRange = await _context.Set<RoomBookingsModel>()
             .Where(rb => rb.BookingDate >= startDay && rb.BookingDate <= endDay)
             .ToListAsync();
@@ -45,23 +51,58 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
             .Distinct()
             .ToHashSet();
 
-        // Query RoomsModel for available rooms
         return await _dbSet
             .Where(room => room.Id.HasValue && !unavailableRoomIds.Contains(room.Id.Value) && room.Capacity >= capacity)
             .ToListAsync();
     }
 
     /// <summary>
-    /// Checks if a room is available for the given date and time range.
+    /// Validates that a room name doesn't already exist for creation.
+    /// Returns true if name is available (doesn't exist), false if name already exists.
     /// </summary>
-    /// <param name="roomId"></param>
-    /// <param name="start"></param>
-    /// <param name="end"></param>
-    /// <returns>The availability status of the room.</returns>
-    public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
+    public async Task<bool> ValidateRoomNameForCreate(string roomName)
     {
-        return await _roomBookingsService.IsRoomAvailableAsync(roomId, start, end);
+        try
+        {
+            var existingRoom = await GetRoomByNameAsync(roomName).ConfigureAwait(false);
+            if (existingRoom != null)
+            {
+                return false; // Name already exists
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Room not found, name is available
+        }
+        return true;
     }
 
-    // Add additional services that are not related to CRUD here
+    /// <summary>
+    /// Validates that a room name doesn't conflict with another room for update.
+    /// Returns true if name is available (doesn't exist or belongs to the same room), false if name belongs to another room.
+    /// </summary>
+    public async Task<bool> ValidateRoomNameForUpdate(int roomId, string roomName)
+    {
+        try
+        {
+            var existingRoom = await GetRoomByNameAsync(roomName).ConfigureAwait(false);
+            if (existingRoom != null && existingRoom.Id != roomId)
+            {
+                return false; // Name belongs to another room
+            }
+        }
+        catch (InvalidOperationException)
+        {
+            // Room not found, name is available
+        }
+        return true;
+    }
+
+    ///===================================================================
+    /// Methods below can be used if the front end needs them
+    /// ===================================================================
+    // public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
+    // {
+    //     return await _roomBookingsService.IsRoomAvailableAsync(roomId, start, end);
+    // }
 }

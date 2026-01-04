@@ -1,10 +1,14 @@
 using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages event participation records, including creating, retrieving, and deleting participant associations.
+/// </summary>
 [ApiController]
 [Route("api/event-participation")]
 public class EventParticipationController : ControllerBase
@@ -18,7 +22,6 @@ public class EventParticipationController : ControllerBase
 		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
-	// GET /api/event-participation
 	[HttpGet]
 	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetAll()
 	{
@@ -26,7 +29,6 @@ public class EventParticipationController : ControllerBase
 		return Ok(participations);
 	}
 
-	// GET /api/event-participation/event/{eventId}
 	[HttpGet("event/{eventId:int}")]
 	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByEvent(int eventId)
 	{
@@ -34,44 +36,22 @@ public class EventParticipationController : ControllerBase
 		return Ok(participations);
 	}
 
-	// GET /api/event-participation/user/{userId}
-	[HttpGet("user/{userId:int}")]
-	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)
-	{
-		// You need to implement GetByUser in your service if needed, or remove this endpoint.
-		var participations = await _eventParticipationService.GetParticipantsByUserIdAsync(userId).ConfigureAwait(false);
-		return Ok(participations);
-	}
-
-	// GET /api/event-participation/event/{eventId}/user/{userId}
-	[HttpGet("event/{eventId:int}/user/{userId:int}")]
-	public async Task<ActionResult<EventParticipationModel>> CheckParticipation(int eventId, int userId)
-	{
-		var isParticipating = await _eventParticipationService.IsUserParticipatingAsync(eventId, userId).ConfigureAwait(false);
-		if (!isParticipating)
-			return NotFound();
-		// Optionally, you can return the participation record if you add a method for that in your service.
-		return Ok(new { EventId = eventId, UserId = userId, IsParticipating = true });
-	}
-
-	// POST /api/event-participation
 	[HttpPost]
 	public async Task<ActionResult<EventParticipationModel>> Create([FromBody] EventParticipationModel participation)
 	{
-		Console.WriteLine("Create participation called");
-		if (participation == null){
-			Console.WriteLine("wrong input"	);
+		if (participation == null)
+		{
 			return BadRequest("Participation payload must be provided.");
 		}
 
 		if (!ModelState.IsValid)
-		{	Console.WriteLine("invalid model state"	);		
+		{
 			return ValidationProblem(ModelState);
 		}
 		try
 		{
 			var created = await _eventParticipationService.Post(participation).ConfigureAwait(false);
-			return CreatedAtAction(nameof(CheckParticipation), new { eventId = created.EventId, userId = created.UserId }, created);
+			return Ok(created);
 		}
 		catch (ArgumentException ex)
 		{
@@ -81,40 +61,6 @@ public class EventParticipationController : ControllerBase
 		{
 			return Conflict(ex.Message);
 		}
-	}
-
-	public class UpdateStatusRequest
-	{
-		public int Status { get; set; } = 0;
-	}
-	
-
-	[HttpPut("event/{eventId:int}/user/{userId:int}/status")]
-	public async Task<ActionResult<EventParticipationModel>> UpdateStatus(int eventId, int userId, [FromBody] UpdateStatusRequest request)
-	{
-		if (request == null)
-			return BadRequest("Status must be provided.");
-
-		try
-		{
-			var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status).ConfigureAwait(false);
-			return Ok(updated);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-		catch (ArgumentException ex)
-		{
-			return BadRequest(ex.Message);
-		}
-	}
-
-	// DELETE /api/event-participation
-	public class DeleteParticipationRequest
-	{
-		public int EventId { get; set; }
-		public int UserId { get; set; }
 	}
 
 	[HttpDelete]
@@ -133,5 +79,46 @@ public class EventParticipationController : ControllerBase
 			return NotFound();
 		}
 	}
+
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
+
+	//[HttpGet("event/{eventId:int}/user/{userId:int}")]
+	//public async Task<ActionResult<EventParticipationModel>> CheckParticipation(int eventId, int userId)
+	//{
+	//	var isParticipating = await _eventParticipationService.IsUserParticipatingAsync(eventId, userId).ConfigureAwait(false);
+	//	if (!isParticipating)
+	//		return NotFound();
+	//	return Ok(new { EventId = eventId, UserId = userId, IsParticipating = true });
+	//}
+
+	//[HttpGet("user/{userId:int}")]
+	//public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)
+	//{
+	//	var participations = await _eventParticipationService.GetParticipantsByUserIdAsync(userId).ConfigureAwait(false);
+	//	return Ok(participations);
+	//}
+
+	//[HttpPut("event/{eventId:int}/user/{userId:int}/status")]
+	//public async Task<ActionResult<EventParticipationModel>> UpdateStatus(int eventId, int userId, [FromBody] UpdateStatusRequest request)
+	//{
+	//	if (request == null)
+	//		return BadRequest("Status must be provided.");
+
+	//	try
+	//	{
+	//		var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status.ToString()).ConfigureAwait(false);
+	//		return Ok(updated);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//	catch (ArgumentException ex)
+	//	{
+	//		return BadRequest(ex.Message);
+	//	}
+	//}
 }
 

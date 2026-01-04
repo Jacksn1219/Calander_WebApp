@@ -7,6 +7,18 @@ using System.Text;
 
 namespace Calender_WebApp.Services
 {
+    /// <summary>
+    /// Manages authentication operations including user validation and JWT token generation.
+    /// 
+    /// Business Logic:
+    /// - Validates user credentials using BCrypt password verification
+    /// - Generates JWT tokens with user claims for session management
+    /// - Includes token validation for security verification
+    /// 
+    /// Dependencies:
+    /// - IConfiguration for JWT settings (key, issuer, audience, expiration)
+    /// - AppDbContext for employee data access
+    /// </summary>
     public class AuthService : IAuthService
     {
 
@@ -19,19 +31,16 @@ namespace Calender_WebApp.Services
             _config = config;
         }
 
-        // bcrypt validation
         public EmployeesModel? ValidateUser(string email, string password)
         {
             var user = _db.Employees.FirstOrDefault(u => u.Email == email);
             if (user == null)
                 return null;
 
-            // Compare the plain password with the stored bcrypt hash
             bool verified = BCrypt.Net.BCrypt.Verify(password, user.Password);
             return verified ? user : null;
         }
 
-        // Helper
         public static string HashPassword(string password)
         {
             return BCrypt.Net.BCrypt.HashPassword(password);
@@ -76,7 +85,7 @@ namespace Calender_WebApp.Services
                     ValidateLifetime = true,
                     IssuerSigningKey = new SymmetricSecurityKey(key),
                     ValidateIssuerSigningKey = true,
-                    ClockSkew = TimeSpan.Zero // no expiration grace period
+                    ClockSkew = TimeSpan.Zero
                 }, out _);
 
                 return principal;
@@ -85,6 +94,31 @@ namespace Calender_WebApp.Services
             {
                 return null;
             }
+        }
+
+        /// <summary>
+        /// Extracts current user information from Authorization header.
+        /// </summary>
+        public (string userId, string email, string role, string name)? GetCurrentUser(string authHeader)
+        {
+            if (string.IsNullOrEmpty(authHeader) || !authHeader.StartsWith("Bearer "))
+                return null;
+
+            var token = authHeader["Bearer ".Length..].Trim();
+            var principal = ValidateToken(token);
+
+            if (principal == null)
+                return null;
+
+            var userId = principal.FindFirst(ClaimTypes.NameIdentifier)?.Value;
+            var email = principal.FindFirst(ClaimTypes.Email)?.Value;
+            var role = principal.FindFirst(ClaimTypes.Role)?.Value;
+            var name = principal.FindFirst(ClaimTypes.Name)?.Value;
+
+            if (userId == null || email == null || role == null || name == null)
+                return null;
+
+            return (userId, email, role, name);
         }
     }
 }

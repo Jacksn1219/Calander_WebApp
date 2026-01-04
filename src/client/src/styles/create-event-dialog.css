@@ -1,0 +1,202 @@
+/* Dialog backdrop for CreateEventDialog modal */
+.create-dialog-backdrop {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: var(--modal-overlay);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 1000;
+  padding: 16px;
+}
+
+.create-dialog-backdrop .dialog-content {
+  max-height: 95vh;
+}
+
+.create-event-layout {
+  display: flex;
+  min-height: 100vh;
+  background-color: var(--bg-primary);
+  font-family: "Inter", system-ui, sans-serif;
+}
+
+.create-event-layout .create-event-dashboard {
+  flex: 1;
+  padding: 1rem;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.create-event-layout .create-event-section {
+  background: var(--bg-secondary);
+  border-radius: 12px;
+  box-shadow: 0 4px 12px var(--shadow);
+  padding: 1rem;
+  width: 50%;
+  margin: 1rem auto;
+}
+
+.create-event-layout .create-event-section h1 {
+  font-size: 1.8rem;
+  font-weight: 600;
+  margin-bottom: 1.5rem;
+  color: var(--text-primary);
+  border-bottom: 2px solid var(--border-color);
+  padding-bottom: 0.5rem;
+  text-align: center;
+}
+
+.create-event-form {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+}
+
+.create-event-form label {
+  font-weight: 500;
+  color: var(--text-primary);
+}
+
+.create-event-form input,
+.create-event-form textarea {
+  padding: 0.75rem 1rem;
+  border: 1px solid var(--input-border);
+  border-radius: 8px;
+  font-size: 1rem;
+  outline: none;
+  transition: border-color 0.2s, box-shadow 0.2s;
+  background: var(--input-bg);
+  color: var(--text-primary);
+}
+
+.create-event-form input[type="date"]::-webkit-calendar-picker-indicator,
+.create-event-form input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: var(--calendar-picker-filter);
+  cursor: pointer;
+}
+
+.create-event-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.create-event-form input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+  color: var(--text-primary);
+}
+
+.create-event-form input[disabled] {
+  background-color: var(--bg-tertiary);
+  cursor: not-allowed;
+  color: var(--text-secondary);
+  padding: 0.7rem;
+  border: 1px solid var(--border-color);
+  border-radius: 8px;
+  font-size: 1rem;
+}
+
+.create-event-form input:focus,
+.create-event-form textarea:focus {
+  border-color: var(--input-focus);
+  box-shadow: 0 0 0 3px var(--primary-light);
+}
+
+.dialog-content .create-event-form .create-event-buttons {
+  display: flex;
+  justify-content: flex-end;
+  gap: 1rem;
+  margin-top: 1.5rem;
+}
+
+.dialog-content .create-event-form .create-event-buttons button {
+  align-self: flex-end;
+  color: white;
+  padding: 12px 18px;
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  transition: background 0.2s;
+  white-space: nowrap;
+  border: none;
+}
+
+.dialog-content .create-event-form .create-event-save,
+.dialog-content .booking-card .create-event-save {
+  background: var(--primary-color);
+}
+
+.dialog-content .create-event-form .create-event-cancel,
+.dialog-content .booking-card .create-event-cancel {
+  background: var(--danger-color);
+}
+
+.dialog-content .create-event-form .create-event-save:hover,
+.dialog-content .booking-card .create-event-save:hover {
+  background: var(--primary-hover);
+}
+
+.dialog-content .create-event-form .create-event-cancel:hover,
+.dialog-content .booking-card .create-event-cancel:hover {
+  background: var(--danger-hover);
+}
+
+/* @media (max-width: 1024px) {
+  .create-event-layout .create-event-section {
+    max-width: 500px;
+    padding: 1.5rem;
+  }
+}
+
+@media (max-width: 768px) {
+  .create-event-layout html,
+  .create-event-layout body {
+    overflow: hidden;
+  }
+
+  .create-event-layout .create-event-dashboard {
+    padding: 0rem;
+    flex: none;
+    display: initial;
+    justify-content: unset;
+    width: 120%;
+  }
+
+  .create-event-layout .create-event-section {
+    padding: 1.25rem;
+    margin: 1rem;
+  }
+
+  .dialog-content .create-event-form .create-event-buttons {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .dialog-content .create-event-form .create-event-buttons button {
+    width: 100%;
+  }
+
+  .create-event-layout .create-event-section h1 {
+    font-size: 1.5rem;
+  }
+
+  .create-event-form input,
+  .create-event-form textarea {
+    width: 88%;
+  }
+}
+
+@media (min-width: 1440px) {
+  .create-event-layout .create-event-section {
+    max-width: 800px;
+    padding: 2.5rem 3rem;
+  }
+
+  .create-event-layout .create-event-section h1 {
+    font-size: 2rem;
+  }
+
+  .create-event-form input,
+  .create-event-form textarea {
+    width: 93%;
+  }
+} */

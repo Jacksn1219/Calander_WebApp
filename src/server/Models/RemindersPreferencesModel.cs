@@ -9,13 +9,29 @@ using Microsoft.EntityFrameworkCore.Metadata.Internal;
 namespace Calender_WebApp.Models
 {
     /// <summary>
-    /// Represents a reminder in the system.
+    /// Stores per-user notification preferences for events and room bookings.
+    /// One record per employee defining when and how they receive reminder notifications.
+    /// 
+    /// Business Rules:
+    /// - Primary key is the UserId (one preference record per employee)
+    /// - ReminderAdvanceMinutes is a TimeSpan representing duration before event/booking (not time of day)
+    /// - Defaults: EventReminder=true, BookingReminder=true, ReminderAdvanceMinutes=15 minutes
+    /// - If EventReminder is false, no event reminders are generated for this user
+    /// - If BookingReminder is false, no room booking reminders are generated for this user
+    /// 
+    /// Primary Key: Id (user_id) - foreign key used as primary key
+    /// 
+    /// Foreign Keys:
+    /// - Id (user_id) → EmployeesModel.Id (employee whose preferences are stored)
+    /// 
+    /// Bidirectional Relationships:
+    /// - User ↔ EmployeesModel (navigation property not shown in EmployeesModel)
     /// </summary>
     [Table("reminderpreferences")]
     public class ReminderPreferencesModel : IDbItem
     {
         /// <summary>
-        /// Primary key for the Reminder entity.
+        /// Primary key and foreign key. DatabaseGeneratedOption.None means value is manually set (not auto-incremented).
         /// </summary>
         [Key]
         [DatabaseGenerated(DatabaseGeneratedOption.None)]
@@ -24,30 +40,21 @@ namespace Calender_WebApp.Models
         [ForeignKey(nameof(User))]
         public int? Id { get; set; }
 
-        /// <summary>
-        /// Type of the event.
-        /// </summary>
         [Required]
         [Column("event_reminder", Order = 1)]
         public bool EventReminder { get; set; } = true;
 
-        /// <summary>
-        /// ID of the related entity (Event or RoomBooking).
-        /// </summary>
         [Required]
         [Column("booking_reminder", Order = 2)]
         public bool BookingReminder { get; set; } = true;
 
         /// <summary>
-        /// Time when the reminder should be sent.
+        /// Duration before event/booking to send reminder (not time of day). Example: 15 minutes = reminder 15 min before start.
         /// </summary>
         [Required]
         [Column("reminder_advance_minutes", Order = 3)]
         public TimeSpan ReminderAdvanceMinutes { get; set; } = TimeSpan.FromMinutes(15);
 
-        /// <summary>
-        /// Navigation property for the employee who created the event.
-        /// </summary>
         [JsonIgnore]
         [NotMapped]
         public virtual EmployeesModel? User { get; set; }

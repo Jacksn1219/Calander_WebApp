@@ -8,7 +8,22 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Models
 {
     /// <summary>
-    /// Represents a booking for a room.
+    /// Represents a room booking made by an employee for a specific room, date, and time period.
+    /// Used to manage meeting room reservations and prevent double-booking conflicts.
+    /// 
+    /// Business Rules:
+    /// - StartTime and EndTime are TimeSpan values representing time of day (not duration)
+    /// - Bookings must have non-overlapping time slots for the same room on the same date
+    /// - Each booking requires a purpose to track room usage
+    /// 
+    /// Primary Key: Id (booking_id)
+    /// 
+    /// Foreign Keys:
+    /// - RoomId (room_id) → RoomsModel.Id (the room being booked)
+    /// - UserId (user_id) → EmployeesModel.Id (the employee making the booking)
+    /// 
+    /// Bidirectional Relationships:
+    /// - Room ↔ RoomsModel.RoomBookings (collection of all bookings for this room)
     /// </summary>
     [Table("roombookings")]
     public class RoomBookingsModel : IDbItemJunction
@@ -17,70 +32,40 @@ namespace Calender_WebApp.Models
         [JsonPropertyName("booking_id")]
         [Column("booking_id")]
         public int Id { get; set; }
-        /// <summary>
-        /// ID of the booked room.
-        /// </summary>
+
         [Column("room_id", Order = 0)]
         [ForeignKey(nameof(Room))]
         public int RoomId { get; set; }
 
-        /// <summary>
-        /// Navigation property for the related room.
-        /// </summary>
         [JsonIgnore]
         public virtual RoomsModel? Room { get; set; }
 
-        /// <summary>
-        /// ID of the employee who booked the room.
-        /// </summary>
         [Column("user_id", Order = 1)]
         [ForeignKey(nameof(Employee))]
         public int UserId { get; set; }
 
-        /// <summary>
-        /// Navigation property for the related employee.
-        /// </summary>
         [JsonIgnore]
         public virtual EmployeesModel? Employee { get; set; }
 
-        /// <summary>
-        /// Date of the booking.
-        /// </summary>
         [Column("booking_date", Order = 2)]
         [Required]
         public DateTime BookingDate { get; set; }
 
         /// <summary>
-        /// Start time of the booking.
+        /// Time of day when the booking starts (not a duration). Format: HH:mm:ss
         /// </summary>
         [Column("start_time", Order = 3)]
         [Required]
         public TimeSpan StartTime { get; set; }
 
         /// <summary>
-        /// End time of the booking.
+        /// Time of day when the booking ends (not a duration). Format: HH:mm:ss
         /// </summary>
         [Column("end_time", Order = 4)]
         [Required]
         public TimeSpan EndTime { get; set; }
 
-        /// <summary>
-        /// ID of the event associated with the booking.
-        /// </summary>
-        [Column("event_id", Order = 5)]
-        [ForeignKey(nameof(Event))]
-        public int? EventId { get; set; }
-
-        /// <summary>
-        /// Navigation property for the related event.
-        /// </summary>
-        [JsonIgnore]
-        public virtual EventsModel? Event { get; set; }
-
-        /// <summary>
-        /// Purpose of the booking.
-        /// </summary>
-        [Column("purpose", Order = 6)]
+        [Column("purpose", Order = 5)]
         [Required]
         public string Purpose { get; set; } = string.Empty;
     }

@@ -2,10 +2,14 @@ using System;
 using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages office attendance records for users, including daily status updates and retrieval.
+/// </summary>
 [ApiController]
 [Route("api/office-attendance")]
 public class OfficeAttendanceController : ControllerBase
@@ -17,98 +21,12 @@ public class OfficeAttendanceController : ControllerBase
         _officeAttendanceService = officeAttendanceService ?? throw new ArgumentNullException(nameof(officeAttendanceService));
     }
 
-    [HttpGet]
-    public async Task<ActionResult<IEnumerable<OfficeAttendanceModel>>> GetAll()
-    {
-        var records = await _officeAttendanceService.Get().ConfigureAwait(false);
-        return Ok(records);
-    }
-
-    [HttpGet("{id:int}")]
-    public async Task<ActionResult<OfficeAttendanceModel>> GetById(int id)
-    {
-        try
-        {
-            var record = await _officeAttendanceService.GetById(id).ConfigureAwait(false);
-            return Ok(record);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound();
-        }
-    }
-    [HttpGet("user/{userId}")]
-    public async Task<ActionResult<OfficeAttendanceModel>> GetByUserId(int userId)
-    {
-        try
-        {
-            var today = DateTime.Today;
-
-            var record = await _officeAttendanceService
-                .GetAttendanceByUserAndDateAsync(userId, today)
-                .ConfigureAwait(false);
-
-            return Ok(record);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound();
-        }
-    }
-    [HttpGet("user/{userId}/date/{date}")]
-    public async Task<ActionResult<OfficeAttendanceModel>> GetByUserIdAndDate(int userId, DateTime date)
-    {
-        try
-        {
-            var record = await _officeAttendanceService.GetAttendanceByUserAndDateAsync(userId, date).ConfigureAwait(false);
-            return Ok(record);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound();
-        }
-    }
-    [HttpGet("date/{date}")]
-    public async Task<ActionResult<IEnumerable<OfficeAttendanceModel>>> GetByDate(DateTime date)
-    {
-        var records = await _officeAttendanceService.GetAttendancesByDateAsync(date).ConfigureAwait(false);
-        return Ok(records);
-    }
-    [HttpPost]
-    public async Task<ActionResult<OfficeAttendanceModel>> Create([FromBody] OfficeAttendanceModel
-    attendance)
-    {
-        if (attendance == null)
-        {
-            return BadRequest("Attendance payload must be provided.");
-        }
-
-        if (!ModelState.IsValid)
-        {
-            return ValidationProblem(ModelState);
-        }
-
-        try
-        {
-            var createdRecord = await _officeAttendanceService.Post(attendance).ConfigureAwait(false);
-            return CreatedAtAction(nameof(GetById), new { id = createdRecord.Id }, createdRecord);
-        }
-        catch (ArgumentException ex)
-        {
-            return BadRequest(ex.Message);
-        }
-        catch (InvalidOperationException ex)
-        {
-            return Conflict(ex.Message);
-        }
-    }
     [HttpGet("today/{userId}")]
     public async Task<ActionResult<OfficeAttendanceModel>> GetToday(int userId)
     {
         try
         {
             var today = DateTime.Today;
-
             var record = await _officeAttendanceService
                 .GetAttendanceByUserAndDateAsync(userId, today);
 
@@ -120,6 +38,9 @@ public class OfficeAttendanceController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates or creates today's attendance record for a user (upsert operation).
+    /// </summary>
     [HttpPut("today/{userId}")]
     public async Task<ActionResult<OfficeAttendanceModel>> Update(
         int userId,
@@ -137,22 +58,113 @@ public class OfficeAttendanceController : ControllerBase
         return Ok(result);
     }
 
+    // ====================================================================
+    // Endpoints below can be used if the front end needs them
+    // ====================================================================
 
-    [HttpDelete("{id:int}")]
-    public async Task<IActionResult> Delete(int id)
-    {
-        try
-        {
-            await _officeAttendanceService.Delete(id).ConfigureAwait(false);
-            return NoContent();
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound();
-        }
-    }
-    public class UpdateAttendanceRequest
-    {
-        public int Status { get; set; }
-    }
+    //[HttpGet]
+    //public async Task<ActionResult<IEnumerable<OfficeAttendanceModel>>> GetAll()
+    //{
+    //    var records = await _officeAttendanceService.Get().ConfigureAwait(false);
+    //    return Ok(records);
+    //}
+
+    //[HttpGet("{id:int}")]
+    //public async Task<ActionResult<OfficeAttendanceModel>> GetById(int id)
+    //{
+    //    try
+    //    {
+    //        var record = await _officeAttendanceService.GetById(id).ConfigureAwait(false);
+    //        return Ok(record);
+    //    }
+    //    catch (InvalidOperationException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
+
+    //[HttpGet("user/{userId}")]
+    //public async Task<ActionResult<OfficeAttendanceModel>> GetByUserId(int userId)
+    //{
+    //    try
+    //    {
+    //        // MOVE TO SERVICE START
+    //        var today = DateTime.Today;
+    //        // MOVE TO SERVICE END
+
+    //        var record = await _officeAttendanceService
+    //            .GetAttendanceByUserAndDateAsync(userId, today)
+    //            .ConfigureAwait(false);
+
+    //        return Ok(record);
+    //    }
+    //    catch (InvalidOperationException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
+
+    //[HttpGet("user/{userId}/date/{date}")]
+    //public async Task<ActionResult<OfficeAttendanceModel>> GetByUserIdAndDate(int userId, DateTime date)
+    //{
+    //    try
+    //    {
+    //        var record = await _officeAttendanceService.GetAttendanceByUserAndDateAsync(userId, date).ConfigureAwait(false);
+    //        return Ok(record);
+    //    }
+    //    catch (InvalidOperationException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
+
+    //[HttpGet("date/{date}")]
+    //public async Task<ActionResult<IEnumerable<OfficeAttendanceModel>>> GetByDate(DateTime date)
+    //{
+    //    var records = await _officeAttendanceService.GetAttendancesByDateAsync(date).ConfigureAwait(false);
+    //    return Ok(records);
+    //}
+
+    //[HttpPost]
+    //public async Task<ActionResult<OfficeAttendanceModel>> Create([FromBody] OfficeAttendanceModel
+    //attendance)
+    //{
+    //    if (attendance == null)
+    //    {
+    //        return BadRequest("Attendance payload must be provided.");
+    //    }
+
+    //    if (!ModelState.IsValid)
+    //    {
+    //        return ValidationProblem(ModelState);
+    //    }
+
+    //    try
+    //    {
+    //        var createdRecord = await _officeAttendanceService.Post(attendance).ConfigureAwait(false);
+    //        return CreatedAtAction(nameof(GetById), new { id = createdRecord.Id }, createdRecord);
+    //    }
+    //    catch (ArgumentException ex)
+    //    {
+    //        return BadRequest(ex.Message);
+    //    }
+    //    catch (InvalidOperationException ex)
+    //    {
+    //        return Conflict(ex.Message);
+    //    }
+    //}
+
+    //[HttpDelete("{id:int}")]
+    //public async Task<IActionResult> Delete(int id)
+    //{
+    //    try
+    //    {
+    //        await _officeAttendanceService.Delete(id).ConfigureAwait(false);
+    //        return NoContent();
+    //    }
+    //    catch (InvalidOperationException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
 }

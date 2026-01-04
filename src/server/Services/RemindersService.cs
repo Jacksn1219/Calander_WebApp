@@ -5,7 +5,17 @@ using Microsoft.EntityFrameworkCore;
 namespace Calender_WebApp.Services;
 
 /// <summary>
-/// Service for managing reminders, including CRUD and custom operations.
+/// Manages reminders with preference-based timing and soft deletion via IsRead flag.
+/// 
+/// Business Logic:
+/// - Automatically adjusts ReminderTime based on user advance minutes preference
+/// - Soft deletes reminders by marking IsRead=true instead of physical deletion
+/// - Marks reminders as read when corresponding preference is disabled
+/// - Uses time windows (±5 minutes) for reminder lookups to handle timing variations
+/// - Filters due reminders where ReminderTime <= current time
+/// 
+/// Dependencies:
+/// - IReminderPreferencesService for user notification preferences and timing
 /// </summary>
 public class RemindersService : CrudService<RemindersModel>, IRemindersService
 {
@@ -18,11 +28,6 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 
     
 
-    /// <summary>
-    /// Retrieves all reminders for a specific user.
-    /// </summary>
-    /// <param name="userId">The ID of the user.</param>
-    /// <returns>An array of reminders associated with the user.</returns>
     public Task<RemindersModel[]> GetByUserId(int userId)
     {
         return _dbSet
@@ -30,68 +35,20 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
             .ToArrayAsync();
     }
 
+
+
+    
     /// <summary>
-    /// Retrieves unread reminders that are due (ReminderTime has passed).
-    /// Only returns reminders where ReminderTime is less than or equal to the current time.
+    /// Soft deletes room booking reminders by marking as read (preserves cancellation notifications).
+    /// Uses time window (±5 minutes) to find reminders.
     /// </summary>
-    /// <param name="userId">The ID of the user.</param>
-    /// <param name="fromTime">The start time of the range (typically DateTime.MinValue).</param>
-    /// <param name="toTime">The end time of the range (typically DateTime.UtcNow).</param>
-    /// <returns>An array of due reminders that haven't been read yet.</returns>
-    public Task<RemindersModel[]> GetNextRemindersAsync(int userId, DateTime fromTime, DateTime toTime)
-    {
-        return _dbSet
-            .Where(r => r.UserId == userId && r.ReminderTime >= fromTime && r.ReminderTime <= toTime && !r.IsRead)
-            .ToArrayAsync();
-    }
-
-    /// <summary>
-    /// Retrieves reminders associated with a specific room booking.
-    /// Note: Since reminders are stored with advance time already subtracted, we search by related IDs and approximate time.
-    /// </summary>
-    /// <param name="relatedUserId">The ID of the user.</param>
-    /// <param name="relatedRoomId">The ID of the room.</param>
-    /// <param name="bookingDate">The date of the booking.</param>
-    /// <param name="startTime">The start time of the booking.</param>
-    /// <returns>An array of reminders linked to the specified room booking.</returns>
-    public async Task<RemindersModel[]> GetRemindersByRelatedRoomAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
-    {
-        // Get the user's advance time to calculate the expected reminder time range
-        var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
-        var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
-        
-        // Calculate the expected reminder time (booking time - advance time)
-        var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
-        
-        // Search with a small time window to account for potential timing differences
-        var timeWindowStart = expectedReminderTime.AddMinutes(-5);
-        var timeWindowEnd = expectedReminderTime.AddMinutes(5);
-        
-        return await _dbSet
-            .Where(r => r.UserId == relatedUserId && 
-                        r.RelatedRoomId == relatedRoomId && 
-                        r.ReminderTime >= timeWindowStart && 
-                        r.ReminderTime <= timeWindowEnd)
-            .ToArrayAsync();
-    }
-
-    public Task<RemindersModel[]> GetRemindersByRelatedEventAsync(int relatedUserId, int relatedEventId)
-    {
-        return _dbSet
-            .Where(r => r.UserId == relatedUserId && r.RelatedEventId == relatedEventId)
-            .ToArrayAsync();
-    }
-
     public async Task<RemindersModel> DeleteRoomBookingRemindersAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
     {
-        // Get the user's advance time to calculate the expected reminder time range
         var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
         var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
         
-        // Calculate the expected reminder time (booking time - advance time)
         var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
         
-        // Search with a small time window to account for potential timing differences
         var timeWindowStart = expectedReminderTime.AddMinutes(-5);
         var timeWindowEnd = expectedReminderTime.AddMinutes(5);
         
@@ -118,6 +75,9 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
         return reminders.First();
     }
 
+    /// <summary>
+    /// Soft deletes event participation reminders by marking as read (preserves cancellation notifications).
+    /// </summary>
     public async Task<RemindersModel> DeleteEventParticipationRemindersAsync(int relatedUserId, int relatedEventId)
     {
         var reminders = await _dbSet
@@ -151,27 +111,23 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
     }
 
     /// <summary>
-    /// Creates a new reminder, adjusting the ReminderTime based on user preferences.
-    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// Creates reminder with preference-based soft deletion.
+    /// Marks reminder as read immediately if corresponding user preference is disabled.
+    /// Cancellation notifications always created regardless of preferences.
     /// </summary>
     public override async Task<RemindersModel> Post(RemindersModel model)
     {
         if (model == null) throw new ArgumentNullException(nameof(model));
 
-        // Get user's reminder preferences
         var preferences = await _reminderPreferencesService.GetByUserId(model.UserId).ConfigureAwait(false);
         var userPreference = preferences.FirstOrDefault();
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time
-            // This is to be implemented when we start using the advance time in the RemindersModel for notification view. For now just have it be the event time.
-            // if (model.ReminderType != reminderType.EventParticipationCanceled && 
-            //     model.ReminderType != reminderType.RoomBookingCanceled) {
-            //     model.ReminderTime = model.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
-            // }
+            if (model.ReminderType != reminderType.EventParticipationCanceled && 
+                model.ReminderType != reminderType.RoomBookingCanceled) {
+            }
 
-            // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = model.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
@@ -183,35 +139,30 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
                 _ => true
             };
 
-            // If preference is disabled, mark the reminder as already read
             if (!isPreferenceEnabled)
             {
                 model.IsRead = true;
             }
         }
 
-        // Call base Post method to handle validation and database insertion
         return await base.Post(model).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Updates an existing reminder, adjusting the ReminderTime based on user preferences.
-    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// Updates reminder with preference-based soft deletion.
+    /// Marks as read if corresponding preference is disabled.
     /// </summary>
     public override async Task<RemindersModel> Put(int id, RemindersModel newModel)
     {
         if (newModel == null) throw new ArgumentNullException(nameof(newModel));
 
-        // Get user's reminder preferences
         var preferences = await _reminderPreferencesService.GetByUserId(newModel.UserId).ConfigureAwait(false);
         var userPreference = preferences.FirstOrDefault();
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time
             newModel.ReminderTime = newModel.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
 
-            // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = newModel.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
@@ -219,35 +170,30 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
                 _ => true
             };
 
-            // If preference is disabled, mark the reminder as already read
             if (!isPreferenceEnabled)
             {
                 newModel.IsRead = true;
             }
         }
 
-        // Call base Put method to handle validation and database update
         return await base.Put(id, newModel).ConfigureAwait(false);
     }
 
     /// <summary>
-    /// Partially updates an existing reminder, adjusting the ReminderTime based on user preferences.
-    /// If the corresponding preference is disabled, the reminder is marked as read.
+    /// Partially updates reminder with preference-based soft deletion.
+    /// Marks as read if corresponding preference is disabled.
     /// </summary>
     public override async Task<RemindersModel> Patch(int id, RemindersModel newModel)
     {
         if (newModel == null) throw new ArgumentNullException(nameof(newModel));
 
-        // Get user's reminder preferences
         var preferences = await _reminderPreferencesService.GetByUserId(newModel.UserId).ConfigureAwait(false);
         var userPreference = preferences.FirstOrDefault();
 
         if (userPreference != null)
         {
-            // Subtract the advance time from the reminder time
             newModel.ReminderTime = newModel.ReminderTime.Subtract(userPreference.ReminderAdvanceMinutes);
 
-            // Check if the preference for this reminder type is enabled
             bool isPreferenceEnabled = newModel.ReminderType switch
             {
                 reminderType.EventParticipation => userPreference.EventReminder,
@@ -255,16 +201,52 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
                 _ => true
             };
 
-            // If preference is disabled, mark the reminder as already read
             if (!isPreferenceEnabled)
             {
                 newModel.IsRead = true;
             }
         }
 
-        // Call base Patch method to handle validation and database update
         return await base.Patch(id, newModel).ConfigureAwait(false);
     }
-
-    // Add additional services that are not related to CRUD here
+    // ====================================================================
+    // Methods below can be used if the front end needs them
+    // ====================================================================
+    // /// <summary>
+    // /// Retrieves unread reminders that are due (ReminderTime has passed).
+    // /// Used to fetch reminders that should be displayed now.
+    // /// </summary>
+    // public Task<RemindersModel[]> GetNextRemindersAsync(int userId, DateTime fromTime, DateTime toTime)
+    // {
+    //     return _dbSet
+    //         .Where(r => r.UserId == userId && r.ReminderTime >= fromTime && r.ReminderTime <= toTime && !r.IsRead)
+    //         .ToArrayAsync();
+    // }
+    // public Task<RemindersModel[]> GetRemindersByRelatedEventAsync(int relatedUserId, int relatedEventId)
+    // {
+    //     return _dbSet
+    //         .Where(r => r.UserId == relatedUserId && r.RelatedEventId == relatedEventId)
+    //         .ToArrayAsync();
+    // }
+    // /// <summary>
+    // /// Retrieves reminders for room booking using time window matching (±5 minutes).
+    // /// Calculates expected reminder time by subtracting user's advance minutes from booking time.
+    // /// </summary>
+    // public async Task<RemindersModel[]> GetRemindersByRelatedRoomAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
+    // {
+    //     var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
+    //     var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
+        
+    //     var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
+        
+    //     var timeWindowStart = expectedReminderTime.AddMinutes(-5);
+    //     var timeWindowEnd = expectedReminderTime.AddMinutes(5);
+        
+    //     return await _dbSet
+    //         .Where(r => r.UserId == relatedUserId && 
+    //                     r.RelatedRoomId == relatedRoomId && 
+    //                     r.ReminderTime >= timeWindowStart && 
+    //                     r.ReminderTime <= timeWindowEnd)
+    //         .ToArrayAsync();
+    // }
 }

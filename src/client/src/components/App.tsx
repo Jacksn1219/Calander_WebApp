@@ -1,10 +1,9 @@
 import React from 'react';
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from '../states/AuthContext';
+import { AuthProvider, useAuth } from '../auth/AuthContext';
 import Login from './Login';
 import EmployeeAdmin from './EmployeeAdmin';
 import Home from './Home';
-import RoomBooking from './RoomBooking';
 import Calendar from './Calendar';
 import AdministrativeDashboard from './AdministrativeDashboard';
 import RoomAdmin from './RoomAdmin';
@@ -31,14 +30,6 @@ export default function App() {
             element={
               <ProtectedRoute>
                 <Home />
-              </ProtectedRoute>
-            }
-          />
-          <Route
-            path="/roombooking"
-            element={
-              <ProtectedRoute>
-                <RoomBooking />
               </ProtectedRoute>
             }
           />

@@ -5,6 +5,9 @@ using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 namespace Calender_WebApp.Controllers;
+/// <summary>
+/// Manages meeting room resources including CRUD operations, availability checking, and capacity-based filtering.
+/// </summary>
 [ApiController]
 [Route("api/Rooms")]
 public class RoomsController : ControllerBase
@@ -36,52 +39,17 @@ public class RoomsController : ControllerBase
             return NotFound();
         }
     }
-    [HttpGet("by-name/{name}")]
-    public async Task<ActionResult<RoomsModel>> GetByName(string name)
-    {
-        try
-        {
-            var room = await _roomsService.GetRoomByNameAsync(name).ConfigureAwait(false);
-            return Ok(room);
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-    }
-    [HttpGet("{id}/availability")]
-    public async Task<ActionResult<bool>> CheckAvailability(int id, [FromQuery] DateTime start, [FromQuery] DateTime end)
-    {
-        // Validate query parameters
-        if (start == default || end == default)
-        {
-            return BadRequest("Invalid time range: start and end must be valid date-time values.");
-        }
 
-        if (end <= start)
-        {
-            return BadRequest("Invalid time range: end must be after start.");
-        }
-
-        try
-        {
-            // Ensure room exists; service throws InvalidOperationException when not found
-            await _roomsService.GetById(id).ConfigureAwait(false);
-
-            var isAvailable = await _roomsService.IsRoomAvailableAsync(id, start, end).ConfigureAwait(false);
-            return Ok(isAvailable);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound();
-        }
-    }
     [HttpGet("available-by-capacity")]
 	public async Task<ActionResult<IEnumerable<RoomsModel>>> GetAvailableRoomsByCapacity([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int capacity)
 	{
 		var rooms = await _roomsService.GetAvailableRoomsByCapacityAsync(start, end, capacity).ConfigureAwait(false);
 		return Ok(rooms);
 	}
+
+    /// <summary>
+    /// Creates a new room. Validates room name uniqueness before creation.
+    /// </summary>
     [HttpPost]
     public async Task<ActionResult<RoomsModel>> Create([FromBody] RoomsModel room)
     {
@@ -89,10 +57,15 @@ public class RoomsController : ControllerBase
         {
             return BadRequest("Room payload must be provided.");
         }
-
         if (!ModelState.IsValid)
         {
             return ValidationProblem(ModelState);
+        }
+
+        var isNameAvailable = await _roomsService.ValidateRoomNameForCreate(room.RoomName).ConfigureAwait(false);
+        if (!isNameAvailable)
+        {
+            return Conflict("Room with the same name already exists.");
         }
 
         try
@@ -109,6 +82,9 @@ public class RoomsController : ControllerBase
             return Conflict(ex.Message);
         }
     }
+    /// <summary>
+    /// Updates an existing room. Validates room name uniqueness (excluding current room) before updating.
+    /// </summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<RoomsModel>> Update(int id, [FromBody] RoomsModel room)
     {
@@ -121,7 +97,13 @@ public class RoomsController : ControllerBase
         {
             return ValidationProblem(ModelState);
         }
-
+        
+        var isNameAvailable = await _roomsService.ValidateRoomNameForUpdate(id, room.RoomName).ConfigureAwait(false);
+        if (!isNameAvailable)
+        {
+            return Conflict("Room with the same name already exists.");
+        }
+        
         try
         {
             var updatedRoom = await _roomsService.Put(id, room).ConfigureAwait(false);
@@ -141,6 +123,9 @@ public class RoomsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a room. Prevents deletion if room has existing bookings (foreign key constraint).
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
@@ -153,5 +138,62 @@ public class RoomsController : ControllerBase
         {
             return NotFound();
         }
+        catch (Microsoft.EntityFrameworkCore.DbUpdateException ex)
+        {
+            // Database-agnostic foreign key constraint check
+            var errorMessage = ex.InnerException?.Message ?? ex.Message;
+            if (errorMessage.Contains("foreign key", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("constraint", StringComparison.OrdinalIgnoreCase) ||
+                errorMessage.Contains("reference", StringComparison.OrdinalIgnoreCase))
+            {
+                return Conflict("Cannot delete room because it has existing bookings. Delete all bookings for this room first.");
+            }
+            
+            throw; // Re-throw if it's not a foreign key constraint issue
+        }
     }
+
+    // ====================================================================
+    // Endpoints below can be used if the front end needs them
+    // ====================================================================
+
+    //[HttpGet("by-name/{name}")]
+    //public async Task<ActionResult<RoomsModel>> GetByName(string name)
+    //{
+    //    try
+    //    {
+    //        var room = await _roomsService.GetRoomByNameAsync(name).ConfigureAwait(false);
+    //        return Ok(room);
+    //    }
+    //    catch (KeyNotFoundException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
+
+    //[HttpGet("{id}/availability")]
+    //public async Task<ActionResult<bool>> CheckAvailability(int id, [FromQuery] DateTime start, [FromQuery] DateTime end)
+    //{
+    //    if (start == default || end == default)
+    //    {
+    //        return BadRequest("Invalid time range: start and end must be valid date-time values.");
+    //    }
+
+    //    if (end <= start)
+    //    {
+    //        return BadRequest("Invalid time range: end must be after start.");
+    //    }
+
+    //    try
+    //    {
+    //        await _roomsService.GetById(id).ConfigureAwait(false);
+
+    //        var isAvailable = await _roomsService.IsRoomAvailableAsync(id, start, end).ConfigureAwait(false);
+    //        return Ok(isAvailable);
+    //    }
+    //    catch (InvalidOperationException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
 }

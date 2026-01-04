@@ -1,0 +1,218 @@
+.notifications-container {
+  max-width: 1200px;
+  margin: 0 auto;
+  padding: 40px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 24px;
+}
+
+/* Card styling with shadows */
+.notifications-header-card {
+  background-color: transparent;
+  border-radius: 0;
+  box-shadow: none;
+  padding: 0 0 24px 0;
+}
+
+.notifications-content-card {
+  background-color: var(--bg-secondary);
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05), 0 2px 6px rgba(0, 0, 0, 0.08);
+  padding: 0;
+  overflow: hidden;
+  border: 1px solid var(--border-color);
+  margin-top: -2px;
+  border-top-left-radius: 0;
+  border-top-right-radius: 0;
+}
+
+.notifications-header {
+  margin-bottom: 0;
+}
+
+.notifications-header h1 {
+  margin: 0 0 8px 0;
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--text-primary);
+}
+
+.notifications-status {
+  margin: 0;
+  color: var(--text-secondary);
+  font-size: 15px;
+  font-weight: 400;
+}
+
+/* Tabs wrapper with mark all button - standalone boven de card */
+.notifications-tabs-wrapper {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 0;
+  margin: 0;
+  border-bottom: 2px solid var(--border-color);
+  background-color: transparent;
+}
+
+/* Redesigned Tabs with clearer active state */
+.notifications-tabs {
+  display: flex;
+  gap: 8px;
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+}
+
+.notifications-tab {
+  background: none;
+  border: none;
+  padding: 14px 24px;
+  border-radius: 0;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 600;
+  transition: all 0.2s;
+  position: relative;
+  color: var(--text-secondary);
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+}
+
+.notifications-tab.active {
+  background-color: transparent;
+  color: var(--primary-color);
+  border-bottom-color: var(--primary-color);
+}
+
+.notifications-tab:hover:not(.active) {
+  color: var(--text-primary);
+  background-color: transparent;
+}
+
+.notifications-tab-badge {
+  background-color: var(--danger-color);
+  color: white;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: 11px;
+  font-weight: 700;
+  margin-left: 8px;
+  display: inline-block;
+}
+
+.notifications-mark-all-btn {
+  background-color: var(--primary-color);
+  color: white;
+  border: none;
+  padding: 8px 16px;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 13px;
+  font-weight: 600;
+  transition: all 0.2s;
+  margin-bottom: 0;
+}
+
+.notifications-mark-all-btn:hover {
+  background-color: var(--primary-hover);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.notifications-mark-all-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Loading State */
+.notifications-loading {
+  padding: 60px 24px;
+  text-align: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 15px;
+}
+
+.spinner {
+  width: 40px;
+  height: 40px;
+  border: 4px solid var(--border-color);
+  border-top: 4px solid var(--primary-color);
+  border-radius: 50%;
+  animation: spin 1s linear infinite;
+}
+
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Notifications List */
+.notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+  padding: 24px;
+}
+
+.reminder-item-wrapper {
+  border-bottom: 1px solid var(--border-color);
+}
+
+.reminder-item-wrapper:last-child {
+  border-bottom: none;
+}
+
+/* Error State */
+.notifications-error {
+  padding: 80px 32px;
+  margin: 32px;
+  text-align: center;
+  background-color: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  border-radius: 12px;
+  color: var(--danger-color);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+}
+
+.notifications-error p {
+  margin: 0;
+  font-size: 15px;
+  font-weight: 500;
+}
+
+/* Empty State */
+.notifications-empty {
+  padding: 100px 32px;
+  text-align: center;
+  color: var(--text-secondary);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  background-color: transparent;
+  border-radius: 0;
+}
+
+.notifications-empty svg {
+  opacity: 0.5;
+}
+
+.notifications-empty h3 {
+  margin: 20px 0 8px 0;
+  color: var(--text-primary);
+  font-size: 20px;
+  font-weight: 600;
+}
+
+.notifications-empty p {
+  margin: 0;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
