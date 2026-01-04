@@ -18,20 +18,6 @@ public class ReminderPreferencesController : ControllerBase
 		_reminderPreferencesService = reminderPreferencesService ?? throw new ArgumentNullException(nameof(reminderPreferencesService));
 	}
 
-	[HttpGet]
-	public async Task<ActionResult<IEnumerable<ReminderPreferencesModel>>> GetAll()
-	{
-		var reminders = await _reminderPreferencesService.Get().ConfigureAwait(false);
-		return Ok(reminders);
-	}
-
-	[HttpGet("room/{roomId:int}")]
-	public async Task<ActionResult<IEnumerable<ReminderPreferencesModel>>> GetByRoom(int roomId)
-	{
-		var reminders = await _reminderPreferencesService.GetById(roomId).ConfigureAwait(false);
-		return Ok(reminders);
-	}
-
 	[HttpGet("user/{userId:int}")]
 	public async Task<ActionResult<IEnumerable<ReminderPreferencesModel>>> GetByUser(int userId)
 	{
@@ -85,5 +71,23 @@ public class ReminderPreferencesController : ControllerBase
 			return NotFound();
 		}
 	}
+
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
+
+	//[HttpGet]
+	//public async Task<ActionResult<IEnumerable<ReminderPreferencesModel>>> GetAll()
+	//{
+	//	var reminders = await _reminderPreferencesService.Get().ConfigureAwait(false);
+	//	return Ok(reminders);
+	//}
+
+	//[HttpGet("room/{roomId:int}")]
+	//public async Task<ActionResult<IEnumerable<ReminderPreferencesModel>>> GetByRoom(int roomId)
+	//{
+	//	var reminders = await _reminderPreferencesService.GetById(roomId).ConfigureAwait(false);
+	//	return Ok(reminders);
+	//}
 }
 

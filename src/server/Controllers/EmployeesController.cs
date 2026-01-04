@@ -47,25 +47,6 @@ public class EmployeesController : ControllerBase
 		}
 	}
 
-	[HttpGet("by-email/{email}")]
-	public async Task<ActionResult<IEnumerable<EmployeesModel>>> GetByEmail(string email)
-	{
-		if (string.IsNullOrWhiteSpace(email))
-		{
-			return BadRequest("Email must be provided.");
-		}
-
-		try
-		{
-			var employees = await _employeesService.GetEmployeeByEmailAsync(email).ConfigureAwait(false);
-			return Ok(employees);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-	}
-
 	/// <summary>
 	/// Creates a new employee and automatically creates default reminder preferences.
 	/// </summary>
@@ -177,4 +158,27 @@ public class EmployeesController : ControllerBase
 		public UserRole Role { get; set; } = UserRole.User;
 		public string? Password { get; set; } = string.Empty;
 	}
+
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
+
+	//[HttpGet("by-email/{email}")]
+	//public async Task<ActionResult<IEnumerable<EmployeesModel>>> GetByEmail(string email)
+	//{
+	//	if (string.IsNullOrWhiteSpace(email))
+	//	{
+	//		return BadRequest("Email must be provided.");
+	//	}
+
+	//	try
+	//	{
+	//		var employees = await _employeesService.GetEmployeeByEmailAsync(email).ConfigureAwait(false);
+	//		return Ok(employees);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//}
 }

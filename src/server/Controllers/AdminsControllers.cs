@@ -16,113 +16,117 @@ public class AdminsController : ControllerBase
 		_adminsService = adminsService ?? throw new ArgumentNullException(nameof(adminsService));
 	}
 
-	[HttpGet("all-admins")]
-	public async Task<ActionResult<IEnumerable<AdminsModel>>> GetAll()
-	{
-		var admins = await _adminsService.Get().ConfigureAwait(false);
-		return Ok(admins);
-	}
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
 
-	[HttpGet("{id:int}")]
-	public async Task<ActionResult<AdminsModel>> GetById(int id)
-	{
-		try
-		{
-			var admin = await _adminsService.GetById(id).ConfigureAwait(false);
-			return Ok(admin);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-	}
+	//[HttpGet("all-admins")]
+	//public async Task<ActionResult<IEnumerable<AdminsModel>>> GetAll()
+	//{
+	//	var admins = await _adminsService.Get().ConfigureAwait(false);
+	//	return Ok(admins);
+	//}
 
-	[HttpGet("by-username/{username}")]
-	public async Task<ActionResult<AdminsModel>> GetByUsername(string username)
-	{
-		if (string.IsNullOrWhiteSpace(username))
-		{
-			return BadRequest("Username must be provided.");
-		}
+	//[HttpGet("{id:int}")]
+	//public async Task<ActionResult<AdminsModel>> GetById(int id)
+	//{
+	//	try
+	//	{
+	//		var admin = await _adminsService.GetById(id).ConfigureAwait(false);
+	//		return Ok(admin);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//}
 
-		try
-		{
-			var admin = await _adminsService.GetByUsername(username).ConfigureAwait(false);
-			return Ok(admin);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-	}
+	//[HttpGet("by-username/{username}")]
+	//public async Task<ActionResult<AdminsModel>> GetByUsername(string username)
+	//{
+	//	if (string.IsNullOrWhiteSpace(username))
+	//	{
+	//		return BadRequest("Username must be provided.");
+	//	}
 
-	[HttpPost("create-admin")]
-	public async Task<ActionResult<AdminsModel>> Create([FromBody] AdminsModel admin)
-	{
-		if (admin == null)
-		{
-			return BadRequest("Admin payload must be provided.");
-		}
+	//	try
+	//	{
+	//		var admin = await _adminsService.GetByUsername(username).ConfigureAwait(false);
+	//		return Ok(admin);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//}
 
-		if (!ModelState.IsValid)
-		{
-			return ValidationProblem(ModelState);
-		}
+	//[HttpPost("create-admin")]
+	//public async Task<ActionResult<AdminsModel>> Create([FromBody] AdminsModel admin)
+	//{
+	//	if (admin == null)
+	//	{
+	//		return BadRequest("Admin payload must be provided.");
+	//	}
 
-		try
-		{
-			var createdAdmin = await _adminsService.Post(admin).ConfigureAwait(false);
-			return CreatedAtAction(nameof(GetById), new { id = createdAdmin.Id }, createdAdmin);
-		}
-		catch (ArgumentException ex)
-		{
-			return BadRequest(ex.Message);
-		}
-		catch (InvalidOperationException ex)
-		{
-			return Conflict(ex.Message);
-		}
-	}
+	//	if (!ModelState.IsValid)
+	//	{
+	//		return ValidationProblem(ModelState);
+	//	}
 
-	[HttpPut("{id:int}")]
-	public async Task<ActionResult<AdminsModel>> Update(int id, [FromBody] AdminsModel admin)
-	{
-		if (admin == null)
-		{
-			return BadRequest("Admin payload must be provided.");
-		}
+	//	try
+	//	{
+	//		var createdAdmin = await _adminsService.Post(admin).ConfigureAwait(false);
+	//		return CreatedAtAction(nameof(GetById), new { id = createdAdmin.Id }, createdAdmin);
+	//	}
+	//	catch (ArgumentException ex)
+	//	{
+	//		return BadRequest(ex.Message);
+	//	}
+	//	catch (InvalidOperationException ex)
+	//	{
+	//		return Conflict(ex.Message);
+	//	}
+	//}
 
-		if (!ModelState.IsValid)
-		{
-			return ValidationProblem(ModelState);
-		}
+	//[HttpPut("{id:int}")]
+	//public async Task<ActionResult<AdminsModel>> Update(int id, [FromBody] AdminsModel admin)
+	//{
+	//	if (admin == null)
+	//	{
+	//		return BadRequest("Admin payload must be provided.");
+	//	}
 
-		try
-		{
-			var updatedAdmin = await _adminsService.Put(id, admin).ConfigureAwait(false);
-			return Ok(updatedAdmin);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-		catch (ArgumentException ex)
-		{
-			return BadRequest(ex.Message);
-		}
-	}
+	//	if (!ModelState.IsValid)
+	//	{
+	//		return ValidationProblem(ModelState);
+	//	}
 
-	[HttpDelete("{id:int}")]
-	public async Task<IActionResult> Delete(int id)
-	{
-		try
-		{
-			await _adminsService.Delete(id).ConfigureAwait(false);
-			return NoContent();
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-	}
+	//	try
+	//	{
+	//		var updatedAdmin = await _adminsService.Put(id, admin).ConfigureAwait(false);
+	//		return Ok(updatedAdmin);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//	catch (ArgumentException ex)
+	//	{
+	//		return BadRequest(ex.Message);
+	//	}
+	//}
+
+	//[HttpDelete("{id:int}")]
+	//public async Task<IActionResult> Delete(int id)
+	//{
+	//	try
+	//	{
+	//		await _adminsService.Delete(id).ConfigureAwait(false);
+	//		return NoContent();
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//}
 }

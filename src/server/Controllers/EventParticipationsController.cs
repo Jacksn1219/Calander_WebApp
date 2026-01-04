@@ -32,13 +32,6 @@ public class EventParticipationController : ControllerBase
 		return Ok(participations);
 	}
 
-	[HttpGet("user/{userId:int}")]
-	public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)
-	{
-		var participations = await _eventParticipationService.GetParticipantsByUserIdAsync(userId).ConfigureAwait(false);
-		return Ok(participations);
-	}
-
 	[HttpGet("event/{eventId:int}/user/{userId:int}")]
 	public async Task<ActionResult<EventParticipationModel>> CheckParticipation(int eventId, int userId)
 	{
@@ -79,28 +72,6 @@ public class EventParticipationController : ControllerBase
 	{
 		public int Status { get; set; } = 0;
 	}
-	
-
-	[HttpPut("event/{eventId:int}/user/{userId:int}/status")]
-	public async Task<ActionResult<EventParticipationModel>> UpdateStatus(int eventId, int userId, [FromBody] UpdateStatusRequest request)
-	{
-		if (request == null)
-			return BadRequest("Status must be provided.");
-
-		try
-		{
-			var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status.ToString()).ConfigureAwait(false);
-			return Ok(updated);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-		catch (ArgumentException ex)
-		{
-			return BadRequest(ex.Message);
-		}
-	}
 
 	public class DeleteParticipationRequest
 	{
@@ -124,5 +95,37 @@ public class EventParticipationController : ControllerBase
 			return NotFound();
 		}
 	}
+
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
+
+	//[HttpGet("user/{userId:int}")]
+	//public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)
+	//{
+	//	var participations = await _eventParticipationService.GetParticipantsByUserIdAsync(userId).ConfigureAwait(false);
+	//	return Ok(participations);
+	//}
+
+	//[HttpPut("event/{eventId:int}/user/{userId:int}/status")]
+	//public async Task<ActionResult<EventParticipationModel>> UpdateStatus(int eventId, int userId, [FromBody] UpdateStatusRequest request)
+	//{
+	//	if (request == null)
+	//		return BadRequest("Status must be provided.");
+
+	//	try
+	//	{
+	//		var updated = await _eventParticipationService.UpdateStatus(eventId, userId, request.Status.ToString()).ConfigureAwait(false);
+	//		return Ok(updated);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//	catch (ArgumentException ex)
+	//	{
+	//		return BadRequest(ex.Message);
+	//	}
+	//}
 }
 

@@ -41,19 +41,6 @@ namespace Calender_WebApp.Controllers
             }
         }
 
-        [HttpGet("by-user/{userId}")]
-        public async Task<ActionResult<IEnumerable<EventsModel>>> GetEventsByUser(int userId)
-        {
-            var events = await _eventService.GetEventsByUserAsync(userId);
-            return Ok(events);
-        }
-
-        [HttpGet("upcoming")]
-        public async Task<ActionResult<IEnumerable<EventsModel>>> GetUpcomingEvents([FromQuery] DateTime fromDate)
-        {
-            var events = await _eventService.GetUpcomingEventsAsync(fromDate);
-            return Ok(events);
-        }
 
         [HttpPost]
         public async Task<ActionResult<EventsModel>> CreateEvent([FromBody] EventsModel newEvent)
@@ -126,5 +113,23 @@ namespace Calender_WebApp.Controllers
                 return NotFound();
             }
         }
+
+        // ====================================================================
+        // Endpoints below can be used if the front end needs them
+        // ====================================================================
+
+        //[HttpGet("by-user/{userId}")]
+        //public async Task<ActionResult<IEnumerable<EventsModel>>> GetEventsByUser(int userId)
+        //{
+        //    var events = await _eventService.GetEventsByUserAsync(userId);
+        //    return Ok(events);
+        //}
+
+        //[HttpGet("upcoming")]
+        //public async Task<ActionResult<IEnumerable<EventsModel>>> GetUpcomingEvents([FromQuery] DateTime fromDate)
+        //{
+        //    var events = await _eventService.GetUpcomingEventsAsync(fromDate);
+        //    return Ok(events);
+        //}
     }
 }

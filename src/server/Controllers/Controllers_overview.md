@@ -4,7 +4,8 @@ This document lists all implemented controllers and their endpoints in the Calen
 
 **Legend:**
 - `[F]` = Used in Frontend (client/src)
-- `[ ]` = Not used in Frontend
+- `[B]` = used only in the backend (server)
+- `[ ]` = Not used anywhere
 
 ---
 
@@ -41,7 +42,7 @@ This document lists all implemented controllers and their endpoints in the Calen
 **Authorization:** All endpoints require authentication; Update/Delete require Admin or SuperAdmin role  
 **Endpoints:**
 - [F] `GET /api/events` — Get all events
-- [ ] `GET /api/events/{id}` — Get event by ID
+- [B] `GET /api/events/{id}` — Get event by ID
 - [ ] `GET /api/events/by-user/{userId}` — Get events created by user
 - [ ] `GET /api/events/upcoming?fromDate={date}` — Get upcoming events from date
 - [F] `POST /api/events` — Create new event
@@ -57,7 +58,7 @@ This document lists all implemented controllers and their endpoints in the Calen
 - [F] `GET /api/event-participation` — Get all participations
 - [F] `GET /api/event-participation/event/{eventId}` — Get participations by event
 - [ ] `GET /api/event-participation/user/{userId}` — Get participations by user
-- [ ] `GET /api/event-participation/event/{eventId}/user/{userId}` — Check if user is participating
+- [B] `GET /api/event-participation/event/{eventId}/user/{userId}` — Check if user is participating
 - [F] `POST /api/event-participation` — Create participation
 - [ ] `PUT /api/event-participation/event/{eventId}/user/{userId}/status` — Update participation status (body: { "status": 0|1|2 })
 - [F] `DELETE /api/event-participation` — Remove participation (body: { "eventId": int, "userId": int })

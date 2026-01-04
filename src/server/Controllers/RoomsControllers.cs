@@ -36,50 +36,14 @@ public class RoomsController : ControllerBase
             return NotFound();
         }
     }
-    [HttpGet("by-name/{name}")]
-    public async Task<ActionResult<RoomsModel>> GetByName(string name)
-    {
-        try
-        {
-            var room = await _roomsService.GetRoomByNameAsync(name).ConfigureAwait(false);
-            return Ok(room);
-        }
-        catch (KeyNotFoundException)
-        {
-            return NotFound();
-        }
-    }
-    [HttpGet("{id}/availability")]
-    public async Task<ActionResult<bool>> CheckAvailability(int id, [FromQuery] DateTime start, [FromQuery] DateTime end)
-    {
-        if (start == default || end == default)
-        {
-            return BadRequest("Invalid time range: start and end must be valid date-time values.");
-        }
 
-        if (end <= start)
-        {
-            return BadRequest("Invalid time range: end must be after start.");
-        }
-
-        try
-        {
-            await _roomsService.GetById(id).ConfigureAwait(false);
-
-            var isAvailable = await _roomsService.IsRoomAvailableAsync(id, start, end).ConfigureAwait(false);
-            return Ok(isAvailable);
-        }
-        catch (InvalidOperationException)
-        {
-            return NotFound();
-        }
-    }
     [HttpGet("available-by-capacity")]
 	public async Task<ActionResult<IEnumerable<RoomsModel>>> GetAvailableRoomsByCapacity([FromQuery] DateTime start, [FromQuery] DateTime end, [FromQuery] int capacity)
 	{
 		var rooms = await _roomsService.GetAvailableRoomsByCapacityAsync(start, end, capacity).ConfigureAwait(false);
 		return Ok(rooms);
 	}
+
     [HttpPost]
     public async Task<ActionResult<RoomsModel>> Create([FromBody] RoomsModel room)
     {
@@ -176,4 +140,48 @@ public class RoomsController : ControllerBase
             throw; // Re-throw if it's not a foreign key constraint issue
         }
     }
+
+    // ====================================================================
+    // Endpoints below can be used if the front end needs them
+    // ====================================================================
+
+    //[HttpGet("by-name/{name}")]
+    //public async Task<ActionResult<RoomsModel>> GetByName(string name)
+    //{
+    //    try
+    //    {
+    //        var room = await _roomsService.GetRoomByNameAsync(name).ConfigureAwait(false);
+    //        return Ok(room);
+    //    }
+    //    catch (KeyNotFoundException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
+
+    //[HttpGet("{id}/availability")]
+    //public async Task<ActionResult<bool>> CheckAvailability(int id, [FromQuery] DateTime start, [FromQuery] DateTime end)
+    //{
+    //    if (start == default || end == default)
+    //    {
+    //        return BadRequest("Invalid time range: start and end must be valid date-time values.");
+    //    }
+
+    //    if (end <= start)
+    //    {
+    //        return BadRequest("Invalid time range: end must be after start.");
+    //    }
+
+    //    try
+    //    {
+    //        await _roomsService.GetById(id).ConfigureAwait(false);
+
+    //        var isAvailable = await _roomsService.IsRoomAvailableAsync(id, start, end).ConfigureAwait(false);
+    //        return Ok(isAvailable);
+    //    }
+    //    catch (InvalidOperationException)
+    //    {
+    //        return NotFound();
+    //    }
+    //}
 }

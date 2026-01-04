@@ -20,13 +20,6 @@ public class RoomBookingsController : ControllerBase
 		_remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
 	}
 
-	[HttpGet]
-	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetAll()
-	{
-		var bookings = await _roomBookingsService.Get().ConfigureAwait(false);
-		return Ok(bookings);
-	}
-
 	[HttpGet("{id:int}")]
 	public async Task<ActionResult<RoomBookingsModel>> GetById(int id)
 	{
@@ -44,25 +37,11 @@ public class RoomBookingsController : ControllerBase
 		}
 	}
 
-	[HttpGet("room/{roomId:int}")]
-	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetByRoom(int roomId)
-	{
-		var bookings = await _roomBookingsService.GetBookingsForRoomAsync(roomId).ConfigureAwait(false);
-		return Ok(bookings);
-	}
-
 	[HttpGet("user/{userId:int}")]
 	public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetByUser(int userId)
 	{
 		var bookings = await _roomBookingsService.GetBookingsByUserIdAsync(userId).ConfigureAwait(false);
 		return Ok(bookings);
-	}
-
-	[HttpGet("available")]
-	public async Task<ActionResult<IEnumerable<RoomsModel>>> GetAvailableRooms([FromQuery] DateTime start, [FromQuery] DateTime end)
-	{
-		var rooms = await _roomBookingsService.GetAvailableRoomsAsync(start, end).ConfigureAwait(false);
-		return Ok(rooms);
 	}
 
 	[HttpPost]
@@ -99,6 +78,25 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewStartTime { get; set; }
 	}
 
+	public class UpdateEndTimeRequest
+	{
+		public int RoomId { get; set; }
+		public int UserId { get; set; }
+		public DateTime BookingDate { get; set; }
+		public TimeSpan StartTime { get; set; }
+		public TimeSpan EndTime { get; set; }
+		public TimeSpan NewEndTime { get; set; }
+	}
+
+	public class DeleteBookingRequest
+	{
+		public int RoomId { get; set; }
+		public int UserId { get; set; }
+		public DateTime BookingDate { get; set; }
+		public TimeSpan StartTime { get; set; }
+		public TimeSpan EndTime { get; set; }
+	}
+
 	[HttpPut("{bookingid}")]
 	public async Task<ActionResult<RoomBookingsModel>> Update(int bookingid, [FromBody] RoomBookingsModel booking)
 	{
@@ -125,117 +123,124 @@ public class RoomBookingsController : ControllerBase
 			return BadRequest(ex.Message);
 		}
 	}
-	[HttpPatch("update-start-time")]
-	public async Task<ActionResult<RoomBookingsModel>> UpdateStartTime([FromBody] UpdateStartTimeRequest request)
-	{
-		if (request == null)
-			return BadRequest("Payload must be provided.");
 
-		try
-		{
-			var updated = await _roomBookingsService.UpdateStartTime(
-				new RoomBookingsModel
-				{
-					RoomId = request.RoomId,
-					UserId = request.UserId,
-					BookingDate = request.BookingDate,
-					StartTime = request.StartTime,
-					EndTime = request.EndTime,
-					Purpose = string.Empty
-				},
-				request.NewStartTime
-			).ConfigureAwait(false);
+	// ====================================================================
+	// Endpoints below can be used if the front end needs them
+	// ====================================================================
 
-			return Ok(updated);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-		catch (ArgumentException ex)
-		{
-			return BadRequest(ex.Message);
-		}
-	}
+	//[HttpGet]
+	//public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetAll()
+	//{
+	//	var bookings = await _roomBookingsService.Get().ConfigureAwait(false);
+	//	return Ok(bookings);
+	//}
 
-	public class UpdateEndTimeRequest
-	{
-		public int RoomId { get; set; }
-		public int UserId { get; set; }
-		public DateTime BookingDate { get; set; }
-		public TimeSpan StartTime { get; set; }
-		public TimeSpan EndTime { get; set; }
-		public TimeSpan NewEndTime { get; set; }
-	}
+	//[HttpGet("room/{roomId:int}")]
+	//public async Task<ActionResult<IEnumerable<RoomBookingsModel>>> GetByRoom(int roomId)
+	//{
+	//	var bookings = await _roomBookingsService.GetBookingsForRoomAsync(roomId).ConfigureAwait(false);
+	//	return Ok(bookings);
+	//}
 
-	[HttpPatch("update-end-time")]
-	public async Task<ActionResult<RoomBookingsModel>> UpdateEndTime([FromBody] UpdateEndTimeRequest request)
-	{
-		if (request == null)
-			return BadRequest("Payload must be provided.");
+	//[HttpGet("available")]
+	//public async Task<ActionResult<IEnumerable<RoomsModel>>> GetAvailableRooms([FromQuery] DateTime start, [FromQuery] DateTime end)
+	//{
+	//	var rooms = await _roomBookingsService.GetAvailableRoomsAsync(start, end).ConfigureAwait(false);
+	//	return Ok(rooms);
+	//}
 
-		try
-		{
-			var updated = await _roomBookingsService.UpdateEndTime(
-				new RoomBookingsModel
-				{
-					RoomId = request.RoomId,
-					UserId = request.UserId,
-					BookingDate = request.BookingDate,
-					StartTime = request.StartTime,
-					EndTime = request.EndTime,
-					Purpose = string.Empty
-				},
-				request.NewEndTime
-			).ConfigureAwait(false);
+	//[HttpPatch("update-start-time")]
+	//public async Task<ActionResult<RoomBookingsModel>> UpdateStartTime([FromBody] UpdateStartTimeRequest request)
+	//{
+	//	if (request == null)
+	//		return BadRequest("Payload must be provided.");
 
-			return Ok(updated);
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-		catch (ArgumentException ex)
-		{
-			return BadRequest(ex.Message);
-		}
-	}
+	//	try
+	//	{
+	//		var updated = await _roomBookingsService.UpdateStartTime(
+	//			new RoomBookingsModel
+	//			{
+	//				RoomId = request.RoomId,
+	//				UserId = request.UserId,
+	//				BookingDate = request.BookingDate,
+	//				StartTime = request.StartTime,
+	//				EndTime = request.EndTime,
+	//				Purpose = string.Empty
+	//			},
+	//			request.NewStartTime
+	//		).ConfigureAwait(false);
 
-	public class DeleteBookingRequest
-	{
-		public int RoomId { get; set; }
-		public int UserId { get; set; }
-		public DateTime BookingDate { get; set; }
-		public TimeSpan StartTime { get; set; }
-		public TimeSpan EndTime { get; set; }
-	}
+	//		return Ok(updated);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//	catch (ArgumentException ex)
+	//	{
+	//		return BadRequest(ex.Message);
+	//	}
+	//}
 
-	[HttpDelete]
-	public async Task<IActionResult> Delete([FromBody] DeleteBookingRequest request)
-	{
-		if (request == null)
-			return BadRequest("Payload must be provided.");
+	//[HttpPatch("update-end-time")]
+	//public async Task<ActionResult<RoomBookingsModel>> UpdateEndTime([FromBody] UpdateEndTimeRequest request)
+	//{
+	//	if (request == null)
+	//		return BadRequest("Payload must be provided.");
 
-		try
-		{
-			_ = await _roomBookingsService.Delete(new RoomBookingsModel
-			{
-				RoomId = request.RoomId,
-				UserId = request.UserId,
-				BookingDate = request.BookingDate,
-				StartTime = request.StartTime,
-				EndTime = request.EndTime,
-				Purpose = string.Empty
-			}).ConfigureAwait(false);
+	//	try
+	//	{
+	//		var updated = await _roomBookingsService.UpdateEndTime(
+	//			new RoomBookingsModel
+	//			{
+	//				RoomId = request.RoomId,
+	//				UserId = request.UserId,
+	//				BookingDate = request.BookingDate,
+	//				StartTime = request.StartTime,
+	//				EndTime = request.EndTime,
+	//				Purpose = string.Empty
+	//			},
+	//			request.NewEndTime
+	//		).ConfigureAwait(false);
 
-			await _remindersService.DeleteRoomBookingRemindersAsync(request.UserId, request.RoomId, request.BookingDate, request.StartTime).ConfigureAwait(false);
+	//		return Ok(updated);
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//	catch (ArgumentException ex)
+	//	{
+	//		return BadRequest(ex.Message);
+	//	}
+	//}
 
-			return NoContent();
-		}
-		catch (InvalidOperationException)
-		{
-			return NotFound();
-		}
-	}
+	//[HttpDelete]
+	//public async Task<IActionResult> Delete([FromBody] DeleteBookingRequest request)
+	//{
+	//	if (request == null)
+	//		return BadRequest("Payload must be provided.");
+
+	//	try
+	//	{
+	//		_ = await _roomBookingsService.Delete(new RoomBookingsModel
+	//		{
+	//			RoomId = request.RoomId,
+	//			UserId = request.UserId,
+	//			BookingDate = request.BookingDate,
+	//			StartTime = request.StartTime,
+	//			EndTime = request.EndTime,
+	//			Purpose = string.Empty
+	//		}).ConfigureAwait(false);
+
+	//		await _remindersService.DeleteRoomBookingRemindersAsync(request.UserId, request.RoomId, request.BookingDate, request.StartTime).ConfigureAwait(false);
+
+	//		return NoContent();
+	//	}
+	//	catch (InvalidOperationException)
+	//	{
+	//		return NotFound();
+	//	}
+	//}
 }
 
