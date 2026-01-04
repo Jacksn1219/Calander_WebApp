@@ -6,6 +6,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages office attendance records for users, including daily status updates and retrieval.
+/// </summary>
 [ApiController]
 [Route("api/office-attendance")]
 public class OfficeAttendanceController : ControllerBase
@@ -22,10 +25,7 @@ public class OfficeAttendanceController : ControllerBase
     {
         try
         {
-            // MOVE TO SERVICE START
             var today = DateTime.Today;
-            // MOVE TO SERVICE END
-
             var record = await _officeAttendanceService
                 .GetAttendanceByUserAndDateAsync(userId, today);
 
@@ -37,6 +37,9 @@ public class OfficeAttendanceController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Updates or creates today's attendance record for a user (upsert operation).
+    /// </summary>
     [HttpPut("today/{userId}")]
     public async Task<ActionResult<OfficeAttendanceModel>> Update(
         int userId,
@@ -54,6 +57,9 @@ public class OfficeAttendanceController : ControllerBase
         return Ok(result);
     }
 
+    /// <summary>
+    /// Request model for updating attendance status. Status is an integer representing AttendanceStatus enum.
+    /// </summary>
     public class UpdateAttendanceRequest
     {
         public int Status { get; set; }

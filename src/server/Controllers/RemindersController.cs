@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages user reminders including retrieval and marking reminders as read.
+/// </summary>
 [ApiController]
 [Route("api/reminders")]
 public class RemindersController : ControllerBase
@@ -62,17 +65,17 @@ public class RemindersController : ControllerBase
 	//	return Ok(reminders);
 	//}
 
-	//[HttpGet("today/{userId:int}")]
-	//public async Task<ActionResult<IEnumerable<RemindersModel>>> GetTodaysRemindersByUser(int userId)
-	//{
-	//	// MOVE TO SERVICE START
-	//	var startOfDay = DateTime.Today;
-	//	var endOfDay = startOfDay.AddDays(1).AddTicks(-1);
-	//	// MOVE TO SERVICE END
+	// [HttpGet("today/{userId:int}")]
+	// public async Task<ActionResult<IEnumerable<RemindersModel>>> GetTodaysRemindersByUser(int userId)
+	// {
+	// 	// MOVE TO SERVICE START
+	// 	var startOfDay = DateTime.Today;
+	// 	var endOfDay = startOfDay.AddDays(1).AddTicks(-1);
+	// 	// MOVE TO SERVICE END
 
-	//	var reminders = await _remindersService.GetNextRemindersAsync(userId, startOfDay, endOfDay).ConfigureAwait(false);
-	//	return Ok(reminders);
-	//}
+	// 	var reminders = await _remindersService.GetNextRemindersAsync(userId, startOfDay, endOfDay).ConfigureAwait(false);
+	// 	return Ok(reminders);
+	// }
 
 	//[HttpPost]
 	//public async Task<ActionResult<RemindersModel>> Create([FromBody] RemindersModel reminder)

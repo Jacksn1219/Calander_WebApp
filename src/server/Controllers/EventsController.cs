@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Authorization;
 
 namespace Calender_WebApp.Controllers
 {
+    /// <summary>
+    /// Manages calendar events including creation, retrieval, updates, and deletion. All endpoints require authentication.
+    /// </summary>
     [ApiController]
     [Route("api/events")]
     [Authorize]
@@ -28,20 +31,6 @@ namespace Calender_WebApp.Controllers
             return Ok(events);
         }
 
-        [HttpGet("{id}")]
-        public async Task<ActionResult<EventsModel>> GetEventByEventId(int id)
-        {
-            try{
-                var ev = await _eventService.GetById(id).ConfigureAwait(false);
-                return Ok(ev);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound();
-            }
-        }
-
-
         [HttpPost]
         public async Task<ActionResult<EventsModel>> CreateEvent([FromBody] EventsModel newEvent)
         {
@@ -58,7 +47,7 @@ namespace Calender_WebApp.Controllers
             try
             {
             var createdEvent = await _eventService.Post(newEvent).ConfigureAwait(false);
-            return CreatedAtAction(nameof(GetEventByEventId), new { id = createdEvent.Id }, createdEvent);
+            return Ok(createdEvent);
             }
             catch (ArgumentException ex)
             {
@@ -117,6 +106,19 @@ namespace Calender_WebApp.Controllers
         // ====================================================================
         // Endpoints below can be used if the front end needs them
         // ====================================================================
+
+        //[HttpGet("{id}")]
+        //public async Task<ActionResult<EventsModel>> GetEventByEventId(int id)
+        //{
+        //    try{
+        //        var ev = await _eventService.GetById(id).ConfigureAwait(false);
+        //        return Ok(ev);
+        //    }
+        //    catch (KeyNotFoundException)
+        //    {
+        //        return NotFound();
+        //    }
+        //}
 
         //[HttpGet("by-user/{userId}")]
         //public async Task<ActionResult<IEnumerable<EventsModel>>> GetEventsByUser(int userId)

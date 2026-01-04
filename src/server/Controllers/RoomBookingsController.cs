@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages meeting room bookings including creation, updates, retrieval, and associated reminder handling.
+/// </summary>
 [ApiController]
 [Route("api/room-bookings")]
 public class RoomBookingsController : ControllerBase
@@ -68,6 +71,9 @@ public class RoomBookingsController : ControllerBase
 		}
 	}
 
+	/// <summary>
+	/// Request model for updating booking start time. Requires full composite key to identify existing booking.
+	/// </summary>
 	public class UpdateStartTimeRequest
 	{
 		public int RoomId { get; set; }
@@ -78,6 +84,9 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewStartTime { get; set; }
 	}
 
+	/// <summary>
+	/// Request model for updating booking end time. Requires full composite key to identify existing booking.
+	/// </summary>
 	public class UpdateEndTimeRequest
 	{
 		public int RoomId { get; set; }
@@ -88,6 +97,9 @@ public class RoomBookingsController : ControllerBase
 		public TimeSpan NewEndTime { get; set; }
 	}
 
+	/// <summary>
+	/// Request model for deleting room booking. Uses composite key instead of single booking ID.
+	/// </summary>
 	public class DeleteBookingRequest
 	{
 		public int RoomId { get; set; }

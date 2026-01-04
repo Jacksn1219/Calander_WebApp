@@ -8,6 +8,9 @@ using Calender_WebApp.Services.Interfaces;
 
 namespace Calender_WebApp.Controllers
 {
+    /// <summary>
+    /// Handles authentication operations including login and current user retrieval.
+    /// </summary>
     [ApiController]
     [Route("api/auth")]
     public class LoginController : ControllerBase
@@ -47,6 +50,9 @@ namespace Calender_WebApp.Controllers
             });
         }
 
+        /// <summary>
+        /// Retrieves current authenticated user information from the Authorization header token.
+        /// </summary>
         [HttpGet("me")]
         public IActionResult Me()
         {
@@ -69,12 +75,18 @@ namespace Calender_WebApp.Controllers
         }
     }
 
+    /// <summary>
+    /// Request model for user authentication. Contains credentials for login validation.
+    /// </summary>
     public class LoginRequest
     {
         public string Email { get; set; } = string.Empty;
         public string Password { get; set; } = string.Empty;
     }
 
+    /// <summary>
+    /// Request model for user registration. Defaults to User role if not specified.
+    /// </summary>
     public class RegisterRequest
     {
         public string Name { get; set; } = string.Empty;

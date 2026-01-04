@@ -7,6 +7,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages user reminder preferences including event/booking reminder toggles and advance notification timing.
+/// </summary>
 [ApiController]
 [Route("api/reminderspreferences")]
 public class ReminderPreferencesController : ControllerBase
@@ -53,6 +56,9 @@ public class ReminderPreferencesController : ControllerBase
 		}
 	}
 
+	/// <summary>
+	/// Updates reminder advance time. Accepts string in TimeSpan format (e.g., "00:15:00" for 15 minutes).
+	/// </summary>
 	[HttpPatch("{id:int}/advance-minutes")]
 	public async Task<ActionResult<ReminderPreferencesModel>> UpdateAdvanceMinutes(int id, [FromBody] string advanceMinutes)
 	{

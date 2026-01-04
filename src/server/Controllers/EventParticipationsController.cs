@@ -5,6 +5,9 @@ using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
 
+/// <summary>
+/// Manages event participation records, including creating, retrieving, and deleting participant associations.
+/// </summary>
 [ApiController]
 [Route("api/event-participation")]
 public class EventParticipationController : ControllerBase
@@ -32,15 +35,6 @@ public class EventParticipationController : ControllerBase
 		return Ok(participations);
 	}
 
-	[HttpGet("event/{eventId:int}/user/{userId:int}")]
-	public async Task<ActionResult<EventParticipationModel>> CheckParticipation(int eventId, int userId)
-	{
-		var isParticipating = await _eventParticipationService.IsUserParticipatingAsync(eventId, userId).ConfigureAwait(false);
-		if (!isParticipating)
-			return NotFound();
-		return Ok(new { EventId = eventId, UserId = userId, IsParticipating = true });
-	}
-
 	[HttpPost]
 	public async Task<ActionResult<EventParticipationModel>> Create([FromBody] EventParticipationModel participation)
 	{
@@ -56,7 +50,7 @@ public class EventParticipationController : ControllerBase
 		try
 		{
 			var created = await _eventParticipationService.Post(participation).ConfigureAwait(false);
-			return CreatedAtAction(nameof(CheckParticipation), new { eventId = created.EventId, userId = created.UserId }, created);
+			return Ok(created);
 		}
 		catch (ArgumentException ex)
 		{
@@ -68,11 +62,17 @@ public class EventParticipationController : ControllerBase
 		}
 	}
 
+	/// <summary>
+	/// Request model for updating a participant's status. Status is represented as an integer enum value.
+	/// </summary>
 	public class UpdateStatusRequest
 	{
 		public int Status { get; set; } = 0;
 	}
 
+	/// <summary>
+	/// Request model for deleting event participation. Uses composite key (EventId, UserId) instead of entity model.
+	/// </summary>
 	public class DeleteParticipationRequest
 	{
 		public int EventId { get; set; }
@@ -99,6 +99,15 @@ public class EventParticipationController : ControllerBase
 	// ====================================================================
 	// Endpoints below can be used if the front end needs them
 	// ====================================================================
+
+	//[HttpGet("event/{eventId:int}/user/{userId:int}")]
+	//public async Task<ActionResult<EventParticipationModel>> CheckParticipation(int eventId, int userId)
+	//{
+	//	var isParticipating = await _eventParticipationService.IsUserParticipatingAsync(eventId, userId).ConfigureAwait(false);
+	//	if (!isParticipating)
+	//		return NotFound();
+	//	return Ok(new { EventId = eventId, UserId = userId, IsParticipating = true });
+	//}
 
 	//[HttpGet("user/{userId:int}")]
 	//public async Task<ActionResult<IEnumerable<EventParticipationModel>>> GetByUser(int userId)

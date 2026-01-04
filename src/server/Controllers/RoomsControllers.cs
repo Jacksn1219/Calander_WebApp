@@ -5,6 +5,9 @@ using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
 using Microsoft.AspNetCore.Mvc;
 namespace Calender_WebApp.Controllers;
+/// <summary>
+/// Manages meeting room resources including CRUD operations, availability checking, and capacity-based filtering.
+/// </summary>
 [ApiController]
 [Route("api/Rooms")]
 public class RoomsController : ControllerBase
@@ -44,6 +47,9 @@ public class RoomsController : ControllerBase
 		return Ok(rooms);
 	}
 
+    /// <summary>
+    /// Creates a new room. Validates room name uniqueness before creation.
+    /// </summary>
     [HttpPost]
     public async Task<ActionResult<RoomsModel>> Create([FromBody] RoomsModel room)
     {
@@ -76,6 +82,9 @@ public class RoomsController : ControllerBase
             return Conflict(ex.Message);
         }
     }
+    /// <summary>
+    /// Updates an existing room. Validates room name uniqueness (excluding current room) before updating.
+    /// </summary>
     [HttpPut("{id:int}")]
     public async Task<ActionResult<RoomsModel>> Update(int id, [FromBody] RoomsModel room)
     {
@@ -114,6 +123,9 @@ public class RoomsController : ControllerBase
         }
     }
 
+    /// <summary>
+    /// Deletes a room. Prevents deletion if room has existing bookings (foreign key constraint).
+    /// </summary>
     [HttpDelete("{id:int}")]
     public async Task<IActionResult> Delete(int id)
     {
