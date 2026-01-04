@@ -14,12 +14,13 @@ namespace Calender_WebApp.Services.Interfaces
     public interface IOfficeAttendanceService : ICrudService<OfficeAttendanceModel>
     {
         Task<OfficeAttendanceModel> GetAttendanceByUserAndDateAsync(int userId, DateTime date);
-        Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date);
-        Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId);
-        Task<OfficeAttendanceModel> UpsertAttendanceAsync(
-            int userId,
-            DateTime date,
-            AttendanceStatus status
-        );
+        Task<OfficeAttendanceModel> UpsertAttendanceAsync(int userId,DateTime date,AttendanceStatus status);
+
+        // ====================================================================
+        // Methods below can be used if the front end needs them
+        // ====================================================================
+
+        //Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date);
+        //Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId);
     }
 }

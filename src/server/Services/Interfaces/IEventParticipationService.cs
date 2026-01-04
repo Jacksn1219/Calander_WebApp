@@ -18,11 +18,16 @@ namespace Calender_WebApp.Services.Interfaces
     {
         Task<EventParticipationModel> Delete(EventParticipationModel entity);
         Task<EventParticipationModel> Delete(EventParticipationModel entity, bool isEventCanceled);
-        Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus);
         Task<EventParticipationModel[]> GetParticipantsByEventIdAsync(int eventId);
         Task<bool> IsUserParticipatingAsync(int eventId, int userId);
-        Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId);
         Task<DateTime> GetEventStartTimeAsync(int eventId);
         Task<EventParticipationModel[]> UpdateEventRemindersAsync(int eventId, EventsModel? oldEvent = null, EventsModel? newEvent = null);
+        // ====================================================================
+        // Methods below can be used if the front end needs them
+        // ====================================================================
+        // Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus);
+        // Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId); 
+
+
     }
 }

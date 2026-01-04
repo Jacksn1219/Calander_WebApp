@@ -13,7 +13,12 @@ namespace Calender_WebApp.Services.Interfaces
     /// </summary>
     public interface IEmployeesService : ICrudService<EmployeesModel>
     {
-        Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email);
         new Task<EmployeesModel> Put(int id, EmployeesModel item);
+
+        // ====================================================================
+        // Methods below can be used if the front end needs them
+        // ====================================================================
+
+        //Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email);
     }
 }

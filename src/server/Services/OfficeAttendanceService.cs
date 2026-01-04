@@ -26,21 +26,6 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
             ?? throw new InvalidOperationException("Attendance not found.");
     }
 
-    public async Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date)
-    {
-        return await _dbSet
-            .Where(a => a.Date.Date == date.Date)
-            .ToListAsync();
-    }
-
-    public async Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId)
-    {
-        return await _dbSet
-            .Where(a => a.UserId == userId)
-            .OrderByDescending(a => a.Date)
-            .ToListAsync();
-    }
-
     /// <summary>
     /// Creates or updates attendance record for user on specified date.
     /// Updates existing record status if found, creates new record if not.
@@ -81,4 +66,20 @@ public class OfficeAttendanceService : CrudService<OfficeAttendanceModel>, IOffi
 
         return newAttendance;
     }
+    // ====================================================================
+    // Methods below can be used if the front end needs them
+    // public async Task<List<OfficeAttendanceModel>> GetAttendancesByDateAsync(DateTime date)
+    // {
+    //     return await _dbSet
+    //         .Where(a => a.Date.Date == date.Date)
+    //         .ToListAsync();
+    // }
+
+    // public async Task<List<OfficeAttendanceModel>> GetAttendancesByUserIdAsync(int userId)
+    // {
+    //     return await _dbSet
+    //         .Where(a => a.UserId == userId)
+    //         .OrderByDescending(a => a.Date)
+    //         .ToListAsync();
+    // }
 }

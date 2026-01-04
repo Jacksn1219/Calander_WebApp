@@ -32,21 +32,6 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         _remindersService = remindersService ?? throw new ArgumentNullException(nameof(remindersService));
     }
 
-    public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
-    {
-        return await _dbSet
-            .Where(e => e.CreatedBy == userId)
-            .ToListAsync();
-    }
-
-    public async Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate)
-    {
-        return await _dbSet
-            .Where(e => e.EventDate >= fromDate)
-            .OrderBy(e => e.EventDate)
-            .ToListAsync();
-    }
-
     /// <summary>
     /// Updates event with room booking validation and participant notifications.
     /// Validates booking times match event times if BookingId provided.
@@ -197,4 +182,22 @@ public class EventsService : CrudService<EventsModel>, IEventsService
         
         return eventToDelete;
     }
+    // ====================================================================
+    // Methods below can be used if the front end needs them
+    // ====================================================================
+    /// 
+    // public async Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId)
+    // {
+    //     return await _dbSet
+    //         .Where(e => e.CreatedBy == userId)
+    //         .ToListAsync();
+    // }
+
+    // public async Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate)
+    // {
+    //     return await _dbSet
+    //         .Where(e => e.EventDate >= fromDate)
+    //         .OrderBy(e => e.EventDate)
+    //         .ToListAsync();
+    // }
 }

@@ -57,10 +57,7 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
             .ToListAsync();
     }
 
-    public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
-    {
-        return await _roomBookingsService.IsRoomAvailableAsync(roomId, start, end);
-    }
+    // 
 
     /// <summary>
     /// Validates that a room name doesn't already exist for creation.
@@ -103,4 +100,12 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
         }
         return true;
     }
+
+    ///===================================================================
+    /// Methods below can be used if the front end needs them
+    /// ===================================================================
+    // public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
+    // {
+    //     return await _roomBookingsService.IsRoomAvailableAsync(roomId, start, end);
+    // }
 }

@@ -168,20 +168,6 @@ public class EventParticipationService : IEventParticipationService
     public Task<EventParticipationModel> Patch(int userId, EventParticipationModel newTEntity)
         => throw new NotSupportedException("Use UpdateStatus(int userId, int eventId, string newStatus) to update the status of an event participation.");
 
-    public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus)
-    {
-        if (!Enum.TryParse<ParticipationStatus>(newStatus, true, out var status))
-            throw new ArgumentException("Invalid status value", nameof(newStatus));
-
-        var participation = await _dbSet.FirstOrDefaultAsync(ep => ep.UserId == userId && ep.EventId == eventId).ConfigureAwait(false);
-        if (participation == null)
-            throw new InvalidOperationException("Participation record not found.");
-
-        participation.Status = status;
-        await _context.SaveChangesAsync();
-        return participation;
-    }
-
     public async Task<EventParticipationModel[]> GetParticipantsByEventIdAsync(int eventId)
     {
         return await _dbSet
@@ -195,12 +181,7 @@ public class EventParticipationService : IEventParticipationService
             .AnyAsync(ep => ep.EventId == eventId && ep.UserId == userId);
     }
     
-    public async Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId)
-    {
-        return await _dbSet
-            .Where(ep => ep.UserId == userId)
-            .ToArrayAsync();
-    }
+    
 
     public async Task<DateTime> GetEventStartTimeAsync(int eventId)
     {
@@ -291,4 +272,27 @@ public class EventParticipationService : IEventParticipationService
         await _context.SaveChangesAsync();
         return participants;
     }
+    /// ====================================================================
+    /// Methods below can be used if the front end needs them
+    /// ==================================================================
+    // public async Task<EventParticipationModel> UpdateStatus(int userId, int eventId, string newStatus)
+    // {
+    //     if (!Enum.TryParse<ParticipationStatus>(newStatus, true, out var status))
+    //         throw new ArgumentException("Invalid status value", nameof(newStatus));
+
+    //     var participation = await _dbSet.FirstOrDefaultAsync(ep => ep.UserId == userId && ep.EventId == eventId).ConfigureAwait(false);
+    //     if (participation == null)
+    //         throw new InvalidOperationException("Participation record not found.");
+
+    //     participation.Status = status;
+    //     await _context.SaveChangesAsync();
+    //     return participation;
+    // }
+    // public async Task<EventParticipationModel[]> GetParticipantsByUserIdAsync(int userId)
+    // {
+    //     return await _dbSet
+    //         .Where(ep => ep.UserId == userId)
+    //         .ToArrayAsync();
+    // }
+
 }

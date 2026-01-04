@@ -148,88 +148,6 @@ public class RoomBookingsService : IRoomBookingsService
     public Task<RoomBookingsModel> Patch(int userId, RoomBookingsModel newNewRoombooking)
         => throw new NotSupportedException("Updating room bookings is not supported. Create a new booking instead.");
 
-    /// <summary>
-    /// Updates booking start time and sends detailed change notification.
-    /// Notification includes old/new times and linked event information.
-    /// </summary>
-    public async Task<RoomBookingsModel> UpdateStartTime(RoomBookingsModel entity, TimeSpan newStartTime)
-    {
-        var day = entity.BookingDate.Date;
-        var booking = await _dbSet.FirstOrDefaultAsync(b =>
-            b.RoomId == entity.RoomId &&
-            b.BookingDate == day &&
-            b.StartTime == entity.StartTime);
-        if (booking == null) throw new InvalidOperationException("Booking not found.");
-
-        var oldStartTime = booking.StartTime;
-        var oldEndTime = booking.EndTime;
-        booking.StartTime = newStartTime;
-
-        var bookingDateTime = booking.BookingDate.Add(newStartTime);
-
-        var relatedEvent = await _context.Events
-            .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
-                         e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
-                         e.EndTime.TimeOfDay == booking.EndTime)
-            .ConfigureAwait(false);
-        
-        var relatedEventId = relatedEvent?.Id ?? 0;
-
-        await _remindersService.Post(new RemindersModel
-        {
-            UserId = entity.UserId,
-            ReminderType = reminderType.RoomBookingChanged,
-            RelatedRoomId = entity.RoomId,
-            RelatedEventId = relatedEventId,
-            ReminderTime = bookingDateTime,
-            Title = $"Room {entity.RoomId} Booking Changed",
-            Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {oldStartTime:hh\\:mm} → {newStartTime:hh\\:mm}\nEnd time: {oldEndTime:hh\\:mm} (unchanged)\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
-        }).ConfigureAwait(false);
-
-        await _context.SaveChangesAsync();
-        return booking;
-    }
-
-    /// <summary>
-    /// Updates booking end time and sends detailed change notification.
-    /// Notification includes old/new times and linked event information.
-    /// </summary>
-    public async Task<RoomBookingsModel> UpdateEndTime(RoomBookingsModel entity, TimeSpan newEndTime)
-    {
-        var day = entity.BookingDate.Date;
-        var booking = await _dbSet.FirstOrDefaultAsync(b =>
-            b.RoomId == entity.RoomId &&
-            b.BookingDate == day &&
-            b.StartTime == entity.StartTime);
-        if (booking == null) throw new InvalidOperationException("Booking not found.");
-
-        var oldEndTime = booking.EndTime;
-        booking.EndTime = newEndTime;
-        
-        var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
-
-        var relatedEvent = await _context.Events
-            .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
-                         e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
-                         e.EndTime.TimeOfDay == booking.EndTime)
-            .ConfigureAwait(false);
-        
-        var relatedEventId = relatedEvent?.Id ?? 0;
-
-        await _remindersService.Post(new RemindersModel
-        {
-            UserId = entity.UserId,
-            ReminderType = reminderType.RoomBookingChanged,
-            RelatedRoomId = entity.RoomId,
-            RelatedEventId = relatedEventId,
-            ReminderTime = bookingDateTime,
-            Title = $"Room {entity.RoomId} Booking Changed",
-            Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {booking.StartTime:hh\\:mm} (unchanged)\nEnd time: {oldEndTime:hh\\:mm} → {newEndTime:hh\\:mm}\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
-        }).ConfigureAwait(false);
-        
-        await _context.SaveChangesAsync();
-        return booking;
-    }
 
     /// <summary>
     /// Creates booking with overlap detection, duplicate prevention, and automatic reminder generation.
@@ -298,12 +216,7 @@ public class RoomBookingsService : IRoomBookingsService
         return entry.Entity;
     }
 
-    public async Task<List<RoomBookingsModel>> GetBookingsForRoomAsync(int roomId)
-    {
-        return await _dbSet
-            .Where(rb => rb.RoomId == roomId)
-            .ToListAsync();
-    }
+   
 
     public async Task<List<RoomBookingsModel>> GetBookingsByUserIdAsync(int userId)
     {
@@ -313,39 +226,128 @@ public class RoomBookingsService : IRoomBookingsService
             .ToListAsync();
     }
 
-    public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
-    {
-        var startDay = start.Date;
-        var endDay = end.Date;
-        var startTime = start.TimeOfDay;
-        var endTime = end.TimeOfDay;
+    /// ====================================================================
+    /// Methods below can be used if the front end needs them
+    /// ====================================================================
+    // /// <summary>
+    // /// Updates booking start time and sends detailed change notification.
+    // /// Notification includes old/new times and linked event information.
+    // /// </summary>
+    // public async Task<RoomBookingsModel> UpdateStartTime(RoomBookingsModel entity, TimeSpan newStartTime)
+    // {
+    //     var day = entity.BookingDate.Date;
+    //     var booking = await _dbSet.FirstOrDefaultAsync(b =>
+    //         b.RoomId == entity.RoomId &&
+    //         b.BookingDate == day &&
+    //         b.StartTime == entity.StartTime);
+    //     if (booking == null) throw new InvalidOperationException("Booking not found.");
 
-        var bookingsInRange = await _dbSet
-            .Where(rb => rb.BookingDate >= startDay && rb.BookingDate <= endDay)
-            .ToListAsync();
+    //     var oldStartTime = booking.StartTime;
+    //     var oldEndTime = booking.EndTime;
+    //     booking.StartTime = newStartTime;
 
-        var unavailableRoomIds = bookingsInRange
-            .Where(rb => rb.StartTime < endTime && rb.EndTime > startTime)
-            .Select(rb => rb.RoomId)
-            .Distinct()
-            .ToHashSet();
+    //     var bookingDateTime = booking.BookingDate.Add(newStartTime);
 
-        return await _context.Rooms
-            .Where(room => room.Id.HasValue && !unavailableRoomIds.Contains(room.Id.Value))
-            .ToListAsync();
-    }
+    //     var relatedEvent = await _context.Events
+    //         .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
+    //                      e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
+    //                      e.EndTime.TimeOfDay == booking.EndTime)
+    //         .ConfigureAwait(false);
+        
+    //     var relatedEventId = relatedEvent?.Id ?? 0;
 
-    public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
-    {
-        var day = start.Date;
-        var startTime = start.TimeOfDay;
-        var endTime = end.TimeOfDay;
+    //     await _remindersService.Post(new RemindersModel
+    //     {
+    //         UserId = entity.UserId,
+    //         ReminderType = reminderType.RoomBookingChanged,
+    //         RelatedRoomId = entity.RoomId,
+    //         RelatedEventId = relatedEventId,
+    //         ReminderTime = bookingDateTime,
+    //         Title = $"Room {entity.RoomId} Booking Changed",
+    //         Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {oldStartTime:hh\\:mm} → {newStartTime:hh\\:mm}\nEnd time: {oldEndTime:hh\\:mm} (unchanged)\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
+    //     }).ConfigureAwait(false);
 
-        var dayBookings = await _dbSet
-            .Where(rb => rb.RoomId == roomId && rb.BookingDate == day)
-            .ToListAsync();
+    //     await _context.SaveChangesAsync();
+    //     return booking;
+    // }
+    // /// <summary>
+    // /// Updates booking end time and sends detailed change notification.
+    // /// Notification includes old/new times and linked event information.
+    // /// </summary>
+    // public async Task<RoomBookingsModel> UpdateEndTime(RoomBookingsModel entity, TimeSpan newEndTime)
+    // {
+    //     var day = entity.BookingDate.Date;
+    //     var booking = await _dbSet.FirstOrDefaultAsync(b =>
+    //         b.RoomId == entity.RoomId &&
+    //         b.BookingDate == day &&
+    //         b.StartTime == entity.StartTime);
+    //     if (booking == null) throw new InvalidOperationException("Booking not found.");
 
-        var hasOverlap = dayBookings.Any(rb => rb.StartTime < endTime && rb.EndTime > startTime);
-        return !hasOverlap;
-    }
+    //     var oldEndTime = booking.EndTime;
+    //     booking.EndTime = newEndTime;
+        
+    //     var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
+
+    //     var relatedEvent = await _context.Events
+    //         .FirstOrDefaultAsync(e => e.BookingId == booking.Id &&
+    //                      e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
+    //                      e.EndTime.TimeOfDay == booking.EndTime)
+    //         .ConfigureAwait(false);
+        
+    //     var relatedEventId = relatedEvent?.Id ?? 0;
+
+    //     await _remindersService.Post(new RemindersModel
+    //     {
+    //         UserId = entity.UserId,
+    //         ReminderType = reminderType.RoomBookingChanged,
+    //         RelatedRoomId = entity.RoomId,
+    //         RelatedEventId = relatedEventId,
+    //         ReminderTime = bookingDateTime,
+    //         Title = $"Room {entity.RoomId} Booking Changed",
+    //         Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {booking.StartTime:hh\\:mm} (unchanged)\nEnd time: {oldEndTime:hh\\:mm} → {newEndTime:hh\\:mm}\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
+    //     }).ConfigureAwait(false);
+        
+    //     await _context.SaveChangesAsync();
+    //     return booking;
+    // }
+    // public async Task<bool> IsRoomAvailableAsync(int roomId, DateTime start, DateTime end)
+    // {
+    //     var day = start.Date;
+    //     var startTime = start.TimeOfDay;
+    //     var endTime = end.TimeOfDay;
+
+    //     var dayBookings = await _dbSet
+    //         .Where(rb => rb.RoomId == roomId && rb.BookingDate == day)
+    //         .ToListAsync();
+
+    //     var hasOverlap = dayBookings.Any(rb => rb.StartTime < endTime && rb.EndTime > startTime);
+    //     return !hasOverlap;
+    // }
+    //  public async Task<List<RoomBookingsModel>> GetBookingsForRoomAsync(int roomId)
+    // {
+    //     return await _dbSet
+    //         .Where(rb => rb.RoomId == roomId)
+    //         .ToListAsync();
+    // }
+    // public async Task<List<RoomsModel>> GetAvailableRoomsAsync(DateTime start, DateTime end)
+    // {
+    //     var startDay = start.Date;
+    //     var endDay = end.Date;
+    //     var startTime = start.TimeOfDay;
+    //     var endTime = end.TimeOfDay;
+
+    //     var bookingsInRange = await _dbSet
+    //         .Where(rb => rb.BookingDate >= startDay && rb.BookingDate <= endDay)
+    //         .ToListAsync();
+
+    //     var unavailableRoomIds = bookingsInRange
+    //         .Where(rb => rb.StartTime < endTime && rb.EndTime > startTime)
+    //         .Select(rb => rb.RoomId)
+    //         .Distinct()
+    //         .ToHashSet();
+
+    //     return await _context.Rooms
+    //         .Where(room => room.Id.HasValue && !unavailableRoomIds.Contains(room.Id.Value))
+    //         .ToListAsync();
+    // }
 }

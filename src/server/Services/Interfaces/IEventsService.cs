@@ -14,7 +14,11 @@ namespace Calender_WebApp.Services.Interfaces
     /// </summary>
     public interface IEventsService : ICrudService<EventsModel>
     {
-        Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId);
-        Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate);
+        // ====================================================================
+        // Methods below can be used if the front end needs them
+        // ====================================================================
+
+        //Task<IEnumerable<EventsModel>> GetEventsByUserAsync(int userId);
+        //Task<IEnumerable<EventsModel>> GetUpcomingEventsAsync(DateTime fromDate);
     }
 }

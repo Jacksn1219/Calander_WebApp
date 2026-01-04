@@ -35,46 +35,9 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
             .ToArrayAsync();
     }
 
-    /// <summary>
-    /// Retrieves unread reminders that are due (ReminderTime has passed).
-    /// Used to fetch reminders that should be displayed now.
-    /// </summary>
-    public Task<RemindersModel[]> GetNextRemindersAsync(int userId, DateTime fromTime, DateTime toTime)
-    {
-        return _dbSet
-            .Where(r => r.UserId == userId && r.ReminderTime >= fromTime && r.ReminderTime <= toTime && !r.IsRead)
-            .ToArrayAsync();
-    }
 
-    /// <summary>
-    /// Retrieves reminders for room booking using time window matching (±5 minutes).
-    /// Calculates expected reminder time by subtracting user's advance minutes from booking time.
-    /// </summary>
-    public async Task<RemindersModel[]> GetRemindersByRelatedRoomAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
-    {
-        var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
-        var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
-        
-        var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
-        
-        var timeWindowStart = expectedReminderTime.AddMinutes(-5);
-        var timeWindowEnd = expectedReminderTime.AddMinutes(5);
-        
-        return await _dbSet
-            .Where(r => r.UserId == relatedUserId && 
-                        r.RelatedRoomId == relatedRoomId && 
-                        r.ReminderTime >= timeWindowStart && 
-                        r.ReminderTime <= timeWindowEnd)
-            .ToArrayAsync();
-    }
 
-    public Task<RemindersModel[]> GetRemindersByRelatedEventAsync(int relatedUserId, int relatedEventId)
-    {
-        return _dbSet
-            .Where(r => r.UserId == relatedUserId && r.RelatedEventId == relatedEventId)
-            .ToArrayAsync();
-    }
-
+    
     /// <summary>
     /// Soft deletes room booking reminders by marking as read (preserves cancellation notifications).
     /// Uses time window (±5 minutes) to find reminders.
@@ -246,4 +209,44 @@ public class RemindersService : CrudService<RemindersModel>, IRemindersService
 
         return await base.Patch(id, newModel).ConfigureAwait(false);
     }
+    // ====================================================================
+    // Methods below can be used if the front end needs them
+    // ====================================================================
+    // /// <summary>
+    // /// Retrieves unread reminders that are due (ReminderTime has passed).
+    // /// Used to fetch reminders that should be displayed now.
+    // /// </summary>
+    // public Task<RemindersModel[]> GetNextRemindersAsync(int userId, DateTime fromTime, DateTime toTime)
+    // {
+    //     return _dbSet
+    //         .Where(r => r.UserId == userId && r.ReminderTime >= fromTime && r.ReminderTime <= toTime && !r.IsRead)
+    //         .ToArrayAsync();
+    // }
+    // public Task<RemindersModel[]> GetRemindersByRelatedEventAsync(int relatedUserId, int relatedEventId)
+    // {
+    //     return _dbSet
+    //         .Where(r => r.UserId == relatedUserId && r.RelatedEventId == relatedEventId)
+    //         .ToArrayAsync();
+    // }
+    // /// <summary>
+    // /// Retrieves reminders for room booking using time window matching (±5 minutes).
+    // /// Calculates expected reminder time by subtracting user's advance minutes from booking time.
+    // /// </summary>
+    // public async Task<RemindersModel[]> GetRemindersByRelatedRoomAsync(int relatedUserId, int relatedRoomId, DateTime bookingDate, TimeSpan startTime)
+    // {
+    //     var preferences = await _reminderPreferencesService.GetByUserId(relatedUserId).ConfigureAwait(false);
+    //     var advanceTime = preferences.FirstOrDefault()?.ReminderAdvanceMinutes ?? TimeSpan.Zero;
+        
+    //     var expectedReminderTime = bookingDate.Add(startTime).Subtract(advanceTime);
+        
+    //     var timeWindowStart = expectedReminderTime.AddMinutes(-5);
+    //     var timeWindowEnd = expectedReminderTime.AddMinutes(5);
+        
+    //     return await _dbSet
+    //         .Where(r => r.UserId == relatedUserId && 
+    //                     r.RelatedRoomId == relatedRoomId && 
+    //                     r.ReminderTime >= timeWindowStart && 
+    //                     r.ReminderTime <= timeWindowEnd)
+    //         .ToArrayAsync();
+    // }
 }

@@ -20,14 +20,6 @@ namespace Calender_WebApp.Services
     {
         public EmployeesService(AppDbContext ctx) : base(ctx) { }
 
-        public async Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email)
-        {
-            return await _dbSet
-                .AsNoTracking()
-                .Where(e => e.Email == email)
-                .ToListAsync();
-        }
-
         /// <summary>
         /// Updates employee data with email uniqueness validation and conditional password hashing.
         /// Only updates password if new value is provided and differs from existing hash.
@@ -85,5 +77,17 @@ namespace Calender_WebApp.Services
             entity.Password = BCrypt.Net.BCrypt.HashPassword(entity.Password);
             return await base.Post(entity).ConfigureAwait(false);
         }
+
+        // ====================================================================
+        // Methods below can be used if the front end needs them
+        // ====================================================================
+
+        //public async Task<List<EmployeesModel>> GetEmployeeByEmailAsync(string email)
+        //{
+        //    return await _dbSet
+        //        .AsNoTracking()
+        //        .Where(e => e.Email == email)
+        //        .ToListAsync();
+        //}
     }
 }
