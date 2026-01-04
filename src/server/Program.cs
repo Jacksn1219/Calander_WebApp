@@ -104,6 +104,13 @@ class Program
 
         var app = builder.Build();
 
+        // Ensure data folder exists for the database
+        var dataFolder = Path.Combine(Directory.GetCurrentDirectory(), "data");
+        if (!Directory.Exists(dataFolder))
+        {
+            Directory.CreateDirectory(dataFolder);
+        }
+
         // Ensure database is created and migrated to latest version on startup
         using (var scope = app.Services.CreateScope())
         {
