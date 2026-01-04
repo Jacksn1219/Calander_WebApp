@@ -3,7 +3,6 @@ using Calender_WebApp.Services.Interfaces;
 using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
-
 /// <summary>
 /// Manages room entities with availability checking and capacity filtering.
 /// 
@@ -30,7 +29,7 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
         return await _dbSet.FirstOrDefaultAsync(r => r.RoomName == name)
             ?? throw new InvalidOperationException("Room not found.");
     }
-        
+
     /// <summary>
     /// Filters available rooms by capacity using overlap detection.
     /// Excludes rooms with overlapping bookings in specified time range.
@@ -56,8 +55,6 @@ public class RoomsService : CrudService<RoomsModel>, IRoomsService
             .Where(room => room.Id.HasValue && !unavailableRoomIds.Contains(room.Id.Value) && room.Capacity >= capacity)
             .ToListAsync();
     }
-
-    // 
 
     /// <summary>
     /// Validates that a room name doesn't already exist for creation.

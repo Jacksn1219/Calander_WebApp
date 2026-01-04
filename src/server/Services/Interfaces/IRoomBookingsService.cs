@@ -19,6 +19,7 @@ namespace Calender_WebApp.Services.Interfaces
     {
         public Task<RoomBookingsModel> Delete(RoomBookingsModel model); 
         public Task<List<RoomBookingsModel>> GetBookingsByUserIdAsync(int userId);
+        public Task<RoomBookingsModel> GetById(int id);
         public Task<RoomBookingsModel?> GetByIdAsync(int id);
         // ====================================================================
         // Methods below can be used if the front end needs them

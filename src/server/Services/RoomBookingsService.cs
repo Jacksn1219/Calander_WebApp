@@ -6,6 +6,7 @@ using Microsoft.EntityFrameworkCore;
 
 namespace Calender_WebApp.Services;
 
+
 /// <summary>
 /// Manages room bookings with overlap detection and automatic reminder generation.
 /// 
@@ -62,7 +63,7 @@ public class RoomBookingsService : IRoomBookingsService
                          e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
                          e.EndTime.TimeOfDay == booking.EndTime)
             .ConfigureAwait(false);
-        
+
         var relatedEventId = relatedEvent?.Id ?? 0;
 
         await _remindersService.Post(new RemindersModel
@@ -82,10 +83,10 @@ public class RoomBookingsService : IRoomBookingsService
         await _context.SaveChangesAsync();
         return booking;
     }
-    
+
     public virtual async Task<RoomBookingsModel[]> Get()
         => await _dbSet.AsNoTracking().ToArrayAsync().ConfigureAwait(false);
-    
+
     public async Task<RoomBookingsModel> GetById(int id)
     {
         var booking = await _dbSet.AsNoTracking().FirstOrDefaultAsync(rb => rb.Id == id).ConfigureAwait(false);
@@ -115,7 +116,7 @@ public class RoomBookingsService : IRoomBookingsService
             throw new ArgumentException("EndTime must be greater than StartTime.");
 
         var dayBookings = await _dbSet
-            .Where(rb => rb.RoomId == newNewRoombooking.RoomId 
+            .Where(rb => rb.RoomId == newNewRoombooking.RoomId
                       && rb.BookingDate == newNewRoombooking.BookingDate
                       && rb.Id != id)
             .ToListAsync();
@@ -136,7 +137,8 @@ public class RoomBookingsService : IRoomBookingsService
             .Where(p => validators == null || validators.ContainsKey(p.Name))
             .ToDictionary(p => p.Name, p => p.GetValue(newNewRoombooking));
 
-        if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors))
+        {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
         }
 
@@ -183,11 +185,13 @@ public class RoomBookingsService : IRoomBookingsService
                         && p.Name != nameof(RoomBookingsModel.Employee))
             .ToDictionary(p => p.Name, p => p.GetValue(model));
 
-        if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors)) {
+        if (!ModelWhitelistUtil.ValidateModelInput(typeof(RoomBookingsModel).Name, inputDict, out var errors))
+        {
             throw new ArgumentException($"Model validation failed: {string.Join(", ", errors)}");
         }
 
-        if (model.Room == null) {
+        if (model.Room == null)
+        {
             model.Room = await _context.Rooms.FindAsync(model.RoomId).ConfigureAwait(false);
         }
 
@@ -198,7 +202,7 @@ public class RoomBookingsService : IRoomBookingsService
                          e.EventDate == model.BookingDate.Add(model.StartTime) &&
                          e.EndTime.TimeOfDay == model.EndTime)
             .ConfigureAwait(false);
-        
+
         var relatedEventId = relatedEvent?.Id ?? 0;
 
         await _remindersService.Post(new RemindersModel
@@ -216,7 +220,7 @@ public class RoomBookingsService : IRoomBookingsService
         return entry.Entity;
     }
 
-   
+
 
     public async Task<List<RoomBookingsModel>> GetBookingsByUserIdAsync(int userId)
     {
@@ -253,7 +257,7 @@ public class RoomBookingsService : IRoomBookingsService
     //                      e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
     //                      e.EndTime.TimeOfDay == booking.EndTime)
     //         .ConfigureAwait(false);
-        
+
     //     var relatedEventId = relatedEvent?.Id ?? 0;
 
     //     await _remindersService.Post(new RemindersModel
@@ -285,7 +289,7 @@ public class RoomBookingsService : IRoomBookingsService
 
     //     var oldEndTime = booking.EndTime;
     //     booking.EndTime = newEndTime;
-        
+
     //     var bookingDateTime = booking.BookingDate.Add(booking.StartTime);
 
     //     var relatedEvent = await _context.Events
@@ -293,7 +297,7 @@ public class RoomBookingsService : IRoomBookingsService
     //                      e.EventDate == booking.BookingDate.Add(booking.StartTime) &&
     //                      e.EndTime.TimeOfDay == booking.EndTime)
     //         .ConfigureAwait(false);
-        
+
     //     var relatedEventId = relatedEvent?.Id ?? 0;
 
     //     await _remindersService.Post(new RemindersModel
@@ -306,7 +310,7 @@ public class RoomBookingsService : IRoomBookingsService
     //         Title = $"Room {entity.RoomId} Booking Changed",
     //         Message = $"Your room booking for Room {entity.RoomId} has been changed:\nStart time: {booking.StartTime:hh\\:mm} (unchanged)\nEnd time: {oldEndTime:hh\\:mm} → {newEndTime:hh\\:mm}\n\nBooking starts: {bookingDateTime:yyyy-MM-dd HH:mm}",
     //     }).ConfigureAwait(false);
-        
+
     //     await _context.SaveChangesAsync();
     //     return booking;
     // }
