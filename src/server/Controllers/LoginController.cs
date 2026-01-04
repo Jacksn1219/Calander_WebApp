@@ -1,5 +1,6 @@
 using Calender_WebApp.Models;
 using Calender_WebApp.Services;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using System.Security.Claims;
 using Microsoft.EntityFrameworkCore;
@@ -73,25 +74,5 @@ namespace Calender_WebApp.Controllers
                 }
             });
         }
-    }
-
-    /// <summary>
-    /// Request model for user authentication. Contains credentials for login validation.
-    /// </summary>
-    public class LoginRequest
-    {
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-    }
-
-    /// <summary>
-    /// Request model for user registration. Defaults to User role if not specified.
-    /// </summary>
-    public class RegisterRequest
-    {
-        public string Name { get; set; } = string.Empty;
-        public string Email { get; set; } = string.Empty;
-        public string Password { get; set; } = string.Empty;
-        public UserRole Role { get; set; } = UserRole.User;
     }
 }

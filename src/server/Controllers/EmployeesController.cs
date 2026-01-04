@@ -1,7 +1,7 @@
 using System.Collections.Generic;
-using System.Text.Json.Serialization;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Authorization;
 
@@ -144,19 +144,6 @@ public class EmployeesController : ControllerBase
 		{
 			return NotFound();
 		}
-	}
-	/// <summary>
-	/// DTO for updating employee information.
-	/// Password is optional - if null or empty, existing password is not changed.
-	/// </summary>		
-	public class EmployeesModelForUpdate
-	{
-		public int User_id { get; set; } = 0;
-		public string Name { get; set; } = string.Empty;
-		public string Email { get; set; } = string.Empty;
-		[JsonConverter(typeof(JsonStringEnumConverter))]
-		public UserRole Role { get; set; } = UserRole.User;
-		public string? Password { get; set; } = string.Empty;
 	}
 
 	// ====================================================================

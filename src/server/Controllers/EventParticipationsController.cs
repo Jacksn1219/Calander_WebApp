@@ -1,6 +1,7 @@
 using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
@@ -60,23 +61,6 @@ public class EventParticipationController : ControllerBase
 		{
 			return Conflict(ex.Message);
 		}
-	}
-
-	/// <summary>
-	/// Request model for updating a participant's status. Status is represented as an integer enum value.
-	/// </summary>
-	public class UpdateStatusRequest
-	{
-		public int Status { get; set; } = 0;
-	}
-
-	/// <summary>
-	/// Request model for deleting event participation. Uses composite key (EventId, UserId) instead of entity model.
-	/// </summary>
-	public class DeleteParticipationRequest
-	{
-		public int EventId { get; set; }
-		public int UserId { get; set; }
 	}
 
 	[HttpDelete]

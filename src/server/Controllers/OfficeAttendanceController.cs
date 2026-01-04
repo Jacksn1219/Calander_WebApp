@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using Calender_WebApp.Models;
 using Calender_WebApp.Services.Interfaces;
+using Calender_WebApp.Dtos;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Calender_WebApp.Controllers;
@@ -55,14 +56,6 @@ public class OfficeAttendanceController : ControllerBase
             .UpsertAttendanceAsync(userId, today, status);
 
         return Ok(result);
-    }
-
-    /// <summary>
-    /// Request model for updating attendance status. Status is an integer representing AttendanceStatus enum.
-    /// </summary>
-    public class UpdateAttendanceRequest
-    {
-        public int Status { get; set; }
     }
 
     // ====================================================================
