@@ -1,4 +1,4 @@
-.edit-event-layout {
+/* .edit-event-layout {
   display: flex;
   min-height: 100vh;
   background-color: #f5f6fa;
@@ -30,7 +30,7 @@
   border-bottom: 2px solid #e2e8f0;
   padding-bottom: 0.5rem;
   text-align: center;
-}
+} */
 
 .edit-event-form {
   display: flex;
@@ -64,6 +64,17 @@
 .edit-event-form textarea:focus {
   border-color: #3182ce;
   box-shadow: 0 0 0 3px rgba(49, 130, 206, 0.2);
+}
+
+.edit-event-form input[type="date"]::-webkit-calendar-picker-indicator,
+.edit-event-form input[type="time"]::-webkit-calendar-picker-indicator {
+  filter: var(--calendar-picker-filter);
+  cursor: pointer;
+}
+
+.edit-event-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.edit-event-form input[type="time"]::-webkit-datetime-edit-fields-wrapper {
+  color: var(--text-primary);
 }
 
 /* EditEventDialog modal-specific sizing tweaks (avoid tiny internal scroll) */
@@ -113,7 +124,7 @@
   background: #b10000;
 }
 
-@media (max-width: 1024px) {
+/* @media (max-width: 1024px) {
   .edit-event-section {
     max-width: 500px;
     padding: 1.5rem;
@@ -173,4 +184,4 @@
   .edit-event-section h1 {
     font-size: 2rem;
   }
-}
+} */

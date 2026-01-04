@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import "../styles/event-dialog.css";
-import "../styles/edit-event.css";
+import "../styles/edit-event-dialog.css";
 import { EventItem, useEditEvent } from "../hooks/hooks";
 
 interface EditEventDialogProps {

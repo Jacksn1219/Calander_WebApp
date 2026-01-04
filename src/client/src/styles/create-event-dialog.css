@@ -13,12 +13,10 @@
   padding: 16px;
 }
 
-/* CreateEventDialog modal-specific sizing tweaks (match EditEventDialog) */
 .create-dialog-backdrop .dialog-content {
   max-height: 95vh;
 }
 
-/* Scoped to standalone create event page */
 .create-event-layout {
   display: flex;
   min-height: 100vh;
@@ -53,7 +51,6 @@
   text-align: center;
 }
 
-/* Shared form styles (used by EditEventDialog) */
 .create-event-form {
   display: flex;
   flex-direction: column;
@@ -67,7 +64,6 @@
 
 .create-event-form input,
 .create-event-form textarea {
-  width: 100%;
   padding: 0.75rem 1rem;
   border: 1px solid var(--input-border);
   border-radius: 8px;
@@ -78,15 +74,14 @@
   color: var(--text-primary);
 }
 
-.create-event-form input[type="date"]::-webkit-calendar-picker-indicator {
+.create-event-form input[type="date"]::-webkit-calendar-picker-indicator,
+.create-event-form input[type="time"]::-webkit-calendar-picker-indicator {
   filter: var(--calendar-picker-filter);
   cursor: pointer;
 }
 
-.create-event-form input[type="date"]::-webkit-datetime-edit-text,
-.create-event-form input[type="date"]::-webkit-datetime-edit-month-field,
-.create-event-form input[type="date"]::-webkit-datetime-edit-day-field,
-.create-event-form input[type="date"]::-webkit-datetime-edit-year-field {
+.create-event-form input[type="date"]::-webkit-datetime-edit-fields-wrapper,
+.create-event-form input[type="time"]::-webkit-datetime-edit-fields-wrapper {
   color: var(--text-primary);
 }
 
@@ -106,7 +101,6 @@
   box-shadow: 0 0 0 3px var(--primary-light);
 }
 
-/* Scoped to CreateEventDialog */
 .dialog-content .create-event-form .create-event-buttons {
   display: flex;
   justify-content: flex-end;
@@ -146,8 +140,7 @@
   background: var(--danger-hover);
 }
 
-/* Responsive styles for standalone page */
-@media (max-width: 1024px) {
+/* @media (max-width: 1024px) {
   .create-event-layout .create-event-section {
     max-width: 500px;
     padding: 1.5rem;
@@ -206,4 +199,4 @@
   .create-event-form textarea {
     width: 93%;
   }
-}
+} */

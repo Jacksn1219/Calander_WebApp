@@ -1,5 +1,3 @@
-import '../styles/error-unauthorized.css';
-
 export default function Unauthorized() {
   return (
     <div className="app-layout">

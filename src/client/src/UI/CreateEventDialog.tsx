@@ -1,6 +1,6 @@
 import React, { useRef, useEffect } from "react";
 import "../styles/event-dialog.css";
-import "../styles/create-event.css";
+import "../styles/create-event-dialog.css";
 import { useCreateEvent } from "../hooks/hooks";
 
 interface CreateEventDialogProps {

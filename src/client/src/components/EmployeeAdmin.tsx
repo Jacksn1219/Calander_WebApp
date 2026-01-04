@@ -176,7 +176,7 @@ const EmployeeAdmin: React.FC = () => {
                 )}
 
                 <label htmlFor="employee-password">
-                  Temporary Password <span style={{ color: '#dc2626' }}>*</span>
+                  New Password <span style={{ color: '#dc2626' }}>*</span>
                 </label>
                 <div className="password-input-container">
                   <input
